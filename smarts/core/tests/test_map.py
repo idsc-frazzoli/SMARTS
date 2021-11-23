@@ -348,7 +348,6 @@ def test_od_map_junction():
 
     r5_lp_path = lanepoints.paths_starting_at_lanepoint(r5_linked_lane_point, 5, ())
     assert len(r5_lp_path) == 1
-    print([llp.lp.lane.lane_id for llp in r5_lp_path[0]])
     assert [llp.lp.lane.lane_id for llp in r5_lp_path[0]].count("5_0_R_-1") == 6
 
     # route generation
@@ -524,7 +523,6 @@ def test_od_map_figure_eight():
 
     r1_lp_path = lanepoints.paths_starting_at_lanepoint(r1_linked_lane_point, 5, ())
     assert len(r1_lp_path) == 1
-    print([llp.lp.lane.lane_id for llp in r1_lp_path[0]])
     assert [llp.lp.lane.lane_id for llp in r1_lp_path[0]].count("508_0_R_-1") == 6
 
 

@@ -334,7 +334,7 @@ def test_od_map_junction():
     assert (
         round(l1_lane_point.pose.position[0], 2),
         round(l1_lane_point.pose.position[1], 2),
-    ) == (162.63, 74.36)
+    ) == (118.12, 170.0)
 
     point = (115.55, 120.63)
     r5_linked_lane_point = lanepoints.closest_linked_lanepoint_on_road(
@@ -344,10 +344,12 @@ def test_od_map_junction():
     assert (
         round(r5_linked_lane_point.lp.pose.position[0], 2),
         round(r5_linked_lane_point.lp.pose.position[1], 2),
-    ) == (162.63, 74.36)
+    ) == (116.31, 119.67)
 
     r5_lp_path = lanepoints.paths_starting_at_lanepoint(r5_linked_lane_point, 5, ())
     assert len(r5_lp_path) == 1
+    print([llp.lp.lane.lane_id for llp in r5_lp_path[0]])
+    assert [llp.lp.lane.lane_id for llp in r5_lp_path[0]].count("5_0_R_-1") == 6
 
     # route generation
     r_0_0_L = road_map.road_by_id("0_0_L")
@@ -510,18 +512,20 @@ def test_od_map_figure_eight():
     assert (
         round(l5_lane_point.pose.position[0], 2),
         round(l5_lane_point.pose.position[1], 2),
-    ) == (162.63, 74.36)
+    ) == (1.94, 2.04)
 
     point = (163.56, 75.84, 0)
     r1_linked_lane_point = lanepoints.closest_linked_lanepoint_on_road(point, "508_0_R")
-    assert r1_linked_lane_point.lp.lane.lane_id == "5_0_R_-1"
+    assert r1_linked_lane_point.lp.lane.lane_id == "508_0_R_-1"
     assert (
         round(r1_linked_lane_point.lp.pose.position[0], 2),
         round(r1_linked_lane_point.lp.pose.position[1], 2),
-    ) == (162.63, 74.36)
+    ) == (163.63, 75.94)
 
     r1_lp_path = lanepoints.paths_starting_at_lanepoint(r1_linked_lane_point, 5, ())
     assert len(r1_lp_path) == 1
+    print([llp.lp.lane.lane_id for llp in r1_lp_path[0]])
+    assert [llp.lp.lane.lane_id for llp in r1_lp_path[0]].count("508_0_R_-1") == 6
 
 
 def test_od_map_lane_offset():
@@ -716,7 +720,7 @@ def test_od_map_lane_offset():
     assert (
         round(l1_lane_point.pose.position[0], 2),
         round(l1_lane_point.pose.position[1], 2),
-    ) == (162.63, 74.36)
+    ) == (48.5, -0.15)
 
     point = (20.0, 1.3, 0)
     r0_linked_lane_point = lanepoints.closest_linked_lanepoint_on_road(point, "1_0_L")
@@ -724,10 +728,11 @@ def test_od_map_lane_offset():
     assert (
         round(r0_linked_lane_point.lp.pose.position[0], 2),
         round(r0_linked_lane_point.lp.pose.position[1], 2),
-    ) == (162.63, 74.36)
+    ) == (20.0, 1.62)
 
     r0_lp_path = lanepoints.paths_starting_at_lanepoint(r0_linked_lane_point, 5, ())
     assert len(r0_lp_path) == 1
+    assert [llp.lp.lane.lane_id for llp in r0_lp_path[0]].count("1_0_L_1") == 6
 
 
 def test_od_map_motorway():
@@ -851,16 +856,17 @@ def test_od_map_motorway():
     r34l_linked_lane_point = lanepoints.closest_linked_lanepoint_on_road(
         point, "34_0_L"
     )
-    assert r34l_linked_lane_point.lp.lane.lane_id == "34_0_L_1"
+    assert r34l_linked_lane_point.lp.lane.lane_id == "34_0_L_3"
     assert (
         round(r34l_linked_lane_point.lp.pose.position[0], 2),
         round(r34l_linked_lane_point.lp.pose.position[1], 2),
-    ) == (162.63, 74.36)
+    ) == (492.75, 1529.0)
 
     r34l_lp_path = lanepoints.paths_starting_at_lanepoint(
         r34l_linked_lane_point, 10, ()
     )
     assert len(r34l_lp_path) == 1
+    assert [llp.lp.lane.lane_id for llp in r34l_lp_path[0]].count("34_0_L_3") == 11
 
 
 def lp_points(lps):

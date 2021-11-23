@@ -133,7 +133,7 @@ def test_sumo_map(sumo_scenario):
 def test_od_map_junction():
     root = path.join(Path(__file__).parent.absolute(), "maps")
     road_map = OpenDriveRoadNetwork.from_file(
-        path.join(root, "UC_Simple-X-Junction.xodr")
+        path.join(root, "UC_Simple-X-Junction.xodr"), lanepoint_spacing=0.5
     )
     assert isinstance(road_map, OpenDriveRoadNetwork)
 
@@ -398,7 +398,9 @@ def test_od_map_junction():
 
 def test_od_map_figure_eight():
     root = path.join(Path(__file__).parent.absolute(), "maps")
-    road_map = OpenDriveRoadNetwork.from_file(path.join(root, "Figure-Eight.xodr"))
+    road_map = OpenDriveRoadNetwork.from_file(
+        path.join(root, "Figure-Eight.xodr"), lanepoint_spacing=0.5
+    )
     assert isinstance(road_map, OpenDriveRoadNetwork)
 
     # Expected properties for all roads and lanes
@@ -503,7 +505,6 @@ def test_od_map_figure_eight():
 
     # Lanepoints
     lanepoints = road_map._lanepoints
-
     point = (1.89, 0.79, 0)
     l5_lane_point = lanepoints.closest_lanepoint_on_lane_to_point(point, l5.lane_id)
     assert (
@@ -526,7 +527,7 @@ def test_od_map_figure_eight():
 def test_od_map_lane_offset():
     root = path.join(Path(__file__).parent.absolute(), "maps")
     file_path = path.join(root, "Ex_Simple-LaneOffset.xodr")
-    road_map = OpenDriveRoadNetwork.from_file(file_path)
+    road_map = OpenDriveRoadNetwork.from_file(file_path, lanepoint_spacing=0.5)
     assert isinstance(road_map, OpenDriveRoadNetwork)
     assert road_map.source == file_path
     assert road_map.bounding_box.max_pt == Point(x=100.0, y=8.0, z=0)
@@ -732,7 +733,7 @@ def test_od_map_lane_offset():
 def test_od_map_motorway():
     root = path.join(Path(__file__).parent.absolute(), "maps")
     file_path = path.join(root, "UC_Motorway-Exit-Entry.xodr")
-    road_map = OpenDriveRoadNetwork.from_file(file_path)
+    road_map = OpenDriveRoadNetwork.from_file(file_path, lanepoint_spacing=0.5)
     assert isinstance(road_map, OpenDriveRoadNetwork)
     assert road_map.source == file_path
 

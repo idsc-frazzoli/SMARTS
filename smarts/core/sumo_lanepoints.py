@@ -40,6 +40,8 @@ with warnings.catch_warnings():
         # aggressive
         from sklearn.neighbors import KDTree
 
+from smarts.core.utils.sumo import sumolib  # isort:skip
+from sumolib.net.edge import Edge  # isort:skip
 from sumolib.net.lane import Lane  # isort:skip
 
 from smarts.core.coordinates import Heading, Pose

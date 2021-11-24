@@ -40,10 +40,6 @@ with warnings.catch_warnings():
         # aggressive
         from sklearn.neighbors import KDTree
 
-from smarts.core.utils.sumo import sumolib  # isort:skip
-from sumolib.net.edge import Edge  # isort:skip
-from sumolib.net.lane import Lane  # isort:skip
-
 from smarts.core.coordinates import Heading, Pose
 from smarts.core.road_map import RoadMap
 from smarts.core.utils.math import (
@@ -115,6 +111,9 @@ class LanePoints:
         the network, the result of this function can be used to interpolate
         lanepoints along lanes to the desired granularity.
         """
+        from smarts.core.utils.sumo import sumolib  # isort:skip
+        from sumolib.net.edge import Edge  # isort:skip
+        from sumolib.net.lane import Lane  # isort:skip
         from .sumo_road_network import SumoRoadNetwork
 
         assert type(sumo_road_network) == SumoRoadNetwork
@@ -595,7 +594,7 @@ class LanePoints:
             for path in lanepoint_paths:
                 branching_paths = []
                 for next_lp in path[-1].nexts:
-                    # TODO: This could be a problem. What about internal lanes?
+                    # TODO: This could be a problem for SUMO. What about internal lanes?
                     # Filter only the edges we're interested in
                     edge_id = next_lp.lp.lane.road.road_id
                     if filter_edge_ids and edge_id not in filter_edge_ids:
@@ -603,7 +602,7 @@ class LanePoints:
                     new_path = path + [next_lp]
                     branching_paths.append(new_path)
 
-                if branching_paths == []:
+                if len(branching_paths) == 0:
                     branching_paths = [path]
 
                 next_lanepoint_paths += branching_paths

@@ -53,7 +53,7 @@ from opendrive2lanelet.opendriveparser.parser import parse_opendrive
 from shapely.geometry import Polygon
 import rtree
 
-from smarts.core.road_map import RoadMap
+from smarts.core.road_map import RoadMap, Waypoint
 from smarts.core.utils.math import (
     CubicPolynomial,
     constrain_angle,
@@ -61,6 +61,7 @@ from smarts.core.utils.math import (
     get_linear_segments_for_range,
     offset_along_shape,
     position_at_shape_offset,
+    vec_2d,
 )
 
 from .lanepoints import LinkedLanePoint, LanePoints
@@ -195,11 +196,23 @@ class LaneBoundary:
 
 class OpenDriveRoadNetwork(RoadMap):
     DEFAULT_LANE_WIDTH = 3.2
+    DEFAULT_LANE_SPEED = 16.67  # in m/s
 
-    def __init__(self, xodr_file: str, default_lane_width=None, lanepoint_spacing=None):
+    def __init__(
+        self,
+        xodr_file: str,
+        default_lane_speed=None,
+        default_lane_width=None,
+        lanepoint_spacing=None,
+    ):
         self._log = logging.getLogger(self.__class__.__name__)
         self._log.setLevel(logging.INFO)
         self._xodr_file = xodr_file
+        self._default_lane_speed = (
+            default_lane_speed
+            if default_lane_speed is not None
+            else OpenDriveRoadNetwork.DEFAULT_LANE_SPEED
+        )
         self._default_lane_width = (
             default_lane_width
             if default_lane_width is not None
@@ -259,6 +272,16 @@ class OpenDriveRoadNetwork(RoadMap):
         for road_elem in od.roads:
             road_elem: RoadElement = road_elem
 
+            # Set road speed
+            if (
+                road_elem.types
+                and road_elem.types[0].speed
+                and road_elem.types[0].speed.max
+            ):
+                road_elem_speed = float(road_elem.types[0].speed.max)
+            else:
+                road_elem_speed = self._default_lane_speed
+
             # Create new road for each lane section
             for section_elem in road_elem.lanes.lane_sections:
                 section_elem: LaneSectionElement = section_elem
@@ -301,6 +324,7 @@ class OpenDriveRoadNetwork(RoadMap):
                                 "onramp",
                                 "connectingramp",
                             ],
+                            road_elem_speed,
                             road_elem.planView,
                         )
                         # Set road as drivable if it has at least one lane drivable
@@ -655,6 +679,7 @@ class OpenDriveRoadNetwork(RoadMap):
             index: int,
             length: float,
             is_drivable: bool,
+            speed_limit: float,
             road_plan_view: PlanViewElement,
         ):
             super().__init__(lane_id)
@@ -663,6 +688,7 @@ class OpenDriveRoadNetwork(RoadMap):
             self._road = road
             self._index = index
             self._length = length
+            self._speed_limit = speed_limit
             self._plan_view = road_plan_view
             self._is_drivable = is_drivable
             self._incoming_lanes = []
@@ -693,6 +719,10 @@ class OpenDriveRoadNetwork(RoadMap):
         @property
         def length(self) -> float:
             return self._length
+
+        @property
+        def speed_limit(self) -> float:
+            return self._speed_limit
 
         @property
         def in_junction(self) -> bool:
@@ -1271,6 +1301,75 @@ class OpenDriveRoadNetwork(RoadMap):
 
     def empty_route(self) -> RoadMap.Route:
         return OpenDriveRoadNetwork.Route(self)
+    #
+    # def waypoint_paths(
+    #     self,
+    #     pose: Pose,
+    #     lookahead: int,
+    #     within_radius: float = 5,
+    #     route: RoadMap.Route = None,
+    # ) -> List[List[Waypoint]]:
+    #     if route:
+    #         if route.roads:
+    #             road_ids = [road.road_id for road in route.roads]
+    #         else:
+    #             road_ids = self._resolve_in_junction(pose)
+    #         if road_ids:
+    #             return self._waypoint_paths_along_route(
+    #                 pose.position, lookahead, road_ids
+    #             )
+    #     closest_lps = self._lanepoints.closest_lanepoints(
+    #         [pose], within_radius=within_radius
+    #     )
+    #     closest_lane = closest_lps[0].lane
+    #     # TAI: the above lines could be replaced by:
+    #     # closest_lane = self.nearest_lane(pose.position, radius=within_radius)
+    #     waypoint_paths = []
+    #     for lane in closest_lane.road.lanes:
+    #         waypoint_paths += lane._waypoint_paths_at(pose.position, lookahead)
+    #     return sorted(waypoint_paths, key=lambda p: p[0].lane_index)
+    #
+    # def _resolve_in_junction(self, pose: Pose) -> List[str]:
+    #     # This is so that the waypoints don't jump between connections
+    #     # when we don't know which lane we're on in a junction.
+    #     # We take the 10 closest lanepoints then filter down to that which has
+    #     # the closest heading. This way we get the lanepoint on our lane instead of
+    #     # a potentially closer lane that is on a different junction connection.
+    #     closest_lps = self._lanepoints.closest_lanepoints([pose], within_radius=None)
+    #     closest_lps.sort(key=lambda lp: abs(pose.heading - lp.pose.heading))
+    #     lane = closest_lps[0].lane
+    #     if not lane.in_junction:
+    #         return []
+    #     road_ids = [lane.road.road_id]
+    #     next_roads = lane.road.outgoing_roads
+    #     assert (
+    #         len(next_roads) <= 1
+    #     ), "A junction is expected to have <= 1 outgoing roads"
+    #     if next_roads:
+    #         road_ids.append(next_roads[0].road_id)
+    #     return road_ids
+    #
+    # def _waypoint_paths_along_route(
+    #     self, point, lookahead: int, route: Sequence[str]
+    # ) -> List[List[Waypoint]]:
+    #     """finds the closest lane to vehicle's position that is on its route,
+    #     then gets waypoint paths from all lanes in its edge there."""
+    #     assert len(route) > 0, f"Expected at least 1 road in the route, got: {route}"
+    #     closest_llp_on_each_route_road = [
+    #         self._lanepoints.closest_linked_lanepoint_on_road(point, road)
+    #         for road in route
+    #     ]
+    #     closest_linked_lp = min(
+    #         closest_llp_on_each_route_road,
+    #         key=lambda l_lp: np.linalg.norm(
+    #             vec_2d(l_lp.lp.pose.position) - vec_2d(point)
+    #         ),
+    #     )
+    #     closest_lane = closest_linked_lp.lp.lane
+    #     waypoint_paths = []
+    #     for lane in closest_lane.road.lanes:
+    #         waypoint_paths += lane._waypoint_paths_at(point, lookahead, route)
+    #     return sorted(waypoint_paths, key=lambda p: p[0].lane_index)
 
     class Route(RoadMap.Route):
         def __init__(self, road_map):

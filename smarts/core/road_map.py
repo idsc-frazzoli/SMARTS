@@ -35,6 +35,7 @@ from .utils.math import (
     signed_dist_to_line,
     vec_to_radians,
 )
+from .lanepoints import LinkedLanePoint
 
 # TODO:
 # - also consider Esri, QGIS and Google Maps formats
@@ -528,3 +529,51 @@ class Waypoint:
     def dist_to(self, p) -> float:
         """Calculates straight line distance to the given 2D point"""
         return np.linalg.norm(self.pos - p[: len(self.pos)])
+
+
+class WaypointsCache:
+    def __init__(self):
+        self.lookahead = 0
+        self.point = (0, 0, 0)
+        self.filter_road_ids = ()
+        self._starts = {}
+
+    # XXX:  all vehicles share this cache now (as opposed to before
+    # when it was in Plan.py and each vehicle had its own cache).
+    # TODO: probably need to add vehicle_id to the key somehow (or just make it bigger)
+    def _match(self, lookahead, point, filter_road_ids) -> bool:
+        return (
+            lookahead <= self.lookahead
+            and point[0] == self.point[0]
+            and point[1] == self.point[1]
+            and filter_road_ids == self.filter_road_ids
+        )
+
+    def update(
+        self,
+        lookahead: int,
+        point: Tuple[float, float, float],
+        filter_road_ids: tuple,
+        llp: LinkedLanePoint,
+        paths: List[List[Waypoint]],
+    ):
+        if not self._match(lookahead, point, filter_road_ids):
+            self.lookahead = lookahead
+            self.point = point
+            self.filter_road_ids = filter_road_ids
+            self._starts = {}
+        self._starts[llp.lp.lane.index] = paths
+
+    def query(
+        self,
+        lookahead: int,
+        point: Tuple[float, float, float],
+        filter_road_ids: tuple,
+        llp: LinkedLanePoint,
+    ) -> List[List[Waypoint]]:
+        if self._match(lookahead, point, filter_road_ids):
+            hit = self._starts.get(llp.lp.lane.index, None)
+            if hit:
+                # consider just returning all of them (not slicing)?
+                return [path[: (lookahead + 1)] for path in hit]
+            return None

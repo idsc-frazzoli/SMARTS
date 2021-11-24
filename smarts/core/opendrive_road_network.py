@@ -53,7 +53,7 @@ from opendrive2lanelet.opendriveparser.parser import parse_opendrive
 from shapely.geometry import Polygon
 import rtree
 
-from smarts.core.road_map import RoadMap, Waypoint
+from smarts.core.road_map import RoadMap, Waypoint, WaypointsCache
 from smarts.core.utils.math import (
     CubicPolynomial,
     constrain_angle,
@@ -62,10 +62,12 @@ from smarts.core.utils.math import (
     offset_along_shape,
     position_at_shape_offset,
     vec_2d,
+    inplace_unwrap,
+    radians_to_vec,
 )
 
 from .lanepoints import LinkedLanePoint, LanePoints
-from .coordinates import BoundingBox, Point, Pose, RefLinePoint
+from .coordinates import BoundingBox, Point, Pose, RefLinePoint, Heading
 from smarts.core.utils.geometry import generate_mesh_from_polygons
 
 
@@ -229,7 +231,7 @@ class OpenDriveRoadNetwork(RoadMap):
         self._all_lanes = []
 
         self.load()
-
+        self._waypoints_cache = WaypointsCache()
         if lanepoint_spacing is not None:
             assert lanepoint_spacing > 0
             self._lanepoints = LanePoints.from_opendrive(
@@ -871,6 +873,43 @@ class OpenDriveRoadNetwork(RoadMap):
             ys.extend(ys_inner + ys_outer[::-1] + [ys_inner[0]])
             return list(zip(xs, ys))
 
+        def waypoint_paths_for_pose(
+            self, pose: Pose, lookahead: int, route: RoadMap.Route = None
+        ) -> List[List[Waypoint]]:
+            if not self.is_drivable:
+                return []
+            road_ids = [road.road_id for road in route.roads] if route else None
+            return self._waypoint_paths_at(pose.position, lookahead, road_ids)
+
+        def waypoint_paths_at_offset(
+            self, offset: float, lookahead: int = 30, route: RoadMap.Route = None
+        ) -> List[List[Waypoint]]:
+            if not self.is_drivable:
+                return []
+            wp_start = self.from_lane_coord(RefLinePoint(offset))
+            road_ids = [road.road_id for road in route.roads] if route else None
+            return self._waypoint_paths_at(wp_start, lookahead, road_ids)
+
+        def _waypoint_paths_at(
+            self,
+            point: Sequence,
+            lookahead: int,
+            filter_road_ids: Sequence[str] = None,
+        ) -> List[List[Waypoint]]:
+            if not self.is_drivable:
+                return []
+            closest_linked_lp = (
+                self._map._lanepoints.closest_linked_lanepoint_on_lane_to_point(
+                    point, self._lane_id
+                )
+            )
+            return self._map._waypoints_starting_at_lanepoint(
+                closest_linked_lp,
+                lookahead,
+                tuple(filter_road_ids) if filter_road_ids else (),
+                tuple(point),
+            )
+
         @lru_cache(maxsize=8)
         def project_along(
             self, start_offset: float, distance: float
@@ -1216,161 +1255,6 @@ class OpenDriveRoadNetwork(RoadMap):
                 return nl.road
         return None
 
-    @staticmethod
-    def _shortest_route(start: RoadMap.Road, end: RoadMap.Road) -> List[RoadMap.Road]:
-        queue = [(start.length, start.road_id, start)]
-        came_from = dict()
-        came_from[start] = None
-        cost_so_far = dict()
-        cost_so_far[start] = start.length
-        current = None
-
-        # Dijkstra’s Algorithm
-        while queue:
-            (_, _, current) = heapq.heappop(queue)
-            current: RoadMap.Road
-            if current == end:
-                break
-            for out_road in current.outgoing_roads:
-                new_cost = cost_so_far[current] + out_road.length
-                if out_road not in cost_so_far or new_cost < cost_so_far[out_road]:
-                    cost_so_far[out_road] = new_cost
-                    came_from[out_road] = current
-                    heapq.heappush(queue, (new_cost, out_road.road_id, out_road))
-
-        # This means we couldn't find a valid route since the queue is empty
-        if current != end:
-            return []
-
-        # Reconstruct path
-        current = end
-        path = []
-        while current != start:
-            path.append(current)
-            current = came_from[current]
-        path.append(start)
-        path.reverse()
-        return path
-
-    def generate_routes(
-        self,
-        start_road: RoadMap.Road,
-        end_road: RoadMap.Road,
-        via: Sequence[RoadMap.Road] = None,
-        max_to_gen: int = 1,
-    ) -> List[RoadMap.Route]:
-        assert (
-            max_to_gen == 1
-        ), "multiple route generation not yet supported for OpenDRIVE"
-        newroute = OpenDriveRoadNetwork.Route(self)
-        result = [newroute]
-
-        roads = [start_road]
-        if via:
-            roads += via
-        if end_road != start_road:
-            roads.append(end_road)
-
-        route_roads = []
-        for cur_road, next_road in zip(roads, roads[1:] + [None]):
-            if not next_road:
-                route_roads.append(cur_road)
-                break
-            sub_route = OpenDriveRoadNetwork._shortest_route(cur_road, next_road) or []
-            if len(sub_route) < 2:
-                self._log.warning(
-                    f"Unable to find valid path between {(cur_road.road_id, next_road.road_id)}."
-                )
-                return result
-            # The sub route includes the boundary roads (cur_road, next_road).
-            # We clip the latter to prevent duplicates
-            route_roads.extend(sub_route[:-1])
-
-        for road in route_roads:
-            newroute.add_road(road)
-        return result
-
-    def random_route(self, max_route_len: int = 10) -> RoadMap.Route:
-        route = OpenDriveRoadNetwork.Route(self)
-        next_roads = list(self._roads.values())
-        while next_roads and len(route.roads) < max_route_len:
-            cur_road = random.choice(next_roads)
-            route.add_road(cur_road)
-            next_roads = list(cur_road.outgoing_roads)
-        return route
-
-    def empty_route(self) -> RoadMap.Route:
-        return OpenDriveRoadNetwork.Route(self)
-    #
-    # def waypoint_paths(
-    #     self,
-    #     pose: Pose,
-    #     lookahead: int,
-    #     within_radius: float = 5,
-    #     route: RoadMap.Route = None,
-    # ) -> List[List[Waypoint]]:
-    #     if route:
-    #         if route.roads:
-    #             road_ids = [road.road_id for road in route.roads]
-    #         else:
-    #             road_ids = self._resolve_in_junction(pose)
-    #         if road_ids:
-    #             return self._waypoint_paths_along_route(
-    #                 pose.position, lookahead, road_ids
-    #             )
-    #     closest_lps = self._lanepoints.closest_lanepoints(
-    #         [pose], within_radius=within_radius
-    #     )
-    #     closest_lane = closest_lps[0].lane
-    #     # TAI: the above lines could be replaced by:
-    #     # closest_lane = self.nearest_lane(pose.position, radius=within_radius)
-    #     waypoint_paths = []
-    #     for lane in closest_lane.road.lanes:
-    #         waypoint_paths += lane._waypoint_paths_at(pose.position, lookahead)
-    #     return sorted(waypoint_paths, key=lambda p: p[0].lane_index)
-    #
-    # def _resolve_in_junction(self, pose: Pose) -> List[str]:
-    #     # This is so that the waypoints don't jump between connections
-    #     # when we don't know which lane we're on in a junction.
-    #     # We take the 10 closest lanepoints then filter down to that which has
-    #     # the closest heading. This way we get the lanepoint on our lane instead of
-    #     # a potentially closer lane that is on a different junction connection.
-    #     closest_lps = self._lanepoints.closest_lanepoints([pose], within_radius=None)
-    #     closest_lps.sort(key=lambda lp: abs(pose.heading - lp.pose.heading))
-    #     lane = closest_lps[0].lane
-    #     if not lane.in_junction:
-    #         return []
-    #     road_ids = [lane.road.road_id]
-    #     next_roads = lane.road.outgoing_roads
-    #     assert (
-    #         len(next_roads) <= 1
-    #     ), "A junction is expected to have <= 1 outgoing roads"
-    #     if next_roads:
-    #         road_ids.append(next_roads[0].road_id)
-    #     return road_ids
-    #
-    # def _waypoint_paths_along_route(
-    #     self, point, lookahead: int, route: Sequence[str]
-    # ) -> List[List[Waypoint]]:
-    #     """finds the closest lane to vehicle's position that is on its route,
-    #     then gets waypoint paths from all lanes in its edge there."""
-    #     assert len(route) > 0, f"Expected at least 1 road in the route, got: {route}"
-    #     closest_llp_on_each_route_road = [
-    #         self._lanepoints.closest_linked_lanepoint_on_road(point, road)
-    #         for road in route
-    #     ]
-    #     closest_linked_lp = min(
-    #         closest_llp_on_each_route_road,
-    #         key=lambda l_lp: np.linalg.norm(
-    #             vec_2d(l_lp.lp.pose.position) - vec_2d(point)
-    #         ),
-    #     )
-    #     closest_lane = closest_linked_lp.lp.lane
-    #     waypoint_paths = []
-    #     for lane in closest_lane.road.lanes:
-    #         waypoint_paths += lane._waypoint_paths_at(point, lookahead, route)
-    #     return sorted(waypoint_paths, key=lambda p: p[0].lane_index)
-
     class Route(RoadMap.Route):
         def __init__(self, road_map):
             self._roads = []
@@ -1462,3 +1346,328 @@ class OpenDriveRoadNetwork(RoadMap):
                     continue
                 return {(lane, distance) for lane in road.lanes}
             return set()
+
+    @staticmethod
+    def _shortest_route(start: RoadMap.Road, end: RoadMap.Road) -> List[RoadMap.Road]:
+        queue = [(start.length, start.road_id, start)]
+        came_from = dict()
+        came_from[start] = None
+        cost_so_far = dict()
+        cost_so_far[start] = start.length
+        current = None
+
+        # Dijkstra’s Algorithm
+        while queue:
+            (_, _, current) = heapq.heappop(queue)
+            current: RoadMap.Road
+            if current == end:
+                break
+            for out_road in current.outgoing_roads:
+                new_cost = cost_so_far[current] + out_road.length
+                if out_road not in cost_so_far or new_cost < cost_so_far[out_road]:
+                    cost_so_far[out_road] = new_cost
+                    came_from[out_road] = current
+                    heapq.heappush(queue, (new_cost, out_road.road_id, out_road))
+
+        # This means we couldn't find a valid route since the queue is empty
+        if current != end:
+            return []
+
+        # Reconstruct path
+        current = end
+        path = []
+        while current != start:
+            path.append(current)
+            current = came_from[current]
+        path.append(start)
+        path.reverse()
+        return path
+
+    def generate_routes(
+        self,
+        start_road: RoadMap.Road,
+        end_road: RoadMap.Road,
+        via: Sequence[RoadMap.Road] = None,
+        max_to_gen: int = 1,
+    ) -> List[RoadMap.Route]:
+        assert (
+            max_to_gen == 1
+        ), "multiple route generation not yet supported for OpenDRIVE"
+        newroute = OpenDriveRoadNetwork.Route(self)
+        result = [newroute]
+
+        roads = [start_road]
+        if via:
+            roads += via
+        if end_road != start_road:
+            roads.append(end_road)
+
+        route_roads = []
+        for cur_road, next_road in zip(roads, roads[1:] + [None]):
+            if not next_road:
+                route_roads.append(cur_road)
+                break
+            sub_route = OpenDriveRoadNetwork._shortest_route(cur_road, next_road) or []
+            if len(sub_route) < 2:
+                self._log.warning(
+                    f"Unable to find valid path between {(cur_road.road_id, next_road.road_id)}."
+                )
+                return result
+            # The sub route includes the boundary roads (cur_road, next_road).
+            # We clip the latter to prevent duplicates
+            route_roads.extend(sub_route[:-1])
+
+        for road in route_roads:
+            newroute.add_road(road)
+        return result
+
+    def random_route(self, max_route_len: int = 10) -> RoadMap.Route:
+        route = OpenDriveRoadNetwork.Route(self)
+        next_roads = list(self._roads.values())
+        while next_roads and len(route.roads) < max_route_len:
+            cur_road = random.choice(next_roads)
+            route.add_road(cur_road)
+            next_roads = list(cur_road.outgoing_roads)
+        return route
+
+    def empty_route(self) -> RoadMap.Route:
+        return OpenDriveRoadNetwork.Route(self)
+
+    def waypoint_paths(
+        self,
+        pose: Pose,
+        lookahead: int,
+        within_radius: float = 5,
+        route: RoadMap.Route = None,
+    ) -> List[List[Waypoint]]:
+        if route:
+            if route.roads:
+                road_ids = [road.road_id for road in route.roads]
+            else:
+                road_ids = self._resolve_in_junction(pose)
+            if road_ids:
+                return self._waypoint_paths_along_route(
+                    pose.position, lookahead, road_ids
+                )
+        closest_lps = self._lanepoints.closest_lanepoints(
+            [pose], within_radius=within_radius
+        )
+        closest_lane = closest_lps[0].lane
+        waypoint_paths = []
+        for lane in closest_lane.road.lanes:
+            waypoint_paths += lane._waypoint_paths_at(pose.position, lookahead)
+        return sorted(waypoint_paths, key=lambda p: p[0].lane_index)
+
+    def _resolve_in_junction(self, pose: Pose) -> List[str]:
+        # This is so that the waypoints don't jump between connections
+        # when we don't know which lane we're on in a junction.
+        # We take the 10 closest lanepoints then filter down to that which has
+        # the closest heading. This way we get the lanepoint on our lane instead of
+        # a potentially closer lane that is on a different junction connection.
+        closest_lps = self._lanepoints.closest_lanepoints([pose], within_radius=None)
+        closest_lps.sort(key=lambda lp: abs(pose.heading - lp.pose.heading))
+        lane = closest_lps[0].lane
+        if not lane.in_junction:
+            return []
+        road_ids = [lane.road.road_id]
+        next_roads = lane.road.outgoing_roads
+        assert (
+            len(next_roads) <= 1
+        ), "A junction is expected to have <= 1 outgoing roads"
+        if next_roads:
+            road_ids.append(next_roads[0].road_id)
+        return road_ids
+
+    def _waypoint_paths_along_route(
+        self, point, lookahead: int, route: Sequence[str]
+    ) -> List[List[Waypoint]]:
+        """finds the closest lane to vehicle's position that is on its route,
+        then gets waypoint paths from all lanes in its edge there."""
+        assert len(route) > 0, f"Expected at least 1 road in the route, got: {route}"
+        closest_llp_on_each_route_road = [
+            self._lanepoints.closest_linked_lanepoint_on_road(point, road)
+            for road in route
+        ]
+        closest_linked_lp = min(
+            closest_llp_on_each_route_road,
+            key=lambda l_lp: np.linalg.norm(
+                vec_2d(l_lp.lp.pose.position) - vec_2d(point)
+            ),
+        )
+        closest_lane = closest_linked_lp.lp.lane
+        waypoint_paths = []
+        for lane in closest_lane.road.lanes:
+            waypoint_paths += lane._waypoint_paths_at(point, lookahead, route)
+        return sorted(waypoint_paths, key=lambda p: p[0].lane_index)
+
+    @staticmethod
+    def _equally_spaced_path(
+        path: Sequence[LinkedLanePoint],
+        point: Tuple[float, float, float],
+        lp_spacing: float,
+    ) -> List[Waypoint]:
+        """given a list of LanePoints starting near point, that may not be evenly spaced,
+        returns the same number of Waypoints that are evenly spaced and start at point."""
+
+        continuous_variables = [
+            "positions_x",
+            "positions_y",
+            "headings",
+            "lane_width",
+            "speed_limit",
+        ]
+        discrete_variables = ["lane_id", "lane_index"]
+
+        ref_lanepoints_coordinates = {
+            parameter: [] for parameter in (continuous_variables + discrete_variables)
+        }
+        for idx, lanepoint in enumerate(path):
+            if lanepoint.is_inferred and 0 < idx < len(path) - 1:
+                continue
+            ref_lanepoints_coordinates["positions_x"].append(
+                lanepoint.lp.pose.position[0]
+            )
+            ref_lanepoints_coordinates["positions_y"].append(
+                lanepoint.lp.pose.position[1]
+            )
+            ref_lanepoints_coordinates["headings"].append(
+                lanepoint.lp.pose.heading.as_bullet
+            )
+            ref_lanepoints_coordinates["lane_id"].append(lanepoint.lp.lane.lane_id)
+            ref_lanepoints_coordinates["lane_index"].append(lanepoint.lp.lane.index)
+
+            # Compute the lane's width at lanepoint's position
+            position = Point(
+                x=lanepoint.lp.pose.position[0], y=lanepoint.lp.pose.position[1], z=0.0
+            )
+            lane_coord = lanepoint.lp.lane.to_lane_coord(position)
+            width_at_offset = lanepoint.lp.lane.width_at_offset(lane_coord.s)
+            ref_lanepoints_coordinates["lane_width"].append(width_at_offset)
+
+            ref_lanepoints_coordinates["speed_limit"].append(
+                lanepoint.lp.lane.speed_limit
+            )
+
+        ref_lanepoints_coordinates["headings"] = inplace_unwrap(
+            ref_lanepoints_coordinates["headings"]
+        )
+        first_lp_heading = ref_lanepoints_coordinates["headings"][0]
+        lp_position = path[0].lp.pose.position[:2]
+        vehicle_pos = np.array(point[:2])
+        heading_vec = np.array(radians_to_vec(first_lp_heading))
+        projected_distant_lp_vehicle = np.inner(
+            (vehicle_pos - lp_position), heading_vec
+        )
+
+        ref_lanepoints_coordinates["positions_x"][0] = (
+            lp_position[0] + projected_distant_lp_vehicle * heading_vec[0]
+        )
+        ref_lanepoints_coordinates["positions_y"][0] = (
+            lp_position[1] + projected_distant_lp_vehicle * heading_vec[1]
+        )
+        # To ensure that the distance between waypoints are equal, we used
+        # interpolation approach inspired by:
+        # https://stackoverflow.com/a/51515357
+        cumulative_path_dist = np.cumsum(
+            np.sqrt(
+                np.ediff1d(ref_lanepoints_coordinates["positions_x"], to_begin=0) ** 2
+                + np.ediff1d(ref_lanepoints_coordinates["positions_y"], to_begin=0) ** 2
+            )
+        )
+
+        if len(cumulative_path_dist) <= lp_spacing:
+            lp = path[0].lp
+
+            lp_position = Point(x=lp.pose.position[0], y=lp.pose.position[1], z=0.0)
+            lp_lane_coord = lp.lane.to_lane_coord(lp_position)
+            return [
+                Waypoint(
+                    pos=lp.pose.position,
+                    heading=lp.pose.heading,
+                    lane_width=lp.lane.width_at_offset(lp_lane_coord.s),
+                    speed_limit=lp.lane.speed_limit,
+                    lane_id=lp.lane.lane_id,
+                    lane_index=lp.lane.index,
+                )
+            ]
+
+        evenly_spaced_cumulative_path_dist = np.linspace(
+            0, cumulative_path_dist[-1], len(path)
+        )
+
+        evenly_spaced_coordinates = {}
+        for variable in continuous_variables:
+            evenly_spaced_coordinates[variable] = np.interp(
+                evenly_spaced_cumulative_path_dist,
+                cumulative_path_dist,
+                ref_lanepoints_coordinates[variable],
+            )
+
+        for variable in discrete_variables:
+            ref_coordinates = ref_lanepoints_coordinates[variable]
+            evenly_spaced_coordinates[variable] = []
+            jdx = 0
+            for idx in range(len(path)):
+                while (
+                    jdx + 1 < len(cumulative_path_dist)
+                    and evenly_spaced_cumulative_path_dist[idx]
+                    > cumulative_path_dist[jdx + 1]
+                ):
+                    jdx += 1
+
+                evenly_spaced_coordinates[variable].append(ref_coordinates[jdx])
+            evenly_spaced_coordinates[variable].append(ref_coordinates[-1])
+
+        equally_spaced_path = []
+        for idx in range(len(path)):
+            equally_spaced_path.append(
+                Waypoint(
+                    pos=np.array(
+                        [
+                            evenly_spaced_coordinates["positions_x"][idx],
+                            evenly_spaced_coordinates["positions_y"][idx],
+                        ]
+                    ),
+                    heading=Heading(evenly_spaced_coordinates["headings"][idx]),
+                    lane_width=evenly_spaced_coordinates["lane_width"][idx],
+                    speed_limit=evenly_spaced_coordinates["speed_limit"][idx],
+                    lane_id=evenly_spaced_coordinates["lane_id"][idx],
+                    lane_index=evenly_spaced_coordinates["lane_index"][idx],
+                )
+            )
+
+        return equally_spaced_path
+
+    def _waypoints_starting_at_lanepoint(
+        self,
+        lanepoint: LinkedLanePoint,
+        lookahead: int,
+        filter_road_ids: tuple,
+        point: Tuple[float, float, float],
+    ) -> List[List[Waypoint]]:
+        """computes equally-spaced Waypoints for all lane paths starting at lanepoint
+        up to lookahead waypoints ahead, constrained to filter_road_ids if specified."""
+
+        # The following acts sort of like lru_cache(1), but it allows
+        # for lookahead to be <= to the cached value...
+        cache_paths = self._waypoints_cache.query(
+            lookahead, point, filter_road_ids, lanepoint
+        )
+        if cache_paths:
+            return cache_paths
+
+        lanepoint_paths = self._lanepoints.paths_starting_at_lanepoint(
+            lanepoint, lookahead, filter_road_ids
+        )
+        result = [
+            OpenDriveRoadNetwork._equally_spaced_path(
+                path, point, self._lanepoints.spacing
+            )
+            for path in lanepoint_paths
+        ]
+
+        self._waypoints_cache.update(
+            lookahead, point, filter_road_ids, lanepoint, result
+        )
+
+        return result

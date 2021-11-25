@@ -35,7 +35,6 @@ from .utils.math import (
     signed_dist_to_line,
     vec_to_radians,
 )
-from .lanepoints import LinkedLanePoint
 
 # TODO:
 # - also consider Esri, QGIS and Google Maps formats
@@ -554,7 +553,7 @@ class WaypointsCache:
         lookahead: int,
         point: Tuple[float, float, float],
         filter_road_ids: tuple,
-        llp: LinkedLanePoint,
+        llp,
         paths: List[List[Waypoint]],
     ):
         if not self._match(lookahead, point, filter_road_ids):
@@ -569,7 +568,7 @@ class WaypointsCache:
         lookahead: int,
         point: Tuple[float, float, float],
         filter_road_ids: tuple,
-        llp: LinkedLanePoint,
+        llp,
     ) -> List[List[Waypoint]]:
         if self._match(lookahead, point, filter_road_ids):
             hit = self._starts.get(llp.lp.lane.index, None)

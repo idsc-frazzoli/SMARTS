@@ -455,7 +455,7 @@ def test_od_map_figure_eight():
 
     offset = refline_pt.s
     assert l1.width_at_offset(offset) == 3.75
-    assert l1.curvature_radius_at_offset(offset) == 1407374883553280.0
+    assert l1.curvature_radius_at_offset(offset) == 1250999896491804.5
     assert l1.contains_point(point)
     assert l1.road.contains_point(point)
 
@@ -875,6 +875,14 @@ def lp_points(lps):
     return xs, ys
 
 
+def wp_points(wps):
+    xs, ys = [], []
+    for wp in wps:
+        xs.append(wp.pose.position[0])
+        ys.append(wp.lp.pose.position[1])
+    return xs, ys
+
+
 def visualize():
     import matplotlib.pyplot as plt
 
@@ -885,8 +893,8 @@ def visualize():
     filepath = path.join(root, filename)
     road_map = OpenDriveRoadNetwork.from_file(filepath, lanepoint_spacing=0.5)
 
+    # Plot map
     roads = road_map._roads
-
     for road_id in roads:
         road = roads[road_id]
         for lane in road.lanes:
@@ -895,10 +903,34 @@ def visualize():
                 xs.append(x)
                 ys.append(y)
             plt.plot(xs, ys, "k-")
-            if lane.is_drivable:
-                linked_lps = road_map._lanepoints._lanepoints_by_lane_id[lane.lane_id]
-                xlp, ylp = lp_points(linked_lps)
-                plt.scatter(xlp, ylp, s=1, c="r")
+
+    r_13_0_L = road_map.road_by_id("13_0_L")
+    r_0_0_R = road_map.road_by_id("0_0_R")
+
+    route_13_to_0 = road_map.generate_routes(r_13_0_L, r_0_0_R)
+    lp_13_0_L_1 = road_map._lanepoints._lanepoints_by_lane_id["13_0_L_1"]
+    lp_pose = lp_13_0_L_1[0].lp.pose
+
+    # Plot waypoints on a route
+    waypoints_for_route = road_map.waypoint_paths(lp_pose, 100, route=route_13_to_0)
+    for waypoints in waypoints_for_route:
+        xwp, ywp = wp_points(waypoints)
+        plt.scatter(xwp, ywp, s=1, c="b")
+
+    # Plot waypoints for a given lanepoint
+    waypoints_path = road_map.waypoint_paths(lp_pose, 100)
+    for waypoints in waypoints_path:
+        xwp, ywp = wp_points(waypoints)
+        plt.scatter(xwp, ywp, s=1, c="r")
+
+    # Plot all lanepoints
+    # for road_id in roads:
+    #     road = roads[road_id]
+    #     for lane in road.lanes:
+    #         if lane.is_drivable:
+    #             linked_lps = road_map._lanepoints._lanepoints_by_lane_id[lane.lane_id]
+    #             xlp, ylp = lp_points(linked_lps)
+    #             plt.scatter(xlp, ylp, s=1, c="r")
 
     ax.set_title(filename)
     ax.axis("equal")

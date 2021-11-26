@@ -878,8 +878,8 @@ def lp_points(lps):
 def wp_points(wps):
     xs, ys = [], []
     for wp in wps:
-        xs.append(wp.pose.position[0])
-        ys.append(wp.lp.pose.position[1])
+        xs.append(wp.pos[0])
+        ys.append(wp.pos[1])
     return xs, ys
 
 

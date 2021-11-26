@@ -889,7 +889,7 @@ def visualize():
     fig, ax = plt.subplots()
 
     root = path.join(Path(__file__).parent.absolute(), "maps")
-    filename = "UC_Simple-X-Junction.xodr"
+    filename = "UC_Motorway-Exit-Entry.xodr"
     filepath = path.join(root, filename)
     road_map = OpenDriveRoadNetwork.from_file(filepath, lanepoint_spacing=0.5)
 
@@ -904,20 +904,28 @@ def visualize():
                 ys.append(y)
             plt.plot(xs, ys, "k-")
 
-    r_13_0_L = road_map.road_by_id("13_0_L")
-    r_0_0_R = road_map.road_by_id("0_0_R")
+    # Motorway map route (take lane id: "6_0_L_1" for pose)
+    route_6_to_34_via_19 = road_map.generate_routes(
+        road_map.road_by_id("6_0_L"),
+        road_map.road_by_id("34_0_R"),
+        [road_map.road_by_id("19_0_L"), road_map.road_by_id("17_0_R")],
+    )
 
-    route_13_to_0 = road_map.generate_routes(r_13_0_L, r_0_0_R)
-    lp_13_0_L_1 = road_map._lanepoints._lanepoints_by_lane_id["13_0_L_1"]
-    lp_pose = lp_13_0_L_1[0].lp.pose
+    # Junction map route (take lane id: "13_0_L_1" for pose)
+    # r_13_0_L = road_map.road_by_id("13_0_L")
+    # r_0_0_R = road_map.road_by_id("0_0_R")
+    # route_13_to_0 = road_map.generate_routes(r_13_0_L, r_0_0_R)
 
-    # Plot waypoints on a route
-    waypoints_for_route = road_map.waypoint_paths(lp_pose, 500, route=route_13_to_0[0])
+    lp_6_0_L_1 = road_map._lanepoints._lanepoints_by_lane_id["6_0_L_1"]
+    lp_pose = lp_6_0_L_1[0].lp.pose
+
+    # Plot waypoints on a given route
+    waypoints_for_route = road_map.waypoint_paths(lp_pose, 500, route=route_6_to_34_via_19[0])
     for waypoints in waypoints_for_route:
         xwp, ywp = wp_points(waypoints)
         plt.scatter(xwp, ywp, s=1, c="b")
 
-    # Plot waypoints for a given lanepoint
+    # Plot waypoints on nearest lanes of road for a given lanepoint
     # waypoints_path = road_map.waypoint_paths(lp_pose, 100)
     # for waypoints in waypoints_path:
     #     xwp, ywp = wp_points(waypoints)

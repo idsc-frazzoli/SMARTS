@@ -912,16 +912,16 @@ def visualize():
     lp_pose = lp_13_0_L_1[0].lp.pose
 
     # Plot waypoints on a route
-    waypoints_for_route = road_map.waypoint_paths(lp_pose, 100, route=route_13_to_0[0])
+    waypoints_for_route = road_map.waypoint_paths(lp_pose, 500, route=route_13_to_0[0])
     for waypoints in waypoints_for_route:
         xwp, ywp = wp_points(waypoints)
         plt.scatter(xwp, ywp, s=1, c="b")
 
     # Plot waypoints for a given lanepoint
-    waypoints_path = road_map.waypoint_paths(lp_pose, 100)
-    for waypoints in waypoints_path:
-        xwp, ywp = wp_points(waypoints)
-        plt.scatter(xwp, ywp, s=1, c="r")
+    # waypoints_path = road_map.waypoint_paths(lp_pose, 100)
+    # for waypoints in waypoints_path:
+    #     xwp, ywp = wp_points(waypoints)
+    #     plt.scatter(xwp, ywp, s=1, c="r")
 
     # Plot all lanepoints
     # for road_id in roads:

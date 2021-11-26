@@ -912,7 +912,7 @@ def visualize():
     lp_pose = lp_13_0_L_1[0].lp.pose
 
     # Plot waypoints on a route
-    waypoints_for_route = road_map.waypoint_paths(lp_pose, 100, route=route_13_to_0)
+    waypoints_for_route = road_map.waypoint_paths(lp_pose, 100, route=route_13_to_0[0])
     for waypoints in waypoints_for_route:
         xwp, ywp = wp_points(waypoints)
         plt.scatter(xwp, ywp, s=1, c="b")

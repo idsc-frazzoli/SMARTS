@@ -29,10 +29,11 @@ import numpy as np
 import trimesh
 import trimesh.scene
 from cached_property import cached_property
-from shapely.geometry import LineString, Polygon
-from shapely.ops import snap
+from shapely.geometry import Polygon
+from shapely.ops import snap, nearest_points
 from trimesh.exchange import gltf
-
+from shapely.geometry import Point as shPoint
+from subprocess import check_output
 from .coordinates import BoundingBox, Heading, Point, Pose, RefLinePoint
 from .road_map import RoadMap, Waypoint, WaypointsCache
 from .lanepoints import LinkedLanePoint, LanePoints
@@ -957,17 +958,37 @@ class SumoRoadNetwork(RoadMap):
             if not lane.getEdge().isSpecial():
                 continue
             lane_shape = lane_to_poly[lane_id]
+            new_coords = []
+            last_added = None
             for x, y in lane_shape.exterior.coords:
-                for nl, dist in self.nearest_lanes(
-                    Point(x, y),
-                    include_junctions=False,
-                ):
-                    if not nl:
-                        continue
-                    nl_shape = lane_to_poly.get(nl.lane_id)
-                    if nl_shape:
-                        lane_shape = Polygon(snap(lane_shape, nl_shape, snap_threshold))
-            lane_to_poly[lane_id] = lane_shape
+                p = shPoint(x, y)
+                snapped_to = set()
+                moved = True
+                thresh = snap_threshold
+                while moved:
+                    moved = False
+                    for nl, dist in self.nearest_lanes(
+                        Point(p.x, p.y),
+                        include_junctions=False,
+                    ):
+                        if not nl or nl.lane_id == lane_id or nl in snapped_to:
+                            continue
+                        nl_shape = lane_to_poly.get(nl.lane_id)
+                        if nl_shape:
+                            _, np = nearest_points(p, nl_shape)
+                            if p.distance(np) < thresh:
+                                p = np  # !!!! :)
+                                # allow vertices to snap to more than one thing, but
+                                # try to avoid infinite loops and making things worse instead of better here...
+                                # (so reduce snap dist threshold by an arbitrary amount each pass.)
+                                moved = True
+                                snapped_to.add(nl)
+                                thresh *= 0.75
+                if p != last_added:
+                    new_coords.append(p)
+                    last_added = p
+            if new_coords:
+                lane_to_poly[lane_id] = Polygon(new_coords)
 
     def _snap_external_holes(self, lane_to_poly, snap_threshold=2):
         for lane_id in lane_to_poly:
@@ -977,28 +998,53 @@ class SumoRoadNetwork(RoadMap):
             if lane.getEdge().isSpecial():
                 continue
 
-            incoming = self._graph.getLane(lane_id).getIncoming()
+            incoming = lane.getIncoming()
             if incoming and incoming[0].getEdge().isSpecial():
                 continue
 
-            outgoing = self._graph.getLane(lane_id).getOutgoing()
+            outgoing = lane.getOutgoing()
             if outgoing:
                 outgoing_lane = outgoing[0].getToLane()
                 if outgoing_lane.getEdge().isSpecial():
                     continue
 
             lane_shape = lane_to_poly[lane_id]
+            new_coords = []
+            last_added = None
             for x, y in lane_shape.exterior.coords:
-                for nl, dist in self.nearest_lanes(
-                    Point(x, y),
-                    include_junctions=False,
-                ):
-                    if (not nl) or (nl and nl.in_junction):
-                        continue
-                    nl_shape = lane_to_poly.get(nl.lane_id)
-                    if nl_shape:
-                        lane_shape = Polygon(snap(lane_shape, nl_shape, snap_threshold))
-            lane_to_poly[lane_id] = lane_shape
+                p = shPoint(x, y)
+                snapped_to = set()
+                moved = True
+                thresh = snap_threshold
+                while moved:
+                    moved = False
+                    for nl, dist in self.nearest_lanes(
+                        Point(p.x, p.y),
+                        include_junctions=False,
+                    ):
+                        if (
+                            not nl
+                            or nl.in_junction
+                            or nl.lane_id == lane_id
+                            or nl in snapped_to
+                        ):
+                            continue
+                        nl_shape = lane_to_poly.get(nl.lane_id)
+                        if nl_shape:
+                            _, np = nearest_points(p, nl_shape)
+                            if p.distance(np) < thresh:
+                                p = np  # !!!! :)
+                                # allow vertices to snap to more than one thing, but
+                                # try to avoid infinite loops and making things worse instead of better here...
+                                # (so reduce snap dist threshold by an arbitrary amount each pass.)
+                                moved = True
+                                snapped_to.add(nl)
+                                thresh *= 0.75
+                if p != last_added:
+                    new_coords.append(p)
+                    last_added = p
+            if new_coords:
+                lane_to_poly[lane_id] = Polygon(new_coords)
 
     def _make_glb_from_polys(self, polygons):
         scene = trimesh.Scene()

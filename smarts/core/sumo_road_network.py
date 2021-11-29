@@ -18,13 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 import logging
-import math
 import os
 import random
 from functools import lru_cache
-from subprocess import check_output
 from typing import List, Sequence, Set, Tuple
-
 import numpy as np
 import trimesh
 import trimesh.scene
@@ -34,6 +31,8 @@ from shapely.ops import snap, nearest_points
 from trimesh.exchange import gltf
 from shapely.geometry import Point as shPoint
 from subprocess import check_output
+
+
 from .coordinates import BoundingBox, Heading, Point, Pose, RefLinePoint
 from .road_map import RoadMap, Waypoint, WaypointsCache
 from .lanepoints import LinkedLanePoint, LanePoints

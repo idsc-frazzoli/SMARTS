@@ -22,8 +22,9 @@ import argparse
 from smarts.core.opendrive_road_network import OpenDriveRoadNetwork
 
 
-def generate_glb_from_opendrive_network(od_xodr_file, out_glb_file):
-    road_network = OpenDriveRoadNetwork.from_file(xodr_file=od_xodr_file)
+def generate_glb_from_opendrive_network(od_xodr_file, out_glb_file, road_network=None):
+    if not road_network:
+        road_network = OpenDriveRoadNetwork.from_file(xodr_file=od_xodr_file)
     road_network.to_glb(out_glb_file)
 
 

@@ -97,10 +97,10 @@ def _build_single_od_scenario(clean, scenario):
 
     scenario_root = Path(scenario)
     map_xodr = str(scenario_root / "map.xodr")
-    OpenDriveRoadNetwork.from_file(map_xodr)
+    od_road_network = OpenDriveRoadNetwork.from_file(map_xodr)
 
     map_glb = scenario_root / "map.glb"
-    generate_glb_from_opendrive_network(map_xodr, str(map_glb))
+    generate_glb_from_opendrive_network(map_xodr, str(map_glb), od_road_network)
 
     _install_requirements(scenario_root)
 

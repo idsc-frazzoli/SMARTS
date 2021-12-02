@@ -54,8 +54,8 @@ def main(
             agent_id: agent_spec.build_agent()
             for agent_id, agent_spec in agent_specs.items()
         }
-        dones = {"__all__": False}
-        while not dones["__all__"]:
+        dones = {}
+        while not dones or not all(dones.values()):
             actions = {
                 agent_id: agents[agent_id].act(agent_obs)
                 for agent_id, agent_obs in observations.items()

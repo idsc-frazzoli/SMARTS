@@ -6,7 +6,6 @@ from envision.client import Client as Envision
 from smarts.core.agent import Agent, AgentSpec
 from smarts.core.agent_interface import AgentInterface, AgentType
 from smarts.core.scenario import Scenario
-from smarts.core.sensors import Observation
 from smarts.core.smarts import SMARTS
 
 from examples.argument_parser import default_argument_parser
@@ -15,9 +14,11 @@ logging.basicConfig(level=logging.INFO)
 
 AGENT_ID = "Agent-007"
 
+
 class KeepLaneAgent(Agent):
     def act(self, obs):
         return "keep_lane"
+
 
 def main(scenarios, sim_name, headless, num_episodes, seed, max_episode_steps=None):
     logger = logging.getLogger(sim_name)

@@ -661,6 +661,9 @@ def test_od_map_lane_offset():
     assert left_lane.lane_id == "1_1_L_1"
     assert left_lane.index == 2
 
+    l2 = road_map.lane_by_id("1_1_R_-2")
+    assert [l.lane_id for l in l2.incoming_lanes] == []
+
     # point on lane
     point = (31.0, 2.0, 0)
     refline_pt = l0.to_lane_coord(point)

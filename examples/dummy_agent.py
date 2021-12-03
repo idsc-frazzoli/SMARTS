@@ -2,7 +2,7 @@ import logging
 
 import gym
 from envision.tests.test_data_replay import scenarios_iterator
-
+from envision.client import Client as Envision
 from smarts.core.agent import Agent, AgentSpec
 from smarts.core.agent_interface import AgentInterface, AgentType
 from smarts.core.scenario import Scenario
@@ -32,7 +32,7 @@ def main(scenarios, sim_name, headless, num_episodes, seed, max_episode_steps=No
     smarts = SMARTS(
         agent_interfaces={AGENT_ID: agent_spec.interface},
         traffic_sim=None,
-        envision=None,
+        envision=None if headless else Envision(),
         fixed_timestep_sec=0.1,
     )
 

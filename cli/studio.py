@@ -138,12 +138,6 @@ def _install_requirements(scenario_root):
     help="Clean previously generated artifacts first",
 )
 @click.option(
-    "--is-opendrive",
-    is_flag=True,
-    default=False,
-    help="Are the scenarios of OpenDRIVE?",
-)
-@click.option(
     "--allow-offset-maps",
     is_flag=True,
     default=False,
@@ -152,35 +146,34 @@ def _install_requirements(scenario_root):
     ),
 )
 @click.argument("scenarios", nargs=-1, metavar="<scenarios>")
-def build_all_scenarios(clean, is_opendrive, allow_offset_maps, scenarios):
+def build_all_scenarios(clean, allow_offset_maps, scenarios):
     if not scenarios:
         # nargs=-1 in combination with a default value is not supported
         # if scenarios is not given, set /scenarios as default
         scenarios = ["scenarios"]
     builder_threads = {}
-    if is_opendrive:
-        for scenarios_path in scenarios:
-            path = Path(scenarios_path)
-            for p in path.rglob("*.xodr"):
-                scenario = f"{scenarios_path}/{p.parent.relative_to(scenarios_path)}"
-                builder_thread = Thread(
-                    target=_build_single_scenario, args=(clean, False, scenario)
-                )
-                builder_thread.start()
-                builder_threads[p] = builder_thread
-    else:
-        for scenarios_path in scenarios:
-            path = Path(scenarios_path)
-            for p in path.rglob("*.net.xml"):
-                scenario = f"{scenarios_path}/{p.parent.relative_to(scenarios_path)}"
-                if scenario == f"{scenarios_path}/waymo":
-                    continue
-                builder_thread = Thread(
-                    target=_build_single_scenario,
-                    args=(clean, allow_offset_maps, scenario),
-                )
-                builder_thread.start()
-                builder_threads[p] = builder_thread
+    for scenarios_path in scenarios:
+        path = Path(scenarios_path)
+        for p in path.rglob("*.xodr"):
+            scenario = f"{scenarios_path}/{p.parent.relative_to(scenarios_path)}"
+            builder_thread = Thread(
+                target=_build_single_scenario, args=(clean, False, scenario)
+            )
+            builder_thread.start()
+            builder_threads[p] = builder_thread
+
+    for scenarios_path in scenarios:
+        path = Path(scenarios_path)
+        for p in path.rglob("*.net.xml"):
+            scenario = f"{scenarios_path}/{p.parent.relative_to(scenarios_path)}"
+            if scenario == f"{scenarios_path}/waymo":
+                continue
+            builder_thread = Thread(
+                target=_build_single_scenario,
+                args=(clean, allow_offset_maps, scenario),
+            )
+            builder_thread.start()
+            builder_threads[p] = builder_thread
 
     for scenario_path, builder_thread in builder_threads.items():
         click.echo(f"Waiting on {scenario_path} ...")

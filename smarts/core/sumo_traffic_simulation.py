@@ -38,7 +38,6 @@ from smarts.core.sumo_road_network import SumoRoadNetwork
 from smarts.core.utils import networking
 from smarts.core.utils.logging import suppress_output
 from smarts.core.vehicle import VEHICLE_CONFIGS, VehicleState
-from subprocess import check_output
 from smarts.core.utils.sumo import SUMO_PATH, traci  # isort:skip
 from traci.exceptions import FatalTraCIError, TraCIException  # isort:skip
 import traci.constants as tc  # isort:skip
@@ -265,9 +264,9 @@ class SumoTrafficSimulation(Provider):
         self._current_reload_count = self._current_reload_count % self._reload_count + 1
 
         self._scenario = next_scenario
-        # assert isinstance(
-        #     next_scenario.road_map, SumoRoadNetwork
-        # ), "SumoTrafficSimulation requires a SumoRoadNetwork"
+        assert isinstance(
+            next_scenario.road_map, SumoRoadNetwork
+        ), "SumoTrafficSimulation requires a SumoRoadNetwork"
         self._log_file = next_scenario.unique_sumo_log_file()
 
         if restart_sumo:

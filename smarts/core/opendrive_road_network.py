@@ -1503,8 +1503,13 @@ class OpenDriveRoadNetwork(RoadMap):
         closest_lane = closest_linked_lp.lp.lane
         waypoint_paths = []
         for lane in closest_lane.road.lanes:
+            if closest_lane.road.road_id != route[-1] and all(
+                out_lane.road.road_id not in route for out_lane in lane.outgoing_lanes
+            ):
+                continue
             waypoint_paths += lane._waypoint_paths_at(point, lookahead, route)
-        return sorted(waypoint_paths, key=lambda p: p[0].lane_index)
+
+        return sorted(waypoint_paths, key=len, reverse=True)
 
     @staticmethod
     def _equally_spaced_path(

@@ -1512,14 +1512,14 @@ class OpenDriveRoadNetwork(RoadMap):
         return sorted(waypoint_paths, key=len, reverse=True)
 
     @staticmethod
-    def _equally_spaced_path(
+    def _waypoints_path(
         path: Sequence[LinkedLanePoint],
         point: Tuple[float, float, float],
         lp_spacing: float,
         width_threshold=None,
     ) -> List[Waypoint]:
-        """given a list of LanePoints starting near point, that may not be evenly spaced,
-        returns the same number of Waypoints that are evenly spaced and start at point."""
+        """given a list of LanePoints starting near point, return corresponding
+        Waypoints that may not be evenly spaced (due to lane change) but start at point."""
 
         continuous_variables = [
             "positions_x",
@@ -1581,9 +1581,7 @@ class OpenDriveRoadNetwork(RoadMap):
         ref_lanepoints_coordinates["positions_y"][0] = (
             lp_position[1] + projected_distant_lp_vehicle * heading_vec[1]
         )
-        # To ensure that the distance between waypoints are equal, we used
-        # interpolation approach inspired by:
-        # https://stackoverflow.com/a/51515357
+
         cumulative_path_dist = np.cumsum(
             np.sqrt(
                 np.ediff1d(ref_lanepoints_coordinates["positions_x"], to_begin=0) ** 2
@@ -1606,33 +1604,6 @@ class OpenDriveRoadNetwork(RoadMap):
                     lane_index=lp.lane.index,
                 )
             ]
-
-        # evenly_spaced_cumulative_path_dist = np.linspace(
-        #     0, cumulative_path_dist[-1], len(path)
-        # )
-        #
-        # evenly_spaced_coordinates = {}
-        # for variable in continuous_variables:
-        #     evenly_spaced_coordinates[variable] = np.interp(
-        #         evenly_spaced_cumulative_path_dist,
-        #         cumulative_path_dist,
-        #         ref_lanepoints_coordinates[variable],
-        #     )
-        #
-        # for variable in discrete_variables:
-        #     ref_coordinates = ref_lanepoints_coordinates[variable]
-        #     evenly_spaced_coordinates[variable] = []
-        #     jdx = 0
-        #     for idx in range(len(path)):
-        #         while (
-        #             jdx + 1 < len(cumulative_path_dist)
-        #             and evenly_spaced_cumulative_path_dist[idx]
-        #             > cumulative_path_dist[jdx + 1]
-        #         ):
-        #             jdx += 1
-        #
-        #         evenly_spaced_coordinates[variable].append(ref_coordinates[jdx])
-        #     evenly_spaced_coordinates[variable].append(ref_coordinates[-1])
 
         waypoint_path = []
         for idx in range(len(ref_lanepoints_coordinates["positions_x"])):
@@ -1676,7 +1647,7 @@ class OpenDriveRoadNetwork(RoadMap):
             lanepoint, lookahead, filter_road_ids
         )
         result = [
-            OpenDriveRoadNetwork._equally_spaced_path(
+            OpenDriveRoadNetwork._waypoints_path(
                 path, point, self._lanepoints.spacing, 1.85
             )
             for path in lanepoint_paths

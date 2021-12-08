@@ -197,7 +197,7 @@ class LaneBoundary:
 
 
 class OpenDriveRoadNetwork(RoadMap):
-    DEFAULT_LANE_WIDTH = 3.2
+    DEFAULT_LANE_WIDTH = 3.7
     DEFAULT_LANE_SPEED = 16.67  # in m/s
 
     def __init__(
@@ -1516,6 +1516,7 @@ class OpenDriveRoadNetwork(RoadMap):
         path: Sequence[LinkedLanePoint],
         point: Tuple[float, float, float],
         lp_spacing: float,
+        width_threshold=None,
     ) -> List[Waypoint]:
         """given a list of LanePoints starting near point, that may not be evenly spaced,
         returns the same number of Waypoints that are evenly spaced and start at point."""
@@ -1535,6 +1536,15 @@ class OpenDriveRoadNetwork(RoadMap):
         for idx, lanepoint in enumerate(path):
             if lanepoint.is_inferred and 0 < idx < len(path) - 1:
                 continue
+
+            # Compute the lane's width at lanepoint's position
+            position = Point(
+                x=lanepoint.lp.pose.position[0], y=lanepoint.lp.pose.position[1], z=0.0
+            )
+            lane_coord = lanepoint.lp.lane.to_lane_coord(position)
+            width_at_offset = lanepoint.lp.lane.width_at_offset(lane_coord.s)
+            if width_threshold and width_at_offset < width_threshold:
+                continue
             ref_lanepoints_coordinates["positions_x"].append(
                 lanepoint.lp.pose.position[0]
             )
@@ -1547,12 +1557,6 @@ class OpenDriveRoadNetwork(RoadMap):
             ref_lanepoints_coordinates["lane_id"].append(lanepoint.lp.lane.lane_id)
             ref_lanepoints_coordinates["lane_index"].append(lanepoint.lp.lane.index)
 
-            # Compute the lane's width at lanepoint's position
-            position = Point(
-                x=lanepoint.lp.pose.position[0], y=lanepoint.lp.pose.position[1], z=0.0
-            )
-            lane_coord = lanepoint.lp.lane.to_lane_coord(position)
-            width_at_offset = lanepoint.lp.lane.width_at_offset(lane_coord.s)
             ref_lanepoints_coordinates["lane_width"].append(width_at_offset)
 
             ref_lanepoints_coordinates["speed_limit"].append(
@@ -1672,7 +1676,7 @@ class OpenDriveRoadNetwork(RoadMap):
         )
         result = [
             OpenDriveRoadNetwork._equally_spaced_path(
-                path, point, self._lanepoints.spacing
+                path, point, self._lanepoints.spacing, 1.8
             )
             for path in lanepoint_paths
         ]

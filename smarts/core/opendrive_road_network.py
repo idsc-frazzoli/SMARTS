@@ -1549,7 +1549,7 @@ class OpenDriveRoadNetwork(RoadMap):
                 previous_lane = self._lanes[curr_lane_id]
                 curr_lane_id = lanepoint.lp.lane.lane_id
                 if curr_lane_id not in previous_lane.outgoing_lanes:
-                    skip_lanepoints = 6
+                    skip_lanepoints = 10
                     continue
 
             # Compute the lane's width at lanepoint's position

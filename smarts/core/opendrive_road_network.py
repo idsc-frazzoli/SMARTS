@@ -1511,8 +1511,8 @@ class OpenDriveRoadNetwork(RoadMap):
 
         return sorted(waypoint_paths, key=len, reverse=True)
 
+    @staticmethod
     def _equally_spaced_path(
-        self,
         path: Sequence[LinkedLanePoint],
         point: Tuple[float, float, float],
         lp_spacing: float,
@@ -1533,24 +1533,10 @@ class OpenDriveRoadNetwork(RoadMap):
         ref_lanepoints_coordinates = {
             parameter: [] for parameter in (continuous_variables + discrete_variables)
         }
-        curr_lane_id = None
-        skip_lanepoints = None
         for idx, lanepoint in enumerate(path):
 
             if lanepoint.is_inferred and 0 < idx < len(path) - 1:
                 continue
-            if skip_lanepoints and skip_lanepoints > 0:
-                skip_lanepoints -= 1
-                continue
-            if curr_lane_id is None:
-                curr_lane_id = lanepoint.lp.lane.lane_id
-
-            if lanepoint.lp.lane.lane_id != curr_lane_id:
-                previous_lane = self._lanes[curr_lane_id]
-                curr_lane_id = lanepoint.lp.lane.lane_id
-                if curr_lane_id not in previous_lane.outgoing_lanes:
-                    skip_lanepoints = 20
-                    continue
 
             # Compute the lane's width at lanepoint's position
             position = Point(
@@ -1621,52 +1607,52 @@ class OpenDriveRoadNetwork(RoadMap):
                 )
             ]
 
-        evenly_spaced_cumulative_path_dist = np.linspace(
-            0, cumulative_path_dist[-1], len(path)
-        )
+        # evenly_spaced_cumulative_path_dist = np.linspace(
+        #     0, cumulative_path_dist[-1], len(path)
+        # )
+        #
+        # evenly_spaced_coordinates = {}
+        # for variable in continuous_variables:
+        #     evenly_spaced_coordinates[variable] = np.interp(
+        #         evenly_spaced_cumulative_path_dist,
+        #         cumulative_path_dist,
+        #         ref_lanepoints_coordinates[variable],
+        #     )
+        #
+        # for variable in discrete_variables:
+        #     ref_coordinates = ref_lanepoints_coordinates[variable]
+        #     evenly_spaced_coordinates[variable] = []
+        #     jdx = 0
+        #     for idx in range(len(path)):
+        #         while (
+        #             jdx + 1 < len(cumulative_path_dist)
+        #             and evenly_spaced_cumulative_path_dist[idx]
+        #             > cumulative_path_dist[jdx + 1]
+        #         ):
+        #             jdx += 1
+        #
+        #         evenly_spaced_coordinates[variable].append(ref_coordinates[jdx])
+        #     evenly_spaced_coordinates[variable].append(ref_coordinates[-1])
 
-        evenly_spaced_coordinates = {}
-        for variable in continuous_variables:
-            evenly_spaced_coordinates[variable] = np.interp(
-                evenly_spaced_cumulative_path_dist,
-                cumulative_path_dist,
-                ref_lanepoints_coordinates[variable],
-            )
-
-        for variable in discrete_variables:
-            ref_coordinates = ref_lanepoints_coordinates[variable]
-            evenly_spaced_coordinates[variable] = []
-            jdx = 0
-            for idx in range(len(path)):
-                while (
-                    jdx + 1 < len(cumulative_path_dist)
-                    and evenly_spaced_cumulative_path_dist[idx]
-                    > cumulative_path_dist[jdx + 1]
-                ):
-                    jdx += 1
-
-                evenly_spaced_coordinates[variable].append(ref_coordinates[jdx])
-            evenly_spaced_coordinates[variable].append(ref_coordinates[-1])
-
-        equally_spaced_path = []
-        for idx in range(len(path)):
-            equally_spaced_path.append(
+        waypoint_path = []
+        for idx in range(ref_lanepoints_coordinates["position_x"]):
+            waypoint_path.append(
                 Waypoint(
                     pos=np.array(
                         [
-                            evenly_spaced_coordinates["positions_x"][idx],
-                            evenly_spaced_coordinates["positions_y"][idx],
+                            ref_lanepoints_coordinates["positions_x"][idx],
+                            ref_lanepoints_coordinates["positions_y"][idx],
                         ]
                     ),
-                    heading=Heading(evenly_spaced_coordinates["headings"][idx]),
-                    lane_width=evenly_spaced_coordinates["lane_width"][idx],
-                    speed_limit=evenly_spaced_coordinates["speed_limit"][idx],
-                    lane_id=evenly_spaced_coordinates["lane_id"][idx],
-                    lane_index=evenly_spaced_coordinates["lane_index"][idx],
+                    heading=Heading(ref_lanepoints_coordinates["headings"][idx]),
+                    lane_width=ref_lanepoints_coordinates["lane_width"][idx],
+                    speed_limit=ref_lanepoints_coordinates["speed_limit"][idx],
+                    lane_id=ref_lanepoints_coordinates["lane_id"][idx],
+                    lane_index=ref_lanepoints_coordinates["lane_index"][idx],
                 )
             )
 
-        return equally_spaced_path
+        return waypoint_path
 
     def _waypoints_starting_at_lanepoint(
         self,
@@ -1690,7 +1676,9 @@ class OpenDriveRoadNetwork(RoadMap):
             lanepoint, lookahead, filter_road_ids
         )
         result = [
-            self._equally_spaced_path(path, point, self._lanepoints.spacing, 1.85)
+            OpenDriveRoadNetwork._equally_spaced_path(
+                path, point, self._lanepoints.spacing, 1.85
+            )
             for path in lanepoint_paths
         ]
 

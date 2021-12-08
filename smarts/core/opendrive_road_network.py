@@ -1511,8 +1511,8 @@ class OpenDriveRoadNetwork(RoadMap):
 
         return sorted(waypoint_paths, key=len, reverse=True)
 
-    @staticmethod
     def _equally_spaced_path(
+        self,
         path: Sequence[LinkedLanePoint],
         point: Tuple[float, float, float],
         lp_spacing: float,
@@ -1533,9 +1533,24 @@ class OpenDriveRoadNetwork(RoadMap):
         ref_lanepoints_coordinates = {
             parameter: [] for parameter in (continuous_variables + discrete_variables)
         }
+        curr_lane_id = None
+        skip_lanepoints = None
         for idx, lanepoint in enumerate(path):
+
             if lanepoint.is_inferred and 0 < idx < len(path) - 1:
                 continue
+            if skip_lanepoints and skip_lanepoints > 0:
+                skip_lanepoints -= 1
+                continue
+            if curr_lane_id is None:
+                curr_lane_id = lanepoint.lp.lane.lane_id
+
+            if lanepoint.lp.lane.lane_id != curr_lane_id:
+                previous_lane = self._lanes[curr_lane_id]
+                curr_lane_id = lanepoint.lp.lane.lane_id
+                if curr_lane_id not in previous_lane.outgoing_lanes:
+                    skip_lanepoints = 6
+                    continue
 
             # Compute the lane's width at lanepoint's position
             position = Point(
@@ -1543,7 +1558,7 @@ class OpenDriveRoadNetwork(RoadMap):
             )
             lane_coord = lanepoint.lp.lane.to_lane_coord(position)
             width_at_offset = lanepoint.lp.lane.width_at_offset(lane_coord.s)
-            if width_threshold and width_at_offset < width_threshold:
+            if idx != 0 and width_threshold and width_at_offset < width_threshold:
                 continue
             ref_lanepoints_coordinates["positions_x"].append(
                 lanepoint.lp.pose.position[0]
@@ -1676,7 +1691,7 @@ class OpenDriveRoadNetwork(RoadMap):
         )
         result = [
             OpenDriveRoadNetwork._equally_spaced_path(
-                path, point, self._lanepoints.spacing, 1.8
+                path, point, self._lanepoints.spacing, 1.85
             )
             for path in lanepoint_paths
         ]

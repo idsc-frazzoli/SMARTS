@@ -1635,7 +1635,7 @@ class OpenDriveRoadNetwork(RoadMap):
         #     evenly_spaced_coordinates[variable].append(ref_coordinates[-1])
 
         waypoint_path = []
-        for idx in range(ref_lanepoints_coordinates["position_x"]):
+        for idx in range(len(ref_lanepoints_coordinates["positions_x"])):
             waypoint_path.append(
                 Waypoint(
                     pos=np.array(

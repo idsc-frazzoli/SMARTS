@@ -364,12 +364,9 @@ def test_od_map_junction():
     lp_pose = lp_0_0_L[0].lp.pose
     waypoints_for_route = road_map.waypoint_paths(lp_pose, 500, route=route_0_to_13[0])
     assert len(waypoints_for_route) == 1
-    assert len(waypoints_for_route[0]) == 46
-    lane_ids_under_wps = []
-    for wp in waypoints_for_route[0]:
-        if wp.lane_id not in lane_ids_under_wps:
-            lane_ids_under_wps.append(wp.lane_id)
-    assert lane_ids_under_wps == ["0_0_L_1", "15_0_R_-1", "13_0_R_-1"]
+    assert len(waypoints_for_route[0]) == 469
+    lane_ids_under_wps = set([wp.lane_id for wp in waypoints_for_route[0]])
+    assert lane_ids_under_wps == {"0_0_L_1", "15_0_R_-1", "13_0_R_-1"}
 
     # distance between points along route
     start_point = Point(x=118.0, y=150.0, z=0.0)
@@ -395,12 +392,9 @@ def test_od_map_junction():
     lp_pose = lp_13_0_L[0].lp.pose
     waypoints_for_route = road_map.waypoint_paths(lp_pose, 500, route=route_13_to_0[0])
     assert len(waypoints_for_route) == 1
-    assert len(waypoints_for_route[0]) == 60
-    lane_ids_under_wps = []
-    for wp in waypoints_for_route[0]:
-        if wp.lane_id not in lane_ids_under_wps:
-            lane_ids_under_wps.append(wp.lane_id)
-    assert lane_ids_under_wps == ["13_0_L_1", "9_0_R_-1", "0_0_R_-1"]
+    assert len(waypoints_for_route[0]) == 469
+    lane_ids_under_wps = set([wp.lane_id for wp in waypoints_for_route[0]])
+    assert lane_ids_under_wps == {"13_0_L_1", "9_0_R_-1", "0_0_R_-1"}
 
     # distance between points along route
     start_point = Point(x=150.0, y=121.0, z=0.0)
@@ -445,7 +439,7 @@ def test_od_map_figure_eight():
     assert len(r_508_0_R.lanes) == 4
     assert set([r.road_id for r in r_508_0_R.incoming_roads]) == {"516_0_R"}
     assert set([r.road_id for r in r_508_0_R.outgoing_roads]) == {"501_0_L"}
-    assert len(r_508_0_R.shape().exterior.coords) == 1603
+    assert len(r_508_0_R.shape().exterior.coords) == 1615
 
     r_508_0_L = road_map.road_by_id("508_0_L")
     assert r_508_0_L
@@ -453,7 +447,7 @@ def test_od_map_figure_eight():
     assert len(r_508_0_L.lanes) == 4
     assert set([r.road_id for r in r_508_0_L.incoming_roads]) == {"501_0_R"}
     assert set([r.road_id for r in r_508_0_L.outgoing_roads]) == {"516_0_L"}
-    assert len(r_508_0_L.shape().exterior.coords) == 1603
+    assert len(r_508_0_L.shape().exterior.coords) == 1615
 
     # Lane tests
     l1 = road_map.lane_by_id("508_0_R_-1")
@@ -461,7 +455,7 @@ def test_od_map_figure_eight():
     assert l1.road.road_id == "508_0_R"
     assert l1.index == 3
     assert l1.is_drivable
-    assert len(l1.shape().exterior.coords) == 1603
+    assert len(l1.shape().exterior.coords) == 1615
 
     assert len(l1.lanes_in_same_direction) == 3
     assert round(l1.length, 2) == 541.50
@@ -667,17 +661,14 @@ def test_od_map_lane_offset():
     assert left_lane.lane_id == "1_1_L_1"
     assert left_lane.index == 2
 
-    l2 = road_map.lane_by_id("1_1_R_-2")
-    assert [l.lane_id for l in l2.incoming_lanes] == []
-
     # point on lane
     point = (31.0, 2.0, 0)
     refline_pt = l0.to_lane_coord(point)
-    assert round(refline_pt.s, 2) == 43.52
+    assert round(refline_pt.s, 2) == 44.02
     assert round(refline_pt.t, 2) == -0.31
 
     offset = refline_pt.s
-    assert round(l0.width_at_offset(offset), 2) == 3.1
+    assert round(l0.width_at_offset(offset), 2) == 3.12
     assert round(l0.curvature_radius_at_offset(offset), 2) == -291.53
     assert l0.contains_point(point)
     assert l0.road.contains_point(point)
@@ -695,11 +686,11 @@ def test_od_map_lane_offset():
     # point not on lane but on road
     point = (31.0, 4.5, 0)
     refline_pt = l0.to_lane_coord(point)
-    assert round(refline_pt.s, 2) == 43.47
+    assert round(refline_pt.s, 2) == 43.97
     assert round(refline_pt.t, 2) == -2.81
 
     offset = refline_pt.s
-    assert round(l0.width_at_offset(offset), 2) == 3.1
+    assert round(l0.width_at_offset(offset), 2) == 3.12
     assert round(l0.curvature_radius_at_offset(offset), 2) == -292.24
     assert not l0.contains_point(point)
     assert l0.road.contains_point(point)
@@ -732,16 +723,10 @@ def test_od_map_lane_offset():
     lp_1_0_R = road_map._lanepoints._lanepoints_by_lane_id["1_0_R_-1"]
     lp_pose = lp_1_0_R[0].lp.pose
     waypoints_for_route = road_map.waypoint_paths(lp_pose, 200, route=route[0])
-    assert len(waypoints_for_route) == 4
+    assert len(waypoints_for_route) == 1
     assert len(waypoints_for_route[0]) == 201
-    lane_ids_under_wps_0 = set([wp.lane_id for wp in waypoints_for_route[0]])
-    lane_ids_under_wps_1 = set([wp.lane_id for wp in waypoints_for_route[1]])
-    lane_ids_under_wps_2 = set([wp.lane_id for wp in waypoints_for_route[2]])
-    lane_ids_under_wps_3 = set([wp.lane_id for wp in waypoints_for_route[3]])
-    assert lane_ids_under_wps_0 == {"1_0_R_-1", "1_1_R_-1", "1_2_R_-1"}
-    assert lane_ids_under_wps_1 == {"1_0_R_-1", "1_1_R_-1", "1_2_R_-2"}
-    assert lane_ids_under_wps_2 == {"1_0_R_-1", "1_1_R_-2", "1_2_R_-2"}
-    assert lane_ids_under_wps_3 == {"1_0_R_-1", "1_1_R_-2", "1_2_R_-1"}
+    lane_ids_under_wps = set([wp.lane_id for wp in waypoints_for_route[0]])
+    assert lane_ids_under_wps == {"1_0_R_-1", "1_1_R_-1", "1_2_R_-1"}
 
     # distance between points along route
     start_point = Point(x=17.56, y=-1.67, z=0.0)
@@ -822,30 +807,6 @@ def test_od_map_motorway():
         "40_0_R",
     ]
 
-    # waypoints generation along route
-    lp_6_0_L = road_map._lanepoints._lanepoints_by_lane_id["6_0_L_1"]
-    lp_pose = lp_6_0_L[0].lp.pose
-    waypoints_for_route = road_map.waypoint_paths(lp_pose, 2840, route=route_6_to_40[0])
-    assert len(waypoints_for_route) == 50
-    assert len(waypoints_for_route[0]) == 660
-    lane_ids_under_wps = []
-    for wp in waypoints_for_route[0]:
-        if wp.lane_id not in lane_ids_under_wps:
-            lane_ids_under_wps.append(wp.lane_id)
-    assert lane_ids_under_wps == [
-        "6_0_L_1",
-        "18_1_L_1",
-        "18_0_L_2",
-        "28_0_R_-1",
-        "42_0_R_-1",
-        "43_0_R_-1",
-        "5_0_R_-2",
-        "5_1_R_-3",
-        "5_2_R_-2",
-        "8_0_R_-3",
-        "40_0_R_-2",
-    ]
-
     # distance between points along route
     start_point = Point(x=222.09, y=998.12, z=0.0)
     end_point = Point(x=492.62, y=428.18, z=0.0)
@@ -878,37 +839,6 @@ def test_od_map_motorway():
         "34_0_R",
     ]
 
-    # waypoints generation along route
-    lp_6_0_L = road_map._lanepoints._lanepoints_by_lane_id["6_0_L_1"]
-    lp_pose = lp_6_0_L[0].lp.pose
-    waypoints_for_route = road_map.waypoint_paths(
-        lp_pose, 3500, route=route_6_to_34_via_19[0]
-    )
-    assert len(waypoints_for_route) == 102
-
-    assert len(max(waypoints_for_route, key=len)) == 1303
-    lane_ids_under_wps = []
-    for wp in waypoints_for_route[0]:
-        if wp.lane_id not in lane_ids_under_wps:
-            lane_ids_under_wps.append(wp.lane_id)
-    assert lane_ids_under_wps == [
-        "6_0_L_1",
-        "18_1_L_1",
-        "18_0_L_1",
-        "11_0_R_-2",
-        "19_2_L_1",
-        "19_1_L_3",
-        "19_0_L_1",
-        "27_0_R_-1",
-        "17_0_R_-1",
-        "12_0_R_-1",
-        "33_0_R_-2",
-        "33_1_R_-3",
-        "33_2_R_-2",
-        "39_0_R_-3",
-        "34_0_R_-2",
-    ]
-
     # distance between points along route
     start_point = Point(x=222.09, y=998.12, z=0.0)
     end_point = Point(x=507.40, y=1518.31, z=0.0)
@@ -937,31 +867,6 @@ def test_od_map_motorway():
         "18_0_R",
         "18_1_R",
         "6_0_R",
-    ]
-
-    # waypoints generation along route
-    lp_34_0_L = road_map._lanepoints._lanepoints_by_lane_id["34_0_L_2"]
-    lp_pose = lp_34_0_L[0].lp.pose
-    waypoints_for_route = road_map.waypoint_paths(lp_pose, 3600, route=route_34_to_6[0])
-    assert len(waypoints_for_route) == 104
-    assert len(waypoints_for_route[0]) == 783
-    lane_ids_under_wps = []
-    for wp in waypoints_for_route[0]:
-        if wp.lane_id not in lane_ids_under_wps:
-            lane_ids_under_wps.append(wp.lane_id)
-    assert lane_ids_under_wps == [
-        "34_0_L_2",
-        "38_0_R_-3",
-        "36_1_L_2",
-        "36_0_L_4",
-        "4_0_R_-4",
-        "13_0_R_-1",
-        "21_0_R_-1",
-        "21_1_R_-1",
-        "35_0_R_-1",
-        "18_0_R_-2",
-        "18_1_R_-1",
-        "6_0_R_-1",
     ]
 
     # distance between points along route

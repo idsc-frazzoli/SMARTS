@@ -315,11 +315,13 @@ class LanePoints:
 
                 outgoing_roads_added = []
                 for out_lane in curr_lane.outgoing_lanes:
+                    if out_lane.is_drivable:
+                        lane_queue.put((out_lane, curr_lanepoint))
                     outgoing_road = out_lane.road
                     if out_lane.road not in outgoing_roads_added:
                         outgoing_roads_added.append(outgoing_road)
                         for next_lane in outgoing_road.lanes:
-                            if next_lane.is_drivable:
+                            if next_lane.is_drivable and next_lane not in curr_lane.outgoing_lanes:
                                 lane_queue.put((next_lane, curr_lanepoint))
 
             return initial_lanepoint, shape_lanepoints

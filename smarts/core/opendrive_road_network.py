@@ -1690,9 +1690,7 @@ class OpenDriveRoadNetwork(RoadMap):
             lanepoint, lookahead, filter_road_ids
         )
         result = [
-            OpenDriveRoadNetwork._equally_spaced_path(
-                path, point, self._lanepoints.spacing, 1.85
-            )
+            self._equally_spaced_path(path, point, self._lanepoints.spacing, 1.85)
             for path in lanepoint_paths
         ]
 

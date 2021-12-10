@@ -86,6 +86,6 @@ if __name__ == "__main__":
         scenarios=args.scenarios,
         sim_name=args.sim_name,
         headless=args.headless,
-        num_episodes=args.episodes,
+        num_episodes=args.episodes * 100,
         seed=args.seed,
     )

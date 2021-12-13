@@ -91,7 +91,7 @@ venv
 .idea/*
 
 # pytest benchmark
-.benchmarks/
+# .benchmarks/
 
 # generated scenario files
 *.rou.alt.xml

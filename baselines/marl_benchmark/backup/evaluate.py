@@ -53,8 +53,6 @@ def parse_args():
     parser.add_argument("--config_files", "-f", type=str, nargs="+", required=True)
     parser.add_argument("--log_dir", type=str, default="./log/results")
     parser.add_argument("--plot", action="store_true")
-    # NK
-    parser.add_argument("--checkpoint", type=str, required=True)
     return parser.parse_args()
 
 
@@ -67,8 +65,6 @@ def main(
     paradigm="decentralized",
     headless=False,
     show_plots=False,
-    #NK
-    checkpoint=None
 ):
 
     ray.init()
@@ -84,9 +80,6 @@ def main(
             headless=headless,
             mode="evaluation",
         )
-        
-        # NK
-        config["checkpoint"] = checkpoint
 
         tune_config = config["run"]["config"]
         trainer_cls = config["trainer"]
@@ -95,8 +88,7 @@ def main(
             trainer_config.update({"multiagent": tune_config["multiagent"]})
         else:
             trainer_config.update({"model": tune_config["model"]})
-        
-        trainer_config.update({"create_env_on_driver": True})
+
         trainer = trainer_cls(env=tune_config["env"], config=trainer_config)
 
         trainer.restore(config["checkpoint"])
@@ -121,6 +113,4 @@ if __name__ == "__main__":
         headless=args.headless,
         show_plots=args.plot,
         log_dir=args.log_dir,
-        # NK
-        checkpoint = args.checkpoint
     )

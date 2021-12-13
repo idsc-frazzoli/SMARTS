@@ -13,8 +13,14 @@ logging.basicConfig(level=logging.INFO)
 AGENT_ID = "Agent-007"
 
 
+# NK
+# from random import randrange
+from smarts.core.bezier_motion_planner import BezierMotionPlanner
+import numpy as np
+
 class ChaseViaPointsAgent(Agent):
     def act(self, obs: Observation):
+        # print(obs.ego_vehicle_state)
         if (
             len(obs.via_data.near_via_points) < 1
             or obs.ego_vehicle_state.edge_id != obs.via_data.near_via_points[0].edge_id
@@ -29,6 +35,37 @@ class ChaseViaPointsAgent(Agent):
             nearest.required_speed,
             1 if nearest.lane_index > obs.ego_vehicle_state.lane_index else -1,
         )
+        
+        # NK
+        # return (obs.waypoint_paths[0][0].speed_limit, randrange(-1,2))
+
+
+# class ExampleAgent(Agent):
+#     def __init__(self, target_speed = 10):
+#         self.motion_planner = BezierMotionPlanner()
+#         self.target_speed = target_speed
+
+#     def act(self, obs):
+#         ego = obs.ego_vehicle_state
+#         current_pose = np.array([*ego.position[:2], ego.heading])
+
+#         # lookahead (at most) 10 waypoints
+#         target_wp = obs.waypoint_paths[0][:10][-1]
+#         dist_to_wp = target_wp.dist_to(obs.ego_vehicle_state.position)
+#         target_time = dist_to_wp / self.target_speed
+
+#         # Here we've computed the pose we want to hold given our target
+#         # speed and the distance to the target waypoint.
+#         target_pose_at_t = np.array(
+#             [*target_wp.pos, target_wp.heading, target_time]
+#         )
+
+#         # The generated motion planner trajectory is compatible
+#         # with the `ActionSpaceType.Trajectory`
+#         traj = self.motion_planner.trajectory(
+#             current_pose, target_pose_at_t, n=10, dt=0.5
+#         )
+#         return traj
 
 
 def main(scenarios, sim_name, headless, num_episodes, seed, max_episode_steps=None):
@@ -38,6 +75,12 @@ def main(scenarios, sim_name, headless, num_episodes, seed, max_episode_steps=No
         ),
         agent_builder=ChaseViaPointsAgent,
     )
+    # agent_spec = AgentSpec(
+    #     interface=AgentInterface.from_type(AgentType.Tracker),
+    #     # params are passed to the agent_builder when we build the agent
+    #     agent_params={"target_speed": 5},
+    #     agent_builder=ExampleAgent
+    # )
 
     env = gym.make(
         "smarts.env:hiway-v0",
@@ -50,7 +93,7 @@ def main(scenarios, sim_name, headless, num_episodes, seed, max_episode_steps=No
         sumo_headless=True,
         seed=seed,
         # zoo_addrs=[("10.193.241.236", 7432)], # Sample server address (ip, port), to distribute social agents in remote server.
-        # envision_record_data_replay_path="./data_replay",
+        envision_record_data_replay_path="./data_replay",
     )
 
     for episode in episodes(n=num_episodes):

@@ -58,6 +58,7 @@
 **/.vscode
 **/wheels/
 **/xdummy.log
+**/xdummy.log.old
 
 # Keep manually generated sumo route files
 !zoo/evaluation/scenarios/**/traffic/*.rou.xml

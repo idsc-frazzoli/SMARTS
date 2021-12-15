@@ -68,7 +68,7 @@ def main(
     paradigm="decentralized",
     headless=False,
     show_plots=False,
-    #NK
+    # NK
     checkpoint=None
 ):
 
@@ -123,5 +123,5 @@ if __name__ == "__main__":
         show_plots=args.plot,
         log_dir=args.log_dir,
         # NK
-        checkpoint = args.checkpoint
+        checkpoint=args.checkpoint
     )

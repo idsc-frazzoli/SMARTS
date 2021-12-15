@@ -55,6 +55,7 @@ def parse_args():
     parser.add_argument("--plot", action="store_true")
     # NK
     parser.add_argument("--checkpoint", type=str, required=True)
+
     return parser.parse_args()
 
 

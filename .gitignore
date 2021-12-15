@@ -122,6 +122,7 @@ results
 supervisord.log
 supervisord.pid
 xdummy.log
+xdummy.log.old
 
 # replay data
 *.jsonl

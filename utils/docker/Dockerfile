@@ -52,8 +52,18 @@ RUN wget -O /etc/X11/xorg.conf http://xpra.org/xorg.conf && \
 ENV SUMO_HOME /usr/share/sumo
 
 # Install requirements.txt
+#RUN cd ./home/nando/Dev/SMARTS/
+#RUN ls
+#WORKDIR /home/nando/Dev/SMARTS/
+#RUN pwd
+#COPY requirements.txt /tmp/requirements.txt
+
 COPY ./requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+#COPY ./home/nando/Dev/SMARTS/requirements.txt /tmp/requirements.txt
+#COPY ./home/nando/Dev/SMARTS/requirements.txt ./home/nando/Dev/SMARTS/tmp/requirements.txt
+#RUN pip install --no-cache-dir -r ./home/nando/Dev/SMARTS/tmp/requirements.txt
 
 # Copy source files and install SMARTS
 ENV PYTHONPATH=/src

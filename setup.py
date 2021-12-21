@@ -63,7 +63,7 @@ setup(
             "pytest-cov",
             "pytest-notebook",
             "pytest-xdist",
-            "ray[rllib]==1.0.1.post1",  # We use Ray for our multiprocessing needs
+            "ray[rllib]==1.8.0",  # We use Ray for our multiprocessing needs
         ],
         "train": [
             "tensorflow==2.2.1",
@@ -71,7 +71,7 @@ setup(
             "scipy==1.4.1",
             "torch==1.4.0",
             "torchvision==0.5.0",
-            "ray[rllib]==1.0.1.post1",  # We use Ray for our multiprocessing needs
+            "ray[rllib]==1.8.0",  # We use Ray for our multiprocessing needs
         ],
         "dev": [
             "black==20.8b1",

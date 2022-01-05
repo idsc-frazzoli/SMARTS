@@ -56,3 +56,4 @@ run:
     sgd_minibatch_size: 32
     lr: 1e-4
     lambda: 0
+    

@@ -28,6 +28,8 @@ from ray import tune
 from baselines.marl_benchmark import gen_config
 from baselines.marl_benchmark.common import SimpleCallbacks
 
+import yaml  # NK
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 RUN_NAME = Path(__file__).stem
 EXPERIMENT_NAME = "{scenario}-{n_agent}"
@@ -91,7 +93,17 @@ def main(
             "restore": restore_path,
         }
     )
+
+    # if paradigm == 'centralized':
+    #     config['policy'] = config['policy'][:3]
+    #     del config['run']['config']['custom_preprocessor']
+
+    with open('config.yaml', 'w') as outfile:
+        yaml.dump(config, outfile, default_flow_style=False)
+
+    print('start tuning')
     analysis = tune.run(**config["run"])
+    print('end tuning')
 
     print(analysis.dataframe().head())
 

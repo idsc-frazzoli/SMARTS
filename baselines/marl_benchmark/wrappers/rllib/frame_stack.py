@@ -30,7 +30,7 @@ from ray.rllib.models.preprocessors import get_preprocessor
 from ray.rllib.utils.annotations import override
 from scipy.spatial import distance
 
-from baselines.marl_benchmark.common import ActionAdapter, cal_obs
+from baselines.marl_benchmark.common import ActionAdapter, cal_obs, cal_obs_centralized
 from baselines.marl_benchmark.wrappers.rllib.wrapper import Wrapper
 
 
@@ -88,6 +88,9 @@ class FrameStack(Wrapper):
         self.info_adapter = config["info_adapter"]
         self.reward_adapter = config["reward_adapter"]
 
+        # self.observation_space = config["observation_space"]
+        # self.action_space = config["action_space"]
+
         self.frames = {
             agent_id: deque(maxlen=self.num_stack) for agent_id in self._agent_keys
         }
@@ -119,6 +122,7 @@ class FrameStack(Wrapper):
         def func(env_obs_seq):
             assert isinstance(env_obs_seq, Sequence)
             observation = cal_obs(env_obs_seq, observation_space, feature_configs)
+            # observation = cal_obs_centralized(env_obs_seq, observation_space, feature_configs)
             return observation
 
         return func

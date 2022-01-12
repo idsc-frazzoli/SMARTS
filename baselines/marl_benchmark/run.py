@@ -55,7 +55,7 @@ def main(
         )
     # does not fix memory issue, just makes it slower
     # else: #NK
-    #     ray.init(local_mode=True) #NK
+    ray.init(local_mode=True)
         
     config = gen_config(
         scenario=scenario, config_file=config_file, paradigm=paradigm, headless=headless
@@ -94,16 +94,22 @@ def main(
         }
     )
 
-    # if paradigm == 'centralized':
-    #     config['policy'] = config['policy'][:3]
-    #     del config['run']['config']['custom_preprocessor']
+    if paradigm == 'centralized':
+        # config['policy'] = config['policy'][:3]
+        del config['run']['config']['custom_preprocessor']
 
-    with open('config.yaml', 'w') as outfile:
-        yaml.dump(config, outfile, default_flow_style=False)
+    # with open('config.yaml', 'w') as outfile:
+    #     yaml.dump(config, outfile, default_flow_style=False)
+    #
+    # config["run"]["config"]["env"].update(
+    #     {
+    #         "observation_space": config["run"]["config"]["env_config"]["custom_config"]["observation_space"],
+    #         "action_space": config["run"]["config"]["env_config"]["custom_config"]["action_space"],
+    #     }
+    # )
 
-    print('start tuning')
+
     analysis = tune.run(**config["run"])
-    print('end tuning')
 
     print(analysis.dataframe().head())
 

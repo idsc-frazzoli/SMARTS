@@ -59,6 +59,26 @@ def gen_config(**kwargs):
                 "groups": {"group": agent_ids},
             }
         )
+
+        # config["env_config"]['custom_config'].update(
+        #     {
+        #         "observation_space": gym.spaces.Tuple([obs_space] * agent_missions_count),
+        #         "action_space": gym.spaces.Tuple([act_space] * agent_missions_count),
+        #         "groups": {"group": agent_ids},
+        #     }
+        # )
+
+        # config["run"].update(
+        #     {
+        #         "observation_space": gym.spaces.Tuple([obs_space] * agent_missions_count),
+        #         "action_space": gym.spaces.Tuple([act_space] * agent_missions_count),
+        #         "groups": {"group": agent_ids},
+        #     }
+        # )
+
+        # config["policy"][-1] is the following dict:
+        # {'custom_preprocessor': <class 'baselines.marl_benchmark.wrappers.rllib.frame_stack.TupleStackingPreprocessor'>}
+        # custom preprocessor gets added here
         tune_config.update(config["policy"][-1])
     else:
         policies = {}

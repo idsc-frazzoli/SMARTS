@@ -892,6 +892,23 @@ def cal_obs(env_obs, space, feature_configs):
     return obs_np
 
 
+def cal_obs_centralized(env_obs, space, feature_configs):
+    # should be of type gym.spaces.Tuple
+    # print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+    assert isinstance(space, gym.spaces.Tuple)
+    # size = None
+    # for i in range(len(space.spaces)):
+    #     current_space = space.spaces[i]
+    #
+
+    obs_np = []
+    assert isinstance(env_obs, Sequence)
+    for obs, sub_space in zip(env_obs, space.spaces):
+        obs_np.append(cal_obs_centralized(obs, sub_space, feature_configs))
+
+    return obs_np
+
+
 def get_distance_from_center(env_obs):
     ego_state = env_obs.ego_vehicle_state
     wp_paths = env_obs.waypoint_paths

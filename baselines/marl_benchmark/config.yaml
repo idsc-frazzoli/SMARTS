@@ -1,7 +1,7 @@
 agent:
-  interface: &id001 !!python/object:smarts.core.agent_interface.AgentInterface
+  interface: &id002 !!python/object:smarts.core.agent_interface.AgentInterface
     accelerometer: !!python/object:smarts.core.agent_interface.Accelerometer {}
-    action: &id010 !!python/object/apply:smarts.core.controllers.ActionSpaceType
+    action: &id012 !!python/object/apply:smarts.core.controllers.ActionSpaceType
     - 1
     agent_behavior: null
     debug: false
@@ -16,63 +16,21 @@ agent:
     drivable_area_grid_map: false
     lidar: false
     max_episode_steps: 1000
-    neighborhood_vehicles: &id011 !!python/object:smarts.core.agent_interface.NeighborhoodVehicles
+    neighborhood_vehicles: &id013 !!python/object:smarts.core.agent_interface.NeighborhoodVehicles
       radius: 50
     ogm: false
     rgb: false
     road_waypoints: false
     vehicle_type: sedan
-    waypoints: &id012 !!python/object:smarts.core.agent_interface.Waypoints
+    waypoints: &id014 !!python/object:smarts.core.agent_interface.Waypoints
       lookahead: 50
-env_config: &id015
-  agent_specs:
-    AGENT-0: !!python/object:smarts.core.agent.AgentSpec
-      action_adapter: &id002 !!python/name:smarts.core.agent.%3Clambda%3E ''
-      agent_builder: null
-      agent_params: null
-      info_adapter: &id003 !!python/name:smarts.core.agent.%3Clambda%3E ''
-      interface: *id001
-      observation_adapter: &id004 !!python/name:smarts.core.agent.%3Clambda%3E ''
-      perform_self_test: false
-      policy_builder: null
-      policy_params: null
-      reward_adapter: &id005 !!python/name:smarts.core.agent.%3Clambda%3E ''
-    AGENT-1: !!python/object:smarts.core.agent.AgentSpec
-      action_adapter: *id002
-      agent_builder: null
-      agent_params: null
-      info_adapter: *id003
-      interface: *id001
-      observation_adapter: *id004
-      perform_self_test: false
-      policy_builder: null
-      policy_params: null
-      reward_adapter: *id005
-    AGENT-2: !!python/object:smarts.core.agent.AgentSpec
-      action_adapter: *id002
-      agent_builder: null
-      agent_params: null
-      info_adapter: *id003
-      interface: *id001
-      observation_adapter: *id004
-      perform_self_test: false
-      policy_builder: null
-      policy_params: null
-      reward_adapter: *id005
-    AGENT-3: !!python/object:smarts.core.agent.AgentSpec
-      action_adapter: *id002
-      agent_builder: null
-      agent_params: null
-      info_adapter: *id003
-      interface: *id001
-      observation_adapter: *id004
-      perform_self_test: false
-      policy_builder: null
-      policy_params: null
-      reward_adapter: *id005
-  custom_config:
-    action_adapter: !!python/name:baselines.marl_benchmark.common.discrete_action_adapter ''
-    action_space: &id014 !!python/object:gym.spaces.discrete.Discrete
+env_config: &id016
+  act_space: !!python/object:gym.spaces.tuple.Tuple
+    _np_random: null
+    dtype: null
+    shape: null
+    spaces:
+    - &id001 !!python/object:gym.spaces.discrete.Discrete
       _np_random: null
       dtype: !!python/object/apply:numpy.dtype
         args:
@@ -90,16 +48,67 @@ env_config: &id015
         - 0
       n: 4
       shape: !!python/tuple []
+    - *id001
+    - *id001
+    - *id001
+  agent_specs:
+    AGENT-0: !!python/object:smarts.core.agent.AgentSpec
+      action_adapter: &id003 !!python/name:smarts.core.agent.%3Clambda%3E ''
+      agent_builder: null
+      agent_params: null
+      info_adapter: &id004 !!python/name:smarts.core.agent.%3Clambda%3E ''
+      interface: *id002
+      observation_adapter: &id005 !!python/name:smarts.core.agent.%3Clambda%3E ''
+      perform_self_test: false
+      policy_builder: null
+      policy_params: null
+      reward_adapter: &id006 !!python/name:smarts.core.agent.%3Clambda%3E ''
+    AGENT-1: !!python/object:smarts.core.agent.AgentSpec
+      action_adapter: *id003
+      agent_builder: null
+      agent_params: null
+      info_adapter: *id004
+      interface: *id002
+      observation_adapter: *id005
+      perform_self_test: false
+      policy_builder: null
+      policy_params: null
+      reward_adapter: *id006
+    AGENT-2: !!python/object:smarts.core.agent.AgentSpec
+      action_adapter: *id003
+      agent_builder: null
+      agent_params: null
+      info_adapter: *id004
+      interface: *id002
+      observation_adapter: *id005
+      perform_self_test: false
+      policy_builder: null
+      policy_params: null
+      reward_adapter: *id006
+    AGENT-3: !!python/object:smarts.core.agent.AgentSpec
+      action_adapter: *id003
+      agent_builder: null
+      agent_params: null
+      info_adapter: *id004
+      interface: *id002
+      observation_adapter: *id005
+      perform_self_test: false
+      policy_builder: null
+      policy_params: null
+      reward_adapter: *id006
+  custom_config:
+    action_adapter: !!python/name:baselines.marl_benchmark.common.discrete_action_adapter ''
+    action_space: *id001
     info_adapter: null
     name: FrameStack
     num_stack: 3
     observation_adapter: !!python/name:baselines.marl_benchmark.wrappers.rllib.frame_stack.func ''
-    observation_space: &id013 !!python/object:gym.spaces.tuple.Tuple
+    observation_space: &id011 !!python/object:gym.spaces.tuple.Tuple
       _np_random: null
       dtype: null
       shape: null
       spaces:
-      - &id009 !!python/object:gym.spaces.dict.Dict
+      - &id010 !!python/object:gym.spaces.dict.Dict
         _np_random: null
         dtype: null
         shape: null
@@ -109,7 +118,7 @@ env_config: &id015
               _np_random: null
               bounded_above: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - &id006 !!python/name:numpy.ndarray ''
+                - &id007 !!python/name:numpy.ndarray ''
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -118,7 +127,7 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - &id007 !!python/object/apply:numpy.dtype
+                - &id008 !!python/object/apply:numpy.dtype
                   args:
                   - b1
                   - 0
@@ -137,7 +146,7 @@ env_config: &id015
                   AA==
               bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -146,11 +155,11 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - *id007
+                - *id008
                 - false
                 - !!binary |
                   AA==
-              dtype: &id008 !!python/object/apply:numpy.dtype
+              dtype: &id009 !!python/object/apply:numpy.dtype
                 args:
                 - f4
                 - 0
@@ -166,7 +175,7 @@ env_config: &id015
                 - 0
               high: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -175,13 +184,13 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - *id008
+                - *id009
                 - false
                 - !!binary |
                   AACAfw==
               low: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -190,7 +199,7 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - *id008
+                - *id009
                 - false
                 - !!binary |
                   AACA/w==
@@ -201,7 +210,7 @@ env_config: &id015
               _np_random: null
               bounded_above: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -210,29 +219,13 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 2
-                - *id007
+                - *id008
                 - false
                 - !!binary |
                   AAA=
               bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
-                - !!python/tuple
-                  - 0
-                - !!binary |
-                  Yg==
-                state: !!python/tuple
-                - 1
-                - !!python/tuple
-                  - 2
                 - *id007
-                - false
-                - !!binary |
-                  AAA=
-              dtype: *id008
-              high: !!python/object/apply:numpy.core.multiarray._reconstruct
-                args:
-                - *id006
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -242,12 +235,28 @@ env_config: &id015
                 - !!python/tuple
                   - 2
                 - *id008
+                - false
+                - !!binary |
+                  AAA=
+              dtype: *id009
+              high: !!python/object/apply:numpy.core.multiarray._reconstruct
+                args:
+                - *id007
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+                state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 2
+                - *id009
                 - false
                 - !!binary |
                   AACAfwAAgH8=
               low: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -256,7 +265,7 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 2
-                - *id008
+                - *id009
                 - false
                 - !!binary |
                   AACA/wAAgP8=
@@ -267,38 +276,7 @@ env_config: &id015
               _np_random: null
               bounded_above: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
-                - !!python/tuple
-                  - 0
-                - !!binary |
-                  Yg==
-                state: !!python/tuple
-                - 1
-                - !!python/tuple
-                  - 20
                 - *id007
-                - false
-                - !!binary |
-                  AAAAAAAAAAAAAAAAAAAAAAAAAAA=
-              bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
-                args:
-                - *id006
-                - !!python/tuple
-                  - 0
-                - !!binary |
-                  Yg==
-                state: !!python/tuple
-                - 1
-                - !!python/tuple
-                  - 20
-                - *id007
-                - false
-                - !!binary |
-                  AAAAAAAAAAAAAAAAAAAAAAAAAAA=
-              dtype: *id008
-              high: !!python/object/apply:numpy.core.multiarray._reconstruct
-                args:
-                - *id006
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -308,13 +286,44 @@ env_config: &id015
                 - !!python/tuple
                   - 20
                 - *id008
+                - false
+                - !!binary |
+                  AAAAAAAAAAAAAAAAAAAAAAAAAAA=
+              bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
+                args:
+                - *id007
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+                state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 20
+                - *id008
+                - false
+                - !!binary |
+                  AAAAAAAAAAAAAAAAAAAAAAAAAAA=
+              dtype: *id009
+              high: !!python/object/apply:numpy.core.multiarray._reconstruct
+                args:
+                - *id007
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+                state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 20
+                - *id009
                 - false
                 - !!binary |
                   AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8A
                   AIB/AACAfwAAgH8AAIB/AACAfwAAgH8=
               low: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -323,7 +332,7 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 20
-                - *id008
+                - *id009
                 - false
                 - !!binary |
                   AACA/wAAgP8AAID/AACA/wAAgP8AAID/AACA/wAAgP8AAID/AACA/wAAgP8AAID/AACA/wAAgP8A
@@ -335,38 +344,7 @@ env_config: &id015
               _np_random: null
               bounded_above: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
-                - !!python/tuple
-                  - 0
-                - !!binary |
-                  Yg==
-                state: !!python/tuple
-                - 1
-                - !!python/tuple
-                  - 40
                 - *id007
-                - false
-                - !!binary |
-                  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-              bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
-                args:
-                - *id006
-                - !!python/tuple
-                  - 0
-                - !!binary |
-                  Yg==
-                state: !!python/tuple
-                - 1
-                - !!python/tuple
-                  - 40
-                - *id007
-                - false
-                - !!binary |
-                  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-              dtype: *id008
-              high: !!python/object/apply:numpy.core.multiarray._reconstruct
-                args:
-                - *id006
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -376,6 +354,37 @@ env_config: &id015
                 - !!python/tuple
                   - 40
                 - *id008
+                - false
+                - !!binary |
+                  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+              bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
+                args:
+                - *id007
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+                state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 40
+                - *id008
+                - false
+                - !!binary |
+                  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+              dtype: *id009
+              high: !!python/object/apply:numpy.core.multiarray._reconstruct
+                args:
+                - *id007
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+                state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 40
+                - *id009
                 - false
                 - !!binary |
                   AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8A
@@ -383,7 +392,7 @@ env_config: &id015
                   gH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfwAAgH8AAIB/AACAfw==
               low: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -392,7 +401,7 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 40
-                - *id008
+                - *id009
                 - false
                 - !!binary |
                   AACA/wAAgP8AAID/AACA/wAAgP8AAID/AACA/wAAgP8AAID/AACA/wAAgP8AAID/AACA/wAAgP8A
@@ -405,7 +414,7 @@ env_config: &id015
               _np_random: null
               bounded_above: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -414,29 +423,13 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - *id007
+                - *id008
                 - false
                 - !!binary |
                   AA==
               bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
-                - !!python/tuple
-                  - 0
-                - !!binary |
-                  Yg==
-                state: !!python/tuple
-                - 1
-                - !!python/tuple
-                  - 1
                 - *id007
-                - false
-                - !!binary |
-                  AA==
-              dtype: *id008
-              high: !!python/object/apply:numpy.core.multiarray._reconstruct
-                args:
-                - *id006
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -446,12 +439,28 @@ env_config: &id015
                 - !!python/tuple
                   - 1
                 - *id008
+                - false
+                - !!binary |
+                  AA==
+              dtype: *id009
+              high: !!python/object/apply:numpy.core.multiarray._reconstruct
+                args:
+                - *id007
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+                state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 1
+                - *id009
                 - false
                 - !!binary |
                   AACAfw==
               low: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -460,7 +469,7 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - *id008
+                - *id009
                 - false
                 - !!binary |
                   AACA/w==
@@ -471,7 +480,7 @@ env_config: &id015
               _np_random: null
               bounded_above: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -480,29 +489,13 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - *id007
+                - *id008
                 - false
                 - !!binary |
                   AA==
               bounded_below: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
-                - !!python/tuple
-                  - 0
-                - !!binary |
-                  Yg==
-                state: !!python/tuple
-                - 1
-                - !!python/tuple
-                  - 1
                 - *id007
-                - false
-                - !!binary |
-                  AA==
-              dtype: *id008
-              high: !!python/object/apply:numpy.core.multiarray._reconstruct
-                args:
-                - *id006
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -512,12 +505,28 @@ env_config: &id015
                 - !!python/tuple
                   - 1
                 - *id008
+                - false
+                - !!binary |
+                  AA==
+              dtype: *id009
+              high: !!python/object/apply:numpy.core.multiarray._reconstruct
+                args:
+                - *id007
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+                state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 1
+                - *id009
                 - false
                 - !!binary |
                   AACAfw==
               low: !!python/object/apply:numpy.core.multiarray._reconstruct
                 args:
-                - *id006
+                - *id007
                 - !!python/tuple
                   - 0
                 - !!binary |
@@ -526,69 +535,58 @@ env_config: &id015
                 - 1
                 - !!python/tuple
                   - 1
-                - *id008
+                - *id009
                 - false
                 - !!binary |
                   AACA/w==
               shape: !!python/tuple
               - 1
-      - *id009
-      - *id009
+      - *id010
+      - *id010
     reward_adapter: !!python/name:baselines.marl_benchmark.wrappers.rllib.frame_stack.func ''
+  groups:
+    group:
+    - AGENT-0
+    - AGENT-1
+    - AGENT-2
+    - AGENT-3
   headless: true
+  obs_space: !!python/object:gym.spaces.tuple.Tuple
+    _np_random: null
+    dtype: null
+    shape: null
+    spaces:
+    - *id011
+    - *id011
+    - *id011
+    - *id011
   scenarios:
-  - /src/baselines/marl_benchmark/scenarios/two_ways/bid_sv
+  - /opt/project/baselines/marl_benchmark/scenarios/double_merge/cross
   seed: 42
 interface:
-  action: *id010
+  action: *id012
   max_episode_steps: 1000
-  neighborhood_vehicles: *id011
-  waypoints: *id012
+  neighborhood_vehicles: *id013
+  waypoints: *id014
 name: ppo-baseline
 policy: !!python/tuple
 - null
-- *id013
-- *id014
-- custom_preprocessor: &id016 !!python/name:baselines.marl_benchmark.wrappers.rllib.frame_stack.TupleStackingPreprocessor ''
+- *id011
+- *id001
+- custom_preprocessor: &id015 !!python/name:baselines.marl_benchmark.wrappers.rllib.frame_stack.TupleStackingPreprocessor ''
 run:
   checkpoint_at_end: true
   checkpoint_freq: 2
   config:
     callbacks: !!python/name:baselines.marl_benchmark.common.SimpleCallbacks ''
     clip_param: 0.2
+    custom_preprocessor: *id015
     env: !!python/name:baselines.marl_benchmark.wrappers.rllib.frame_stack.FrameStack ''
-    env_config: *id015
+    env_config: *id016
     horizon: 1000
     lambda: 0
     log_level: WARN
     lr: 0.0001
-    multiagent:
-      policies:
-        AGENT-0: !!python/tuple
-        - null
-        - *id013
-        - *id014
-        - agent_id: AGENT-0
-          custom_preprocessor: *id016
-        AGENT-1: !!python/tuple
-        - null
-        - *id013
-        - *id014
-        - agent_id: AGENT-1
-          custom_preprocessor: *id016
-        AGENT-2: !!python/tuple
-        - null
-        - *id013
-        - *id014
-        - agent_id: AGENT-2
-          custom_preprocessor: *id016
-        AGENT-3: !!python/tuple
-        - null
-        - *id013
-        - *id014
-        - agent_id: AGENT-3
-          custom_preprocessor: *id016
-      policy_mapping_fn: !!python/name:baselines.marl_benchmark.%3Clambda%3E ''
     num_gpus: 0
     num_sgd_iter: 10
     num_workers: 5
@@ -596,9 +594,9 @@ run:
   export_formats:
   - model
   - checkpoint
-  local_dir: /src/baselines/marl_benchmark/log/results/run
+  local_dir: /opt/project/baselines/marl_benchmark/log/results/run
   max_failures: 1000
-  name: bid_sv-4
+  name: cross-4
   restore: null
   resume: false
   run_or_experiment: &id017 !!python/name:ray.rllib.agents.trainer_template.PPO ''

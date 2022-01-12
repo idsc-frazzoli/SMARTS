@@ -1,0 +1,28 @@
+Failure # 1 (occurred at 2022-01-11_17-45-16)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.7/dist-packages/ray/tune/trial_runner.py", line 726, in _process_trial
+    result = self.trial_executor.fetch_result(trial)
+  File "/usr/local/lib/python3.7/dist-packages/ray/tune/ray_trial_executor.py", line 489, in fetch_result
+    result = ray.get(trial_future[0], timeout=DEFAULT_GET_TIMEOUT)
+  File "/usr/local/lib/python3.7/dist-packages/ray/worker.py", line 1452, in get
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError: [36mray::PPO.train()[39m (pid=2996, ip=172.17.0.2)
+  File "python/ray/_raylet.pyx", line 443, in ray._raylet.execute_task
+  File "python/ray/_raylet.pyx", line 477, in ray._raylet.execute_task
+  File "python/ray/_raylet.pyx", line 481, in ray._raylet.execute_task
+  File "python/ray/_raylet.pyx", line 482, in ray._raylet.execute_task
+  File "python/ray/_raylet.pyx", line 436, in ray._raylet.execute_task.function_executor
+  File "/usr/local/lib/python3.7/dist-packages/ray/rllib/agents/trainer_template.py", line 106, in __init__
+    Trainer.__init__(self, config, env, logger_creator)
+  File "/usr/local/lib/python3.7/dist-packages/ray/rllib/agents/trainer.py", line 477, in __init__
+    super().__init__(config, logger_creator)
+  File "/usr/local/lib/python3.7/dist-packages/ray/tune/trainable.py", line 249, in __init__
+    self.setup(copy.deepcopy(self.config))
+  File "/usr/local/lib/python3.7/dist-packages/ray/rllib/agents/trainer.py", line 579, in setup
+    config)
+  File "/usr/local/lib/python3.7/dist-packages/ray/rllib/agents/trainer.py", line 1058, in merge_trainer_configs
+    cls._override_all_subkeys_if_type_changes)
+  File "/usr/local/lib/python3.7/dist-packages/ray/tune/utils/util.py", line 213, in deep_update
+    raise Exception("Unknown config parameter `{}` ".format(k))
+Exception: Unknown config parameter `custom_preprocessor`
+

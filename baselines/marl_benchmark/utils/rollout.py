@@ -25,7 +25,7 @@ from ray import logger
 from ray.rllib.env import MultiAgentEnv
 from ray.rllib.env.base_env import _DUMMY_AGENT_ID
 from ray.rllib.evaluation.worker_set import WorkerSet
-# from ray.rllib.rollout import DefaultMapping, default_policy_agent_mapping
+# from ray.rllib.rollout import DefaultMapping, default_policy_agent_mapping # this was used for ray version 1.0.1.post1
 from ray.rllib.evaluate import DefaultMapping, default_policy_agent_mapping
 from ray.rllib.utils.spaces.space_utils import flatten_to_single_ndarray
 

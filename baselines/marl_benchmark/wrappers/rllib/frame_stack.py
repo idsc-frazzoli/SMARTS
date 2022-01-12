@@ -88,8 +88,8 @@ class FrameStack(Wrapper):
         self.info_adapter = config["info_adapter"]
         self.reward_adapter = config["reward_adapter"]
 
-        # self.observation_space = config["observation_space"]
-        # self.action_space = config["action_space"]
+        self.observation_space = config["observation_space"]
+        self.action_space = config["action_space"]
 
         self.frames = {
             agent_id: deque(maxlen=self.num_stack) for agent_id in self._agent_keys

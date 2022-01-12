@@ -29,6 +29,7 @@ from baselines.marl_benchmark import gen_config
 from baselines.marl_benchmark.common import SimpleCallbacks
 
 import yaml  # NK
+# working with centralized
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 RUN_NAME = Path(__file__).stem
@@ -55,8 +56,8 @@ def main(
         )
     # does not fix memory issue, just makes it slower
     # else: #NK
-    ray.init(local_mode=True)
-        
+    # ray.init(local_mode=True)
+
     config = gen_config(
         scenario=scenario, config_file=config_file, paradigm=paradigm, headless=headless
     )
@@ -94,9 +95,9 @@ def main(
         }
     )
 
-    if paradigm == 'centralized':
-        # config['policy'] = config['policy'][:3]
-        del config['run']['config']['custom_preprocessor']
+    # if paradigm == 'centralized':
+    #     # config['policy'] = config['policy'][:3]
+    #     del config['run']['config']['custom_preprocessor']
 
     # with open('config.yaml', 'w') as outfile:
     #     yaml.dump(config, outfile, default_flow_style=False)

@@ -79,10 +79,11 @@ def gen_config(**kwargs):
         # config["policy"][-1] is the following dict:
         # {'custom_preprocessor': <class 'baselines.marl_benchmark.wrappers.rllib.frame_stack.TupleStackingPreprocessor'>}
         # custom preprocessor gets added here
-        tune_config.update(config["policy"][-1])
+        # tune_config.update(config["policy"][-1])
     else:
         policies = {}
         for k in agents:
+            # policies[k] = config["policy"][:-1]  #NK
             policies[k] = config["policy"][:-1] + (
                 {**config["policy"][-1], "agent_id": k},
             )

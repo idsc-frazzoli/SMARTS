@@ -3,38 +3,115 @@ import pandas as pd
 import os
 
 from pathlib import Path
+import numpy as np
 
-import matplotlib as mpl
+# import matplotlib as mpl
 import matplotlib.pyplot as plt
+
+def str2list(s):
+    slist = s[1:-1].split(',')
+    return [float(x) for x in slist]
+
+
+#%% old
 
 # progress_path = Path('../../../nando/ray_results/rllib_example_multi/PG_RLlibHiWayEnv_78d5d_00000_0_seed=125_2021-12-02_09-54-34/progress.csv')
 # progress_path = Path('../../../nando/ray_results/rllib_example_multi/PG_RLlibHiWayEnv_15b92_00000_0_seed=140_2021-12-02_11-32-01/progress.csv')
 
-scenario = 'nocross-4'
+# scenario = 'nocross-4'
+
 # name = 'PPO_FrameStack_9c0e9_00000_0_2021-12-09_00-21-45'
 # name = 'PPO_FrameStack_42dda_00000_0_2021-12-14_11-23-28'
-name = 'PPO_FrameStack_64782_00000_0_2021-12-15_10-47-26'
+# name = 'PPO_FrameStack_64782_00000_0_2021-12-15_10-47-26'
 
-progress_path = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+# progress_path = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+#                              scenario,
+#                              name,
+#                              'progress.csv')
+
+
+#%% 13.01.2022: nocross decentralized vs. centralized tests
+
+scenario = 'nocross-4'
+
+name_cen = 'PPO_FrameStack_9af5d_00000_0_2022-01-12_09-54-17'
+name_decen = 'PPO_FrameStack_2630c_00000_0_2022-01-12_15-27-27'
+
+progress_path_cen = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
                              scenario,
-                             name,
+                             name_cen,
                              'progress.csv')
 
+progress_path_decen = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                             scenario,
+                             name_decen,
+                             'progress.csv')
 
-df_progress = pd.read_csv(progress_path)
+df_progress_cen = pd.read_csv(progress_path_cen)
+df_progress_decen = pd.read_csv(progress_path_decen)
+
+df_ep_rew_cen = df_progress_cen['hist_stats/episode_reward']
+df_ep_rew_decen = df_progress_decen['hist_stats/episode_reward']
+
+rewards_cen = df_progress_cen[['episode_reward_mean','episode_reward_max','episode_reward_min']]
+rewards_decen = df_progress_decen[['episode_reward_mean','episode_reward_max','episode_reward_min']]
+
+rew_std_up_cen = [np.percentile(str2list(x),84) for x in df_ep_rew_cen]
+rew_std_lo_cen = [np.percentile(str2list(x),16) for x in df_ep_rew_cen]
+rew_std_up_decen = [np.percentile(str2list(x),84) for x in df_ep_rew_decen]
+rew_std_lo_decen = [np.percentile(str2list(x),16) for x in df_ep_rew_decen]
+
+rew_2std_up_cen = [np.percentile(str2list(x),97.5) for x in df_ep_rew_cen]
+rew_2std_lo_cen = [np.percentile(str2list(x),2.5) for x in df_ep_rew_cen]
+rew_2std_up_decen = [np.percentile(str2list(x),97.5) for x in df_ep_rew_decen]
+rew_2std_lo_decen = [np.percentile(str2list(x),2.5) for x in df_ep_rew_decen]
+
+rew_median_cen = [np.median(str2list(x)) for x in df_ep_rew_cen]
+rew_median_decen = [np.median(str2list(x)) for x in df_ep_rew_decen]
+
+# rew_75_decen = [np.percentile(str2list(x),75) for x in df_ep_rew_decen]
+# rew_25_decen = [np.percentile(str2list(x),25) for x in df_ep_rew_decen]
+
+#%% Plotting
+
+fig = plt.figure()
+ax = plt.axes()
+
+# ax.plot(rewards_cen['episode_reward_mean'], color=[0,0.3,1,1], label='centralized')
+# ax.plot(rewards_decen['episode_reward_mean'], color=[1,0.3,0,1], label='decentralized')
+
+ax.fill_between(np.arange(1,len(rew_std_up_cen)+1), rew_std_up_cen, rew_std_lo_cen, color=[0,0.3,1,0.2])
+ax.fill_between(np.arange(1,len(rew_std_up_decen)+1), rew_std_up_decen, rew_std_lo_decen, color=[1,0.3,0,0.2])
+
+# ax.fill_between(np.arange(1,len(rew_2std_up_cen)+1), rew_2std_up_cen, rew_2std_lo_cen, color=[0,0.3,1,0.2])
+# ax.fill_between(np.arange(1,len(rew_2std_up_decen)+1), rew_2std_up_decen, rew_2std_lo_decen, color=[1,0.3,0,0.2])
+ax.plot(rew_median_cen, color=[0,0.3,1,1], label='centralized')
+ax.plot(rew_median_decen, color=[1,0.3,0,1], label='decentralized')
+
+plt.xlabel('iterations')
+plt.ylabel('median reward')
+plt.title('Decentralized vs. Centralized for no_cross')
+
+plt.legend()
+
+plt.savefig("plots/nocross_cen_decen.pdf")
+plt.show()
 
 
-df = df_progress[['episode_reward_mean','episode_reward_max','episode_reward_min']]
-mean_reward = df_progress[['episode_reward_mean']]
-ram = df_progress[['perf/ram_util_percent']]
-cpu = df_progress[['perf/cpu_util_percent']]
+
+
+
+# df = df_progress[['episode_reward_mean','episode_reward_max','episode_reward_min']]
+# mean_reward = df_progress[['episode_reward_mean']]
+# ram = df_progress[['perf/ram_util_percent']]
+# cpu = df_progress[['perf/cpu_util_percent']]
 
 #df.plot()
 #mean_reward.plot()
 #ram.plot()
-cpu.plot()
-print('done')
-plt.savefig("plots/nocross_cpu.png")
+# cpu.plot()
+# print('done')
+# plt.savefig("plots/nocross_cpu.png")
 # plt.show()
 
 

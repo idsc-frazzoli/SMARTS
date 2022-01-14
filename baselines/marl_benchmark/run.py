@@ -46,6 +46,7 @@ def main(
     paradigm="decentralized",
     headless=False,
     cluster=False,
+    stop_time=14400,
 ):
     if cluster:
         ray.init(address="auto", redis_password="5241590000000000")
@@ -109,6 +110,7 @@ def main(
     #     }
     # )
 
+    config["run"]["stop"]["time_total_s"] = stop_time
 
     analysis = tune.run(**config["run"])
 
@@ -144,6 +146,7 @@ def parse_args():
     parser.add_argument(
         "--horizon", type=int, default=1000, help="Horizon for a episode"
     )
+    parser.add_argument("--stop_time", type=int, default=14400, help="Max. number of seconds of training.")
 
     return parser.parse_args()
 
@@ -160,4 +163,5 @@ if __name__ == "__main__":
         paradigm=args.paradigm,
         headless=args.headless,
         cluster=args.cluster,
+        stop_time=args.stop_time
     )

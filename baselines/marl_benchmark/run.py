@@ -47,6 +47,7 @@ def main(
     headless=False,
     cluster=False,
     stop_time=14400,
+    # data_replay_path=None,
 ):
     if cluster:
         ray.init(address="auto", redis_password="5241590000000000")
@@ -111,6 +112,7 @@ def main(
     # )
 
     config["run"]["stop"]["time_total_s"] = stop_time
+    # config["run"]["config"]["envision_record_data_replay_path"] = data_replay_path
 
     analysis = tune.run(**config["run"])
 
@@ -147,6 +149,7 @@ def parse_args():
         "--horizon", type=int, default=1000, help="Horizon for a episode"
     )
     parser.add_argument("--stop_time", type=int, default=14400, help="Max. number of seconds of training.")
+    # parser.add_argument("--data_replay_path", type=str, default=None, help="Path to store envision replay data.")
 
     return parser.parse_args()
 
@@ -163,5 +166,6 @@ if __name__ == "__main__":
         paradigm=args.paradigm,
         headless=args.headless,
         cluster=args.cluster,
-        stop_time=args.stop_time
+        stop_time=args.stop_time,
+        # data_replay_path=args.data_replay_path,
     )

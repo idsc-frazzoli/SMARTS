@@ -6,3 +6,4 @@ extra_data = pickle.load(open(checkpoint_path, "rb"))
 
 with open(checkpoint_path + ".tune_metadata", "rb") as f:
     metadata = pickle.load(f)
+    

@@ -88,12 +88,12 @@ class RLlibHiWayEnv(MultiAgentEnv):
         self._endless_traffic = config.get("endless_traffic", True)
 
         self._envision_endpoint = config.get("envision_endpoint", None)
-        self._envision_record_data_replay_path = config.get(
-            "envision_record_data_replay_path", None
-        )
         # self._envision_record_data_replay_path = config.get(
-        #     "envision_record_data_replay_path", "./data_replay/"
+        #     "envision_record_data_replay_path", None
         # )
+        self._envision_record_data_replay_path = config.get(
+            "envision_record_data_replay_path", "./data_replay/"
+        )
         self._timestep_sec = config.get("timestep_sec", 0.1)
         self._smarts = None  # Created on env.setup()
         self._dones_registered = 0

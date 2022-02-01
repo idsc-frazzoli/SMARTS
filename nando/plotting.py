@@ -132,8 +132,8 @@ plt.xlabel('iterations')
 plt.ylabel('mean reward')
 plt.title('Decentralized vs. Centralized for nocross')
 plt.legend()
-plt.savefig("plots/nocross_cen_decen_long.pdf")
-plt.savefig("plots/nocross_cen_decen_long.png")
+# plt.savefig("plots/nocross_cen_decen_long.pdf")
+# plt.savefig("plots/nocross_cen_decen_long.png")
 plt.show()
 
 # df = df_progress[['episode_reward_mean','episode_reward_max','episode_reward_min']]
@@ -333,3 +333,90 @@ plt.show()
 # print('done')
 # plt.savefig("plots/nocross_cpu.png")
 # plt.show()
+
+#%% 31.01.2022: two_ways/bid tests with default and modified cost functions
+# rudolf with num_workers = 30
+
+# NOTE: the two rewards are not comparable, we have to look at the behavior!
+
+title = "Modified Cost Test"
+
+scenario = 'bid-4'
+# 1. default cost (from benchmark)
+name_1 = 'PPO_FrameStack_00695_00000_0_2022-01-31_13-16-29'
+label_1 = "default cost"
+# 2. modified cost
+name_2 = 'PPO_FrameStack_2d1a5_00000_0_2022-01-31_17-42-36'
+label_2 = "modified cost"
+
+progress_path_1 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                scenario,
+                                name_1,
+                                'progress.csv')
+
+progress_path_2 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                scenario,
+                                name_2,
+                                'progress.csv')
+
+
+df_progress_1 = pd.read_csv(progress_path_1)
+df_progress_2 = pd.read_csv(progress_path_2)
+
+df_ep_rew_1 = df_progress_1['hist_stats/episode_reward']
+df_ep_rew_2 = df_progress_2['hist_stats/episode_reward']
+
+rewards_1 = df_progress_1[['episode_reward_mean','episode_reward_max','episode_reward_min']]
+rewards_2 = df_progress_2[['episode_reward_mean','episode_reward_max','episode_reward_min']]
+
+rew_std_up_1 = [np.percentile(str2list(x),84) for x in df_ep_rew_1]
+rew_std_lo_1 = [np.percentile(str2list(x),16) for x in df_ep_rew_1]
+rew_std_up_2 = [np.percentile(str2list(x),84) for x in df_ep_rew_2]
+rew_std_lo_2 = [np.percentile(str2list(x),16) for x in df_ep_rew_2]
+
+rew_2std_up_1 = [np.percentile(str2list(x),97.5) for x in df_ep_rew_1]
+rew_2std_lo_1 = [np.percentile(str2list(x),2.5) for x in df_ep_rew_1]
+rew_2std_up_2 = [np.percentile(str2list(x),97.5) for x in df_ep_rew_2]
+rew_2std_lo_2 = [np.percentile(str2list(x),2.5) for x in df_ep_rew_2]
+
+rew_median_1 = [np.median(str2list(x)) for x in df_ep_rew_1]
+rew_median_2 = [np.median(str2list(x)) for x in df_ep_rew_2]
+
+# Plotting
+
+fig = plt.figure()
+ax = plt.axes()
+
+# ax.plot(rewards_cen['episode_reward_mean'], color=[0,0.3,1,1], label='centralized')
+# ax.plot(rewards_decen['episode_reward_mean'], color=[1,0.3,0,1], label='decentralized')
+
+# ax.fill_between(np.arange(1,len(rew_std_up_1)+1), rew_std_up_1, rew_std_lo_1, color=[0,0.3,1,0.2])
+# ax.fill_between(np.arange(1,len(rew_std_up_2)+1), rew_std_up_2, rew_std_lo_2, color=[1,0.3,0,0.2])
+
+# ax.fill_between(np.arange(1,len(rew_2std_up_cen)+1), rew_2std_up_cen, rew_2std_lo_cen, color=[0,0.3,1,0.2])
+# ax.fill_between(np.arange(1,len(rew_2std_up_decen)+1), rew_2std_up_decen, rew_2std_lo_decen, color=[1,0.3,0,0.2])
+# ax.plot(rew_median_1, color=[0,0.3,1,1], label=label_1)
+ax.plot(rew_median_2, color=[1,0.3,0,1], label=label_2)
+
+plt.xlabel('iterations')
+plt.ylabel('median reward')
+plt.title(title)
+
+plt.legend()
+
+# plt.savefig("plots/nocross_cen_decen.pdf")
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+

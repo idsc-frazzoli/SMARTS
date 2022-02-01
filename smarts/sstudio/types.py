@@ -136,7 +136,7 @@ class Actor:
 
     pass
 
-
+collections_abc
 @dataclass(frozen=True, unsafe_hash=True)
 class TrafficActor(Actor):
     """Used as a description/spec for traffic actors (e.x. Vehicles, Pedestrians,

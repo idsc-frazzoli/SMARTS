@@ -135,3 +135,7 @@ ultra/ultra/scenarios/task*/*/
 
 # Singularity
 *.sif
+
+# NK
+**/logs/**
+**/data_replay/**

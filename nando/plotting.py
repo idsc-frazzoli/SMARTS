@@ -409,7 +409,55 @@ plt.show()
 
 
 
+#%% 01.02.2022: nocross with modified cost
+# rudolf with num_workers = 30
 
+
+title = "Modified Cost Test"
+
+scenario = 'nocross-4'
+name_1 = 'PPO_FrameStack_96464_00000_0_2022-02-01_13-48-08'
+label_1 = "modified cost"
+
+progress_path_1 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                scenario,
+                                name_1,
+                                'progress.csv')
+
+df_progress_1 = pd.read_csv(progress_path_1)
+
+df_ep_rew_1 = df_progress_1['hist_stats/episode_reward']
+
+rewards_1 = df_progress_1[['episode_reward_mean','episode_reward_max','episode_reward_min']]
+
+rew_std_up_1 = [np.percentile(str2list(x),84) for x in df_ep_rew_1]
+rew_std_lo_1 = [np.percentile(str2list(x),16) for x in df_ep_rew_1]
+
+rew_2std_up_1 = [np.percentile(str2list(x),97.5) for x in df_ep_rew_1]
+rew_2std_lo_1 = [np.percentile(str2list(x),2.5) for x in df_ep_rew_1]
+
+rew_median_1 = [np.median(str2list(x)) for x in df_ep_rew_1]
+
+# Plotting
+
+fig = plt.figure()
+ax = plt.axes()
+
+# ax.plot(rewards_cen['episode_reward_mean'], color=[0,0.3,1,1], label='centralized')
+
+# ax.fill_between(np.arange(1,len(rew_std_up_1)+1), rew_std_up_1, rew_std_lo_1, color=[0,0.3,1,0.2])
+
+# ax.fill_between(np.arange(1,len(rew_2std_up_cen)+1), rew_2std_up_cen, rew_2std_lo_cen, color=[0,0.3,1,0.2])
+ax.plot(rew_median_1, color=[0,0.3,1,1], label=label_1)
+
+plt.xlabel('iterations')
+plt.ylabel('median reward')
+plt.title(title)
+
+plt.legend()
+
+# plt.savefig("plots/nocross_cen_decen.pdf")
+plt.show()
 
 
 

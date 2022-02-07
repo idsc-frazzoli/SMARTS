@@ -56,9 +56,9 @@ def main(
                 ray.state.cluster_resources()
             )
         )
-    # does not fix memory issue, just makes it slower
-    # else: #NK
-    # ray.init(local_mode=True)
+
+    # use for debugging
+    ray.init(local_mode=True)
 
     config = gen_config(
         scenario=scenario, config_file=config_file, paradigm=paradigm, headless=headless

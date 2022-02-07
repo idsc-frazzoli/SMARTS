@@ -317,25 +317,7 @@ class FrameStack(Wrapper):
     #         penalty, bonus = 0.0, 0.0
     #         obs_seq = observation_adapter(env_obs_seq)
     #
-    #         # # ======== Penalty: too close to neighbor vehicles
-    #         # # if the mean ttc or mean speed or mean dist is higher than before, get penalty
-    #         # # otherwise, get bonus
     #         last_env_obs = env_obs_seq[-1]
-    #         # neighbor_features_np = np.asarray([e.get("neighbor") for e in obs_seq])
-    #         # if neighbor_features_np is not None:
-    #         #     new_neighbor_feature_np = neighbor_features_np[-1].reshape((-1, 5))
-    #         #     mean_dist = np.mean(new_neighbor_feature_np[:, 0])
-    #         #     mean_ttc = np.mean(new_neighbor_feature_np[:, 2])
-    #         #
-    #         #     last_neighbor_feature_np = neighbor_features_np[-2].reshape((-1, 5))
-    #         #     mean_dist2 = np.mean(last_neighbor_feature_np[:, 0])
-    #         #     # mean_speed2 = np.mean(last_neighbor_feature[:, 1])
-    #         #     mean_ttc2 = np.mean(last_neighbor_feature_np[:, 2])
-    #         #     penalty += (
-    #         #         0.03 * (mean_dist - mean_dist2)
-    #         #         # - 0.01 * (mean_speed - mean_speed2)
-    #         #         + 0.01 * (mean_ttc - mean_ttc2)
-    #         #     )
     #
     #         # ======== Penalty: distance to goal =========
     #         goal = last_env_obs.ego_vehicle_state.mission.goal
@@ -380,162 +362,82 @@ class FrameStack(Wrapper):
     #         if not ego_events.reached_goal:
     #             penalty += -0.1
     #
-    #         # ::reached max_episode_step
-    #         # if ego_events.reached_max_episode_steps:
-    #         #     penalty += -0.5
-    #         # else:
-    #         #     bonus += 0.5
-    #
-    #         # ======== Penalty: heading error penalty
-    #         # if obs.get("heading_errors", None):
-    #         #     heading_errors = obs["heading_errors"][-1]
-    #         #     penalty_heading_errors = -0.03 * heading_errors[:2]
-    #         #
-    #         #     heading_errors2 = obs["heading_errors"][-2]
-    #         #     penalty_heading_errors += -0.01 * (heading_errors[:2] - heading_errors2[:2])
-    #         #     penalty += np.mean(penalty_heading_errors)
-    #
-    #         # ======== Penalty: penalise sharp turns done at high speeds =======
-    #         # if last_env_obs.ego_vehicle_state.speed > 60:
-    #         #     steering_penalty = -pow(
-    #         #         (last_env_obs.ego_vehicle_state.speed - 60)
-    #         #         / 20
-    #         #         * last_env_obs.ego_vehicle_state.steering
-    #         #         / 4,
-    #         #         2,
-    #         #     )
-    #         # else:
-    #         #     steering_penalty = 0
-    #         # penalty += 0.1 * steering_penalty
-    #
-    #         # ========= Bonus: environment reward (distance travelled) ==========
-    #         # bonus += 0.05 * env_reward
     #         return bonus + penalty
     #
     #     return func
 
 
-    # sparse cost function
-    @staticmethod
-    def get_reward_adapter(observation_adapter):
-        def func(env_obs_seq, env_reward):
-            penalty, bonus = 0.0, 0.0
-            last_env_obs = env_obs_seq[-1]
-
-            # ======== Penalty & Bonus: event (collision, off_road, reached_goal, time_penalty)
-            ego_events = last_env_obs.events
-            # ::collision
-            penalty += -100.0 if len(ego_events.collisions) > 0 else 0.0
-            # ::off road
-            penalty += -100.0 if ego_events.off_road else 0.0
-            # ::reach goal: large payoff for achieving objective
-            if ego_events.reached_goal:
-                bonus += 250.0
-
-            # each time step there is a negative reward to encourage faster mission completion
-            if not ego_events.reached_goal:
-                penalty += -0.4
-
-            return bonus + penalty
-
-        return func
-
-    # # TODO: sparse + safety distance penalty cost function
+    # # sparse cost function
     # @staticmethod
     # def get_reward_adapter(observation_adapter):
     #     def func(env_obs_seq, env_reward):
     #         penalty, bonus = 0.0, 0.0
-    #         obs_seq = observation_adapter(env_obs_seq)
-    #
-    #         # ======== Penalty: too close to neighbor vehicles
-    #         # if the mean ttc or mean speed or mean dist is higher than before, get penalty
-    #         # otherwise, get bonus
     #         last_env_obs = env_obs_seq[-1]
-    #         neighbor_features_np = np.asarray([e.get("neighbor") for e in obs_seq])
-    #         if neighbor_features_np is not None:
-    #             new_neighbor_feature_np = neighbor_features_np[-1].reshape((-1, 5))
-    #             mean_dist = np.mean(new_neighbor_feature_np[:, 0])
-    #             mean_ttc = np.mean(new_neighbor_feature_np[:, 2])
     #
-    #             last_neighbor_feature_np = neighbor_features_np[-2].reshape((-1, 5))
-    #             mean_dist2 = np.mean(last_neighbor_feature_np[:, 0])
-    #             # mean_speed2 = np.mean(last_neighbor_feature[:, 1])
-    #             mean_ttc2 = np.mean(last_neighbor_feature_np[:, 2])
-    #             penalty += (
-    #                 0.03 * (mean_dist - mean_dist2)
-    #                 # - 0.01 * (mean_speed - mean_speed2)
-    #                 + 0.01 * (mean_ttc - mean_ttc2)
-    #             )
-    #
-    #         # ======== Penalty: distance to goal =========
-    #         goal = last_env_obs.ego_vehicle_state.mission.goal
-    #         ego_2d_position = last_env_obs.ego_vehicle_state.position[:2]
-    #         if hasattr(goal, "position"):
-    #             goal_position = goal.position
-    #         else:
-    #             goal_position = ego_2d_position
-    #         goal_dist = distance.euclidean(ego_2d_position, goal_position)
-    #         penalty += -0.01 * goal_dist
-    #
-    #         old_obs = env_obs_seq[-2]
-    #         old_goal = old_obs.ego_vehicle_state.mission.goal
-    #         old_ego_2d_position = old_obs.ego_vehicle_state.position[:2]
-    #         if hasattr(old_goal, "position"):
-    #             old_goal_position = old_goal.position
-    #         else:
-    #             old_goal_position = old_ego_2d_position
-    #         old_goal_dist = distance.euclidean(old_ego_2d_position, old_goal_position)
-    #         penalty += 0.1 * (old_goal_dist - goal_dist)  # 0.05
-    #
-    #         # ======== Penalty: distance to the center
-    #         distance_to_center_np = np.asarray(
-    #             [e["distance_to_center"] for e in obs_seq]
-    #         )
-    #         diff_dist_to_center_penalty = np.abs(distance_to_center_np[-2]) - np.abs(
-    #             distance_to_center_np[-1]
-    #         )
-    #         penalty += 0.01 * diff_dist_to_center_penalty[0]
-    #
-    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, time_penalty)
     #         ego_events = last_env_obs.events
     #         # ::collision
-    #         penalty += -50.0 if len(ego_events.collisions) > 0 else 0.0
+    #         penalty += -100.0 if len(ego_events.collisions) > 0 else 0.0
     #         # ::off road
-    #         penalty += -50.0 if ego_events.off_road else 0.0
-    #         # ::reach goal
+    #         penalty += -100.0 if ego_events.off_road else 0.0
+    #         # ::reach goal: large payoff for achieving objective
     #         if ego_events.reached_goal:
-    #             bonus += 20.0
+    #             bonus += 250.0
     #
-    #         # ::reached max_episode_step
-    #         if ego_events.reached_max_episode_steps:
-    #             penalty += -0.5
-    #         else:
-    #             bonus += 0.5
+    #         # each time step there is a negative reward to encourage faster mission completion
+    #         if not ego_events.reached_goal:
+    #             penalty += -0.4
     #
-    #         # ======== Penalty: heading error penalty
-    #         # if obs.get("heading_errors", None):
-    #         #     heading_errors = obs["heading_errors"][-1]
-    #         #     penalty_heading_errors = -0.03 * heading_errors[:2]
-    #         #
-    #         #     heading_errors2 = obs["heading_errors"][-2]
-    #         #     penalty_heading_errors += -0.01 * (heading_errors[:2] - heading_errors2[:2])
-    #         #     penalty += np.mean(penalty_heading_errors)
-    #
-    #         # ======== Penalty: penalise sharp turns done at high speeds =======
-    #         if last_env_obs.ego_vehicle_state.speed > 60:
-    #             steering_penalty = -pow(
-    #                 (last_env_obs.ego_vehicle_state.speed - 60)
-    #                 / 20
-    #                 * last_env_obs.ego_vehicle_state.steering
-    #                 / 4,
-    #                 2,
-    #             )
-    #         else:
-    #             steering_penalty = 0
-    #         penalty += 0.1 * steering_penalty
-    #
-    #         # ========= Bonus: environment reward (distance travelled) ==========
-    #         bonus += 0.05 * env_reward
     #         return bonus + penalty
     #
     #     return func
+
+    # TODO: fix this. which neighbor informations are the positions?
+    # sparse + safety distance penalty cost function (communal and personal cost)
+    @staticmethod
+    def get_reward_adapter(observation_adapter):
+        def func(env_obs_seq, env_reward):
+            cost_com, cost_per, reward = 0.0, 0.0, 0.0
+
+            # get observation of most recent time step
+            last_obs = env_obs_seq[-1]
+
+            # get ego vehicle information
+            ego_position = last_obs.ego_vehicle_state.position
+            # ego_speed = last_obs.ego_vehicle_state.speed
+            # ego_steering = last_obs.ego_vehicle_state.steering
+            # ego_yaw_rate = last_obs.ego_vehicle_state.yaw_rate
+            # ego_linear_velocity = last_obs.ego_vehicle_state.linear_velocity
+            # ego_linear_acceleration = last_obs.ego_vehicle_state.linear_acceleration
+            # ego_linear_jerk = last_obs.ego_vehicle_state.linear_jerk
+            # ego_angular_velocity = last_obs.ego_vehicle_state.angular_velocity
+            # ego_angular_acceleration = last_obs.ego_vehicle_state.angular_acceleration
+            # ego_angular_jerk = last_obs.ego_vehicle_state.angular_jerk
+
+            neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
+
+            safety_dist_coeff = 5
+            for nvs in neighborhood_vehicle_states:
+                # calculate distance to neighbor vehicle
+                neigh_position = nvs.position
+                # neigh_speed = nvs.speed
+                dist = np.linalg.norm(ego_position-neigh_position)
+                if dist <= 10:
+                    cost_com += safety_dist_coeff * np.power(np.power(dist, 2), -1)
+
+            # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+            ego_events = last_obs.events
+            # ::off road increases personal cost
+            cost_per += 50.0 if ego_events.off_road else 0.0
+            # ::reach goal decreases personal cost
+            if ego_events.reached_goal:
+                reward += 100.0
+
+            # each time step there is a negative reward to encourage faster mission completion
+            if not ego_events.reached_goal:
+                cost_per += 0.4
+
+            total_reward = -cost_com - cost_per + reward
+            return total_reward
+
+        return func

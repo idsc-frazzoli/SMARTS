@@ -58,7 +58,8 @@ def main(
         )
 
     # use for debugging
-    ray.init(local_mode=True)
+    # print("WARNING: local mode on")
+    # ray.init(local_mode=True)
 
     config = gen_config(
         scenario=scenario, config_file=config_file, paradigm=paradigm, headless=headless

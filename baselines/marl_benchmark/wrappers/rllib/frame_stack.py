@@ -117,7 +117,7 @@ class FrameStack(Wrapper):
 
     @staticmethod
     def get_observation_adapter(
-        observation_space, feature_configs, wrapper_config=None
+            observation_space, feature_configs, wrapper_config=None
     ):
         def func(env_obs_seq):
             assert isinstance(env_obs_seq, Sequence)
@@ -309,7 +309,6 @@ class FrameStack(Wrapper):
     #
     #     return func
 
-
     # # modified cost function
     # @staticmethod
     # def get_reward_adapter(observation_adapter):
@@ -366,7 +365,6 @@ class FrameStack(Wrapper):
     #
     #     return func
 
-
     # # sparse cost function
     # @staticmethod
     # def get_reward_adapter(observation_adapter):
@@ -392,7 +390,7 @@ class FrameStack(Wrapper):
     #
     #     return func
 
-    # TODO: fix this. which neighbor informations are the positions?
+    # TODO: Not using the observation adapter is very inefficient. Fix this.
     # sparse + safety distance penalty cost function (communal and personal cost)
     @staticmethod
     def get_reward_adapter(observation_adapter):
@@ -401,6 +399,7 @@ class FrameStack(Wrapper):
 
             # get observation of most recent time step
             last_obs = env_obs_seq[-1]
+            # env_obs = observation_adapter(env_obs_seq)
 
             # get ego vehicle information
             ego_position = last_obs.ego_vehicle_state.position
@@ -421,13 +420,13 @@ class FrameStack(Wrapper):
                 # calculate distance to neighbor vehicle
                 neigh_position = nvs.position
                 # neigh_speed = nvs.speed
-                dist = np.linalg.norm(ego_position-neigh_position)
+                dist = np.linalg.norm(ego_position - neigh_position)
                 if dist <= 10:
                     cost_com += safety_dist_coeff * np.power(np.power(dist, 2), -1)
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = last_obs.events
-            # ::off road increases personal cost
+            # ::off-road increases personal cost
             cost_per += 50.0 if ego_events.off_road else 0.0
             # ::reach goal decreases personal cost
             if ego_events.reached_goal:

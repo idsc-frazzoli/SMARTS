@@ -441,24 +441,31 @@ class FrameStack(Wrapper):
     #     return func
 
 
-    # bad cost function: designed to crash as fast as possible
+    # # bad cost function: designed to crash as fast as possible
+    # @staticmethod
+    # def get_reward_adapter(observation_adapter):
+    #     def func(env_obs_seq, env_reward):
+    #         cost_com, cost_per, reward = 0.0, 0.0, 0.0
+    #
+    #         # get observation of most recent time step
+    #         last_obs = env_obs_seq[-1]
+    #         ego_events = last_obs.events
+    #
+    #         # ::collision
+    #         reward += 100.0 if len(ego_events.collisions) > 0 else 0.0
+    #
+    #         # each time step there is a negative reward to encourage faster mission completion
+    #         if not ego_events.reached_goal:
+    #             cost_per += 0.4
+    #
+    #         total_reward = -cost_com - cost_per + reward
+    #         return total_reward
+    #
+    #     return func
+
+    # zero cost function
     @staticmethod
     def get_reward_adapter(observation_adapter):
         def func(env_obs_seq, env_reward):
-            cost_com, cost_per, reward = 0.0, 0.0, 0.0
-
-            # get observation of most recent time step
-            last_obs = env_obs_seq[-1]
-            ego_events = last_obs.events
-
-            # ::collision
-            reward += 100.0 if len(ego_events.collisions) > 0 else 0.0
-
-            # each time step there is a negative reward to encourage faster mission completion
-            if not ego_events.reached_goal:
-                cost_per += 0.4
-
-            total_reward = -cost_com - cost_per + reward
-            return total_reward
-
+            return 0.0
         return func

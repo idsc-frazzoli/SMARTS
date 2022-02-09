@@ -47,6 +47,10 @@ def main(
     headless=False,
     cluster=False,
     stop_time=14400,
+    scenario1="",
+    scenario2="",
+    scenario3="",
+    scenario4="",
     # data_replay_path=None,
 ):
     if cluster:
@@ -61,8 +65,19 @@ def main(
     # print("WARNING: local mode on")
     # ray.init(local_mode=True)
 
+
+    scenarios = [scenario]
+    if scenario1 != "":
+        scenarios.append(scenario1)
+    if scenario2 != "":
+        scenarios.append(scenario2)
+    if scenario3 != "":
+        scenarios.append(scenario3)
+    if scenario4 != "":
+        scenarios.append(scenario4)
+
     config = gen_config(
-        scenario=scenario, config_file=config_file, paradigm=paradigm, headless=headless
+        scenarios=scenarios, config_file=config_file, paradigm=paradigm, headless=headless
     )
 
     tune_config = config["run"]["config"]
@@ -128,6 +143,31 @@ def parse_args():
         help="Scenario name",
     )
     parser.add_argument(
+        "--scenario1",
+        type=str,
+        default="",
+        help="Additional scenario name. Important: Number of agents for all scenarios has to be the same!",
+    )
+    parser.add_argument(
+        "--scenario2",
+        type=str,
+        default="",
+        help="Additional scenario name. Important: Number of agents for all scenarios has to be the same!",
+    )
+    parser.add_argument(
+        "--scenario3",
+        type=str,
+        default="",
+        help="Additional scenario name. Important: Number of agents for all scenarios has to be the same!",
+    )
+    parser.add_argument(
+        "--scenario4",
+        type=str,
+        default="",
+        help="Additional scenario name. Important: Number of agents for all scenarios has to be the same!",
+    )
+
+    parser.add_argument(
         "--paradigm",
         type=str,
         default="decentralized",
@@ -168,5 +208,9 @@ if __name__ == "__main__":
         headless=args.headless,
         cluster=args.cluster,
         stop_time=args.stop_time,
+        scenario1=args.scenario1,
+        scenario2=args.scenario2,
+        scenario3=args.scenario3,
+        scenario4=args.scenario4,
         # data_replay_path=args.data_replay_path,
     )

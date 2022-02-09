@@ -29,8 +29,10 @@ from smarts.core.scenario import Scenario
 
 
 def gen_config(**kwargs):
-    scenario_path = Path(kwargs["scenario"]).absolute()
-    agent_missions_count = Scenario.discover_agent_missions_count(scenario_path)
+    # scenario_path = Path(kwargs["scenario"]).absolute()
+    scenario_paths = [Path(scenario).absolute() for scenario in kwargs["scenarios"]]
+    # agent_missions_count = Scenario.discover_agent_missions_count(scenario_path)
+    agent_missions_count = Scenario.discover_agent_missions_count(scenario_paths[0])
     if agent_missions_count == 0:
         agent_ids = ["default_policy"]
     else:
@@ -42,7 +44,7 @@ def gen_config(**kwargs):
     config["env_config"].update(
         {
             "seed": 42,
-            "scenarios": [str(scenario_path)],
+            "scenarios": [str(scenario_path) for scenario_path in scenario_paths],
             "headless": kwargs["headless"],
             "agent_specs": agents,
         }

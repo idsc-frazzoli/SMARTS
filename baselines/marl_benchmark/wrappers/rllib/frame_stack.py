@@ -390,55 +390,55 @@ class FrameStack(Wrapper):
     #
     #     return func
 
-    # # sparse + safety distance penalty cost function (communal and personal cost)
-    # @staticmethod
-    # def get_reward_adapter(observation_adapter):
-    #     def func(env_obs_seq, env_reward):
-    #         cost_com, cost_per, reward = 0.0, 0.0, 0.0
-    #
-    #         # get observation of most recent time step
-    #         last_obs = env_obs_seq[-1]
-    #         # env_obs = observation_adapter(env_obs_seq)
-    #
-    #         # get ego vehicle information
-    #         ego_position = last_obs.ego_vehicle_state.position
-    #         # ego_speed = last_obs.ego_vehicle_state.speed
-    #         # ego_steering = last_obs.ego_vehicle_state.steering
-    #         # ego_yaw_rate = last_obs.ego_vehicle_state.yaw_rate
-    #         # ego_linear_velocity = last_obs.ego_vehicle_state.linear_velocity
-    #         # ego_linear_acceleration = last_obs.ego_vehicle_state.linear_acceleration
-    #         # ego_linear_jerk = last_obs.ego_vehicle_state.linear_jerk
-    #         # ego_angular_velocity = last_obs.ego_vehicle_state.angular_velocity
-    #         # ego_angular_acceleration = last_obs.ego_vehicle_state.angular_acceleration
-    #         # ego_angular_jerk = last_obs.ego_vehicle_state.angular_jerk
-    #
-    #         neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
-    #
-    #         safety_dist_coeff = 5
-    #         for nvs in neighborhood_vehicle_states:
-    #             # calculate distance to neighbor vehicle
-    #             neigh_position = nvs.position
-    #             # neigh_speed = nvs.speed
-    #             dist = np.linalg.norm(ego_position - neigh_position)
-    #             if dist <= 10:
-    #                 cost_com += safety_dist_coeff * np.power(np.power(dist, 2), -1)
-    #
-    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
-    #         ego_events = last_obs.events
-    #         # ::off-road increases personal cost
-    #         cost_per += 50.0 if ego_events.off_road else 0.0
-    #         # ::reach goal decreases personal cost
-    #         if ego_events.reached_goal:
-    #             reward += 100.0
-    #
-    #         # each time step there is a negative reward to encourage faster mission completion
-    #         if not ego_events.reached_goal:
-    #             cost_per += 0.4
-    #
-    #         total_reward = -cost_com - cost_per + reward
-    #         return total_reward
-    #
-    #     return func
+    # sparse + safety distance penalty cost function (communal and personal cost)
+    @staticmethod
+    def get_reward_adapter(observation_adapter):
+        def func(env_obs_seq, env_reward):
+            cost_com, cost_per, reward = 0.0, 0.0, 0.0
+
+            # get observation of most recent time step
+            last_obs = env_obs_seq[-1]
+            # env_obs = observation_adapter(env_obs_seq)
+
+            # get ego vehicle information
+            ego_position = last_obs.ego_vehicle_state.position
+            # ego_speed = last_obs.ego_vehicle_state.speed
+            # ego_steering = last_obs.ego_vehicle_state.steering
+            # ego_yaw_rate = last_obs.ego_vehicle_state.yaw_rate
+            # ego_linear_velocity = last_obs.ego_vehicle_state.linear_velocity
+            # ego_linear_acceleration = last_obs.ego_vehicle_state.linear_acceleration
+            # ego_linear_jerk = last_obs.ego_vehicle_state.linear_jerk
+            # ego_angular_velocity = last_obs.ego_vehicle_state.angular_velocity
+            # ego_angular_acceleration = last_obs.ego_vehicle_state.angular_acceleration
+            # ego_angular_jerk = last_obs.ego_vehicle_state.angular_jerk
+
+            neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
+
+            safety_dist_coeff = 5
+            for nvs in neighborhood_vehicle_states:
+                # calculate distance to neighbor vehicle
+                neigh_position = nvs.position
+                # neigh_speed = nvs.speed
+                dist = np.linalg.norm(ego_position - neigh_position)
+                if dist <= 10:
+                    cost_com += safety_dist_coeff * np.power(np.power(dist, 2), -1)
+
+            # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+            ego_events = last_obs.events
+            # ::off-road increases personal cost
+            cost_per += 50.0 if ego_events.off_road else 0.0
+            # ::reach goal decreases personal cost
+            if ego_events.reached_goal:
+                reward += 100.0
+
+            # each time step there is a negative reward to encourage faster mission completion
+            if not ego_events.reached_goal:
+                cost_per += 0.4
+
+            total_reward = -cost_com - cost_per + reward
+            return total_reward
+
+        return func
 
 
     # # bad cost function: designed to crash as fast as possible
@@ -464,8 +464,8 @@ class FrameStack(Wrapper):
     #     return func
 
     # zero cost function
-    @staticmethod
-    def get_reward_adapter(observation_adapter):
-        def func(env_obs_seq, env_reward):
-            return 0.0
-        return func
+    # @staticmethod
+    # def get_reward_adapter(observation_adapter):
+    #     def func(env_obs_seq, env_reward):
+    #         return 0.0
+    #     return func

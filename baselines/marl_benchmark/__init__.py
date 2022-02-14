@@ -30,7 +30,11 @@ from smarts.core.scenario import Scenario
 
 def gen_config(**kwargs):
     # scenario_path = Path(kwargs["scenario"]).absolute()
-    scenario_paths = [Path(scenario).absolute() for scenario in kwargs["scenarios"]]
+    if "scenario" in kwargs.keys():
+        scenarios = [kwargs["scenario"]]
+    else:
+        scenarios = kwargs["scenarios"]
+    scenario_paths = [Path(scenario).absolute() for scenario in scenarios]
     # agent_missions_count = Scenario.discover_agent_missions_count(scenario_path)
     agent_missions_count = Scenario.discover_agent_missions_count(scenario_paths[0])
     if agent_missions_count == 0:

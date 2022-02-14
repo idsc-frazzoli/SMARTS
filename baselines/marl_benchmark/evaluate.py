@@ -55,6 +55,7 @@ def parse_args():
     parser.add_argument("--plot", action="store_true")
     # NK
     parser.add_argument("--checkpoint", type=str, required=True)
+    parser.add_argument("--data_replay_path", type=str, default=None, help="Path to store envision replay data.")
 
     return parser.parse_args()
 
@@ -69,10 +70,15 @@ def main(
     headless=False,
     show_plots=False,
     # NK
-    checkpoint=None
-):
+    checkpoint=None,
+    data_replay_path=None,
 
-    ray.init()
+):
+    # use for debugging
+    print("WARNING: local mode on")
+    ray.init(local_mode=True)
+
+    # ray.init()
     metrics_handler = basic_handler.BasicMetricHandler()
 
     for config_file in config_files:
@@ -85,9 +91,11 @@ def main(
             headless=headless,
             mode="evaluation",
         )
-        
-        # NK
+
+
         config["checkpoint"] = checkpoint
+
+        config["env_config"]["envision_record_data_replay_path"] = data_replay_path
 
         tune_config = config["run"]["config"]
         trainer_cls = config["trainer"]
@@ -128,5 +136,6 @@ if __name__ == "__main__":
         show_plots=args.plot,
         log_dir=args.log_dir,
         # NK
-        checkpoint=args.checkpoint
+        checkpoint=args.checkpoint,
+        data_replay_path=args.data_replay_path,
     )

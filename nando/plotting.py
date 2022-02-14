@@ -503,7 +503,102 @@ plt.ylabel('median reward')
 plt.title(title)
 
 
+#%% 09.02.2022: merge with 1/d^2 cost, decentralized, the same experiment run 3 times
+# rudolf with num_workers = 30
+
+title = "Random Policy Initialization Test"
+
+scenario = 'merge-4'
+name_1 = 'PPO_FrameStack_ac834_00000_0_2022-02-09_13-17-47'
+name_2 = 'PPO_FrameStack_3f9c8_00000_0_2022-02-09_14-19-10'
+name_3 = 'PPO_FrameStack_36332_00000_0_2022-02-09_16-20-35'
+label_1 = "run 1"
+label_2 = "run 2"
+label_3 = "run 3"
+
+progress_path_1 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                scenario,
+                                name_1,
+                                'progress.csv')
+
+progress_path_2 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                scenario,
+                                name_2,
+                                'progress.csv')
+
+progress_path_3 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                scenario,
+                                name_3,
+                                'progress.csv')
+
+df_progress_1 = pd.read_csv(progress_path_1)
+df_progress_2 = pd.read_csv(progress_path_2)
+df_progress_3 = pd.read_csv(progress_path_3)
+
+df_ep_rew_1 = df_progress_1['hist_stats/episode_reward']
+
+# rewards_[run]_[agent]
+rewards_1_0 = df_progress_1['policy_reward_mean/AGENT-0']
+rewards_1_1 = df_progress_1['policy_reward_mean/AGENT-1']
+rewards_2_0 = df_progress_2['policy_reward_mean/AGENT-0']
+rewards_2_1 = df_progress_2['policy_reward_mean/AGENT-1']
+rewards_3_0 = df_progress_3['policy_reward_mean/AGENT-0']
+rewards_3_1 = df_progress_3['policy_reward_mean/AGENT-1']
+
+# Plotting
+
+fig = plt.figure()
+ax = plt.axes()
+ax.plot(rewards_1_0, color=[0,0,1], label='run 1, agent 0')
+ax.plot(rewards_1_1, color=[1,0,0], label='run 1, agent 1')
+ax.plot(rewards_2_0, color=[0,0.3,1], label='run 2, agent 0')
+ax.plot(rewards_2_1, color=[1,0.3,0], label='run 2, agent 1')
+ax.plot(rewards_3_0, color=[0,0.6,1], label='run 3, agent 0')
+ax.plot(rewards_3_1, color=[1,0.6,0], label='run 3, agent 1')
+
+plt.legend()
+plt.xlabel('iterations')
+plt.ylabel('median reward')
+plt.title(title)
+
+plt.savefig("plots/policy_initialization_1.pdf")
+
+
+#%% 09.02.2022: training with 2 scenarios: merge and cross_modified 
+# with 1/d^2 cost, decentralized
+# rudolf with num_workers = 30
 
 
 
+title = "Training with 2 Scenarios"
 
+scenario = 'merge-4'
+name_1 = 'PPO_FrameStack_c78eb_00000_0_2022-02-09_18-33-30'
+
+progress_path_1 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                scenario,
+                                name_1,
+                                'progress.csv')
+
+df_progress_1 = pd.read_csv(progress_path_1)
+
+# rewards_[run]_[agent]
+episode_lengths = df_progress_1['hist_stats/episode_lengths']
+
+all_episode_lengths = []
+
+for l in episode_lengths:
+    for x in str2list(l):
+        all_episode_lengths.append(x)
+
+fig = plt.figure()
+ax = plt.axes()
+plt.hist(all_episode_lengths, range=(0,150), bins=20)
+
+
+plt.legend()
+plt.ylabel('# occurances')
+plt.xlabel('episode lenght')
+plt.title(title)
+
+plt.savefig("plots/two_scenarios_hist.pdf")

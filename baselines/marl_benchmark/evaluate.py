@@ -75,10 +75,10 @@ def main(
 
 ):
     # use for debugging
-    print("WARNING: local mode on")
-    ray.init(local_mode=True)
+    # print("WARNING: local mode on")
+    # ray.init(local_mode=True)
 
-    # ray.init()
+    ray.init()
     metrics_handler = basic_handler.BasicMetricHandler()
 
     for config_file in config_files:

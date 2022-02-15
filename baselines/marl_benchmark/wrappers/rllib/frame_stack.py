@@ -569,12 +569,12 @@ class FrameStack(Wrapper):
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = last_obs.events
             # ::collision
-            cost_com += 1000.0 if len(ego_events.collisions) > 0 else 0.0
+            cost_com += 500.0 if len(ego_events.collisions) > 0 else 0.0
             # ::off-road increases personal cost
-            cost_per += 500.0 if ego_events.off_road else 0.0
+            cost_per += 250.0 if ego_events.off_road else 0.0
             # ::reach goal decreases personal cost
             if ego_events.reached_goal:
-                reward += 1000.0
+                reward += 500.0
 
             # each time step there is a negative reward to encourage faster mission completion
             if not ego_events.reached_goal:

@@ -602,3 +602,5 @@ plt.xlabel('episode lenght')
 plt.title(title)
 
 plt.savefig("plots/two_scenarios_hist.pdf")
+
+

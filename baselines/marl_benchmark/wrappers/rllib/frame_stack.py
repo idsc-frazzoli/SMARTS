@@ -541,7 +541,7 @@ class FrameStack(Wrapper):
         def func(env_obs_seq, env_reward):
             cost_com, cost_per, reward = 0.0, 0.0, 0.0
 
-            vel_des = {0: 8, 1: 13}
+            vel_des = {0: 10, 1: 16}
 
             # get observation of most recent time step
             last_obs = env_obs_seq[-1]
@@ -569,12 +569,12 @@ class FrameStack(Wrapper):
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = last_obs.events
             # ::collision
-            cost_com += 500.0 if len(ego_events.collisions) > 0 else 0.0
+            cost_com += 100.0 if len(ego_events.collisions) > 0 else 0.0
             # ::off-road increases personal cost
-            cost_per += 250.0 if ego_events.off_road else 0.0
+            cost_per += 50.0 if ego_events.off_road else 0.0
             # ::reach goal decreases personal cost
             if ego_events.reached_goal:
-                reward += 500.0
+                reward += 100.0
 
             # each time step there is a negative reward to encourage faster mission completion
             if not ego_events.reached_goal:
@@ -584,3 +584,4 @@ class FrameStack(Wrapper):
             return total_reward
 
         return func
+

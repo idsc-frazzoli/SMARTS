@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2022-02-19 19:24:48 by Eclipse SUMO netedit Version 1.12.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <output>
+        <output-file value="C:\Dev\straight200_lanes10\map.net.xml"/>
+    </output>
+
+    <processing>
+        <offset.disable-normalization value="true"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+    </junctions>
+
+    <report>
+        <aggregate-warnings value="5"/>
+    </report>
+
+</configuration>
+-->
+
+<net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="-0.05,-0.04,200.25,0.05" origBoundary="10000000000.00,10000000000.00,-10000000000.00,-10000000000.00" projParameter="!"/>
+
+    <edge id="E0" from="J0" to="J1" priority="-1">
+        <lane id="E0_0" index="0" speed="13.89" length="200.30" shape="-0.07,-30.35 200.23,-30.44"/>
+        <lane id="E0_1" index="1" speed="13.89" length="200.30" shape="-0.07,-27.15 200.23,-27.24"/>
+        <lane id="E0_2" index="2" speed="13.89" length="200.30" shape="-0.06,-23.95 200.24,-24.04"/>
+        <lane id="E0_3" index="3" speed="13.89" length="200.30" shape="-0.06,-20.75 200.24,-20.84"/>
+        <lane id="E0_4" index="4" speed="13.89" length="200.30" shape="-0.06,-17.55 200.24,-17.64"/>
+        <lane id="E0_5" index="5" speed="13.89" length="200.30" shape="-0.06,-14.35 200.24,-14.44"/>
+        <lane id="E0_6" index="6" speed="13.89" length="200.30" shape="-0.06,-11.15 200.24,-11.24"/>
+        <lane id="E0_7" index="7" speed="13.89" length="200.30" shape="-0.06,-7.95 200.24,-8.04"/>
+        <lane id="E0_8" index="8" speed="13.89" length="200.30" shape="-0.06,-4.75 200.24,-4.84"/>
+        <lane id="E0_9" index="9" speed="13.89" length="200.30" shape="-0.05,-1.55 200.25,-1.64"/>
+    </edge>
+
+    <junction id="J0" type="dead_end" x="-0.05" y="0.05" incLanes="" intLanes="" shape="-0.05,0.05 -0.07,-31.95"/>
+    <junction id="J1" type="dead_end" x="200.25" y="-0.04" incLanes="E0_0 E0_1 E0_2 E0_3 E0_4 E0_5 E0_6 E0_7 E0_8 E0_9" intLanes="" shape="200.23,-32.04 200.25,-0.04"/>
+
+</net>

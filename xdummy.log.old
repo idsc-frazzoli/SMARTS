@@ -1,12 +1,12 @@
-[ 79772.205] _XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
-[ 79772.205] _XSERVTransMakeAllCOTSServerListeners: server already running
-[ 79772.205] (EE) 
+[ 80816.822] _XSERVTransSocketUNIXCreateListener: ...SocketCreateListener() failed
+[ 80816.822] _XSERVTransMakeAllCOTSServerListeners: server already running
+[ 80816.822] (EE) 
 Fatal server error:
-[ 79772.205] (EE) Cannot establish any listening sockets - Make sure an X server isn't already running(EE) 
-[ 79772.205] (EE) 
+[ 80816.822] (EE) Cannot establish any listening sockets - Make sure an X server isn't already running(EE) 
+[ 80816.822] (EE) 
 Please consult the The X.Org Foundation support 
 	 at http://wiki.x.org
  for help. 
-[ 79772.205] (EE) Please also check the log file at "./xdummy.log" for additional information.
-[ 79772.205] (EE) 
-[ 79772.205] (EE) Server terminated with error (1). Closing log file.
+[ 80816.822] (EE) Please also check the log file at "./xdummy.log" for additional information.
+[ 80816.822] (EE) 
+[ 80816.822] (EE) Server terminated with error (1). Closing log file.

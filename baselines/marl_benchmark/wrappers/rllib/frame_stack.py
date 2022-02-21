@@ -675,20 +675,20 @@ class FrameStack(Wrapper):
             # for agent 3, desired speed is in [19,21]
 
             if ego_vehicle_nr == 0:
-                if ego_speed < 4 or ego_speed > 6:
-                    cost_per += 1
-
-            if ego_vehicle_nr == 1:
                 if ego_speed < 9 or ego_speed > 11:
-                    cost_per += 1
+                    cost_per += 2
 
-            if ego_vehicle_nr == 2:
-                if ego_speed < 14 or ego_speed > 16:
-                    cost_per += 1
-
-            if ego_vehicle_nr == 3:
-                if ego_speed < 19 or ego_speed > 21:
-                    cost_per += 1
+            # if ego_vehicle_nr == 1:
+            #     if ego_speed < 9 or ego_speed > 11:
+            #         cost_per += 1
+            #
+            # if ego_vehicle_nr == 2:
+            #     if ego_speed < 14 or ego_speed > 16:
+            #         cost_per += 1
+            #
+            # if ego_vehicle_nr == 3:
+            #     if ego_speed < 19 or ego_speed > 21:
+            #         cost_per += 1
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = last_obs.events

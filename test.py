@@ -3,7 +3,7 @@ import argparse
 from functools import lru_cache
 
 
-@lru_cache
+@lru_cache(maxsize=100)
 def fibonacci_of(n):
     if n in {0, 1}:  # Base case
         return n

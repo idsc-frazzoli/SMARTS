@@ -719,10 +719,12 @@ class FrameStack(Wrapper):
             # env_obs = observation_adapter(env_obs_seq)
 
             # desired velocities for the agents
-            vel_des = {0: 5,
-                       1: 10,
-                       2: 15,
-                       3: 20}
+            # vel_des = {0: 5,
+            #            1: 10,
+            #            2: 15,
+            #            3: 20}
+
+            vel_des = {0: 10}
 
             # get ego vehicle information
             # ego_position = last_obs.ego_vehicle_state.position
@@ -740,7 +742,7 @@ class FrameStack(Wrapper):
             # Number of vehicle, for two vehicles this should be either 0 or 1
             ego_vehicle_nr = int(ego_id[6])
 
-            speed_coeff = 1
+            speed_coeff = 0.1
             cost_per += speed_coeff * np.power(ego_speed - vel_des[ego_vehicle_nr], 2)
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)

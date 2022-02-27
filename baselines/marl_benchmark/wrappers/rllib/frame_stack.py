@@ -724,7 +724,7 @@ class FrameStack(Wrapper):
             #            2: 15,
             #            3: 20}
 
-            vel_des = {0: 10}
+            vel_des = {0: 5, 1: 15}
 
             # get ego vehicle information
             # ego_position = last_obs.ego_vehicle_state.position
@@ -748,12 +748,12 @@ class FrameStack(Wrapper):
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = last_obs.events
             # ::collision
-            cost_com += 100.0 if len(ego_events.collisions) > 0 else 0.0
+            cost_com += 10000.0 if len(ego_events.collisions) > 0 else 0.0
             # ::off-road increases personal cost
-            cost_per += 50.0 if ego_events.off_road else 0.0
+            cost_per += 5000.0 if ego_events.off_road else 0.0
             # ::reach goal decreases personal cost
             if ego_events.reached_goal:
-                reward += 100.0
+                reward += 1000.0
 
             # NO TIME PENALTY
 

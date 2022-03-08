@@ -62,8 +62,8 @@ def main(
         )
 
     # use for debugging
-    # print("WARNING: local mode on")
-    # ray.init(local_mode=True)
+    print("WARNING: local mode on")
+    ray.init(local_mode=True)
 
 
     scenarios = [scenario]
@@ -187,9 +187,7 @@ def parse_args():
     parser.add_argument("--restore_path", type=str, default=None)
     parser.add_argument("--num_workers", type=int, default=1, help="RLlib num workers")
     parser.add_argument("--cluster", action="store_true")
-    parser.add_argument(
-        "--horizon", type=int, default=1000, help="Horizon for a episode"
-    )
+    parser.add_argument("--horizon", type=int, default=1000, help="Horizon for a episode")
     parser.add_argument("--stop_time", type=int, default=14400, help="Max. number of seconds of training.")
     parser.add_argument("--data_replay_path", type=str, default=None, help="Path to store envision replay data.")
 

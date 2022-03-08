@@ -707,6 +707,59 @@ class FrameStack(Wrapper):
     #
     #     return func
 
+    # # safety distance and desired velocity
+    # @staticmethod
+    # def get_reward_adapter(observation_adapter):
+    #     def func(env_obs_seq, env_reward):
+    #         cost_com, cost_per, reward = 0.0, 0.0, 0.0
+    #
+    #         # get observation of most recent time step
+    #         last_obs = env_obs_seq[-1]
+    #         # env_obs = observation_adapter(env_obs_seq)
+    #
+    #         # desired velocities for the agents
+    #         # vel_des = {0: 5,
+    #         #            1: 10,
+    #         #            2: 15,
+    #         #            3: 20}
+    #
+    #         vel_des = {0: 5, 1: 15}
+    #
+    #         # get ego vehicle information
+    #         # ego_position = last_obs.ego_vehicle_state.position
+    #         ego_speed = last_obs.ego_vehicle_state.speed
+    #         # ego_steering = last_obs.ego_vehicle_state.steering
+    #         # ego_yaw_rate = last_obs.ego_vehicle_state.yaw_rate
+    #         # ego_linear_velocity = last_obs.ego_vehicle_state.linear_velocity
+    #         # ego_linear_acceleration = last_obs.ego_vehicle_state.linear_acceleration
+    #         # ego_linear_jerk = last_obs.ego_vehicle_state.linear_jerk
+    #         # ego_angular_velocity = last_obs.ego_vehicle_state.angular_velocity
+    #         # ego_angular_acceleration = last_obs.ego_vehicle_state.angular_acceleration
+    #         # ego_angular_jerk = last_obs.ego_vehicle_state.angular_jerk
+    #         ego_id: str = last_obs.ego_vehicle_state.id
+    #
+    #         # Number of vehicle, for two vehicles this should be either 0 or 1
+    #         ego_vehicle_nr = int(ego_id[6])
+    #
+    #         speed_coeff = 0.1
+    #         cost_per += speed_coeff * np.power(ego_speed - vel_des[ego_vehicle_nr], 2)
+    #
+    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+    #         ego_events = last_obs.events
+    #         # ::collision
+    #         cost_com += 10000.0 if len(ego_events.collisions) > 0 else 0.0
+    #         # ::off-road increases personal cost
+    #         cost_per += 5000.0 if ego_events.off_road else 0.0
+    #         # ::reach goal decreases personal cost
+    #         if ego_events.reached_goal:
+    #             reward += 1000.0
+    #
+    #         # NO TIME PENALTY
+    #
+    #         total_reward = -cost_com - cost_per + reward
+    #         return total_reward
+    #
+    #     return func
 
     # safety distance and desired velocity
     @staticmethod
@@ -714,48 +767,47 @@ class FrameStack(Wrapper):
         def func(env_obs_seq, env_reward):
             cost_com, cost_per, reward = 0.0, 0.0, 0.0
 
+            vel_des = {0: 7, 1: 15}
+
             # get observation of most recent time step
             last_obs = env_obs_seq[-1]
-            # env_obs = observation_adapter(env_obs_seq)
-
-            # desired velocities for the agents
-            # vel_des = {0: 5,
-            #            1: 10,
-            #            2: 15,
-            #            3: 20}
-
-            vel_des = {0: 5, 1: 15}
 
             # get ego vehicle information
-            # ego_position = last_obs.ego_vehicle_state.position
+            ego_position = last_obs.ego_vehicle_state.position
             ego_speed = last_obs.ego_vehicle_state.speed
-            # ego_steering = last_obs.ego_vehicle_state.steering
-            # ego_yaw_rate = last_obs.ego_vehicle_state.yaw_rate
-            # ego_linear_velocity = last_obs.ego_vehicle_state.linear_velocity
-            # ego_linear_acceleration = last_obs.ego_vehicle_state.linear_acceleration
-            # ego_linear_jerk = last_obs.ego_vehicle_state.linear_jerk
-            # ego_angular_velocity = last_obs.ego_vehicle_state.angular_velocity
-            # ego_angular_acceleration = last_obs.ego_vehicle_state.angular_acceleration
-            # ego_angular_jerk = last_obs.ego_vehicle_state.angular_jerk
+
             ego_id: str = last_obs.ego_vehicle_state.id
 
             # Number of vehicle, for two vehicles this should be either 0 or 1
             ego_vehicle_nr = int(ego_id[6])
 
-            speed_coeff = 0.1
+            speed_coeff = 1
             cost_per += speed_coeff * np.power(ego_speed - vel_des[ego_vehicle_nr], 2)
+
+            neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
+
+            safety_dist_coef = 1
+            safety_dist = 5  # [m]
+            for nvs in neighborhood_vehicle_states:
+                # calculate distance to neighbor vehicle
+                neigh_position = nvs.position
+                dist = np.linalg.norm(ego_position - neigh_position)
+                if dist <= safety_dist:
+                    cost_com += safety_dist_coef * (
+                                np.power((dist + 0.1) ** 2, -1) - np.power((safety_dist + 0.1) ** 2, -1))
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = last_obs.events
-            # ::collision
-            cost_com += 10000.0 if len(ego_events.collisions) > 0 else 0.0
             # ::off-road increases personal cost
             cost_per += 5000.0 if ego_events.off_road else 0.0
-            # ::reach goal decreases personal cost
-            if ego_events.reached_goal:
-                reward += 1000.0
 
-            # NO TIME PENALTY
+            # collisions are dealt with by safety distance cost
+            # no reward for reaching the goal
+
+            # give reward of average cost when both cars drive at average desired
+            # velocity to offset desires to complete the mission faster
+            if not ego_events.reached_goal:
+                reward += 4 ** 2
 
             total_reward = -cost_com - cost_per + reward
             return total_reward

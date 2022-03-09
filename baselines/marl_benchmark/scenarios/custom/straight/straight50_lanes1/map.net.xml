@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2022-03-09 19:20:03 by Eclipse SUMO netedit Version 1.12.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <output>
+        <output-file value="/home/nando/Dev/SMARTS/baselines/marl_benchmark/scenarios/custom/straight/straight50_lanes1/map.net.xml"/>
+    </output>
+
+    <processing>
+        <offset.disable-normalization value="true"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+    </junctions>
+
+    <report>
+        <aggregate-warnings value="5"/>
+    </report>
+
+</configuration>
+-->
+
+<net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.03,-0.07,50.06,-0.07" origBoundary="10000000000.00,10000000000.00,-10000000000.00,-10000000000.00" projParameter="!"/>
+
+    <edge id="E0" from="J0" to="J1" priority="-1">
+        <lane id="E0_0" index="0" speed="16.00" length="50.03" shape="0.03,-1.67 50.06,-1.67"/>
+    </edge>
+
+    <junction id="J0" type="dead_end" x="0.03" y="-0.07" incLanes="" intLanes="" shape="0.03,-0.07 0.03,-3.27"/>
+    <junction id="J1" type="dead_end" x="50.06" y="-0.07" incLanes="E0_0" intLanes="" shape="50.06,-3.27 50.06,-0.07"/>
+
+</net>

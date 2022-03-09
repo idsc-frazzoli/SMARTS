@@ -786,8 +786,8 @@ class FrameStack(Wrapper):
 
             neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
 
-            safety_dist_coef = 10
-            safety_dist = 5  # [m]
+            safety_dist_coef = 750
+            safety_dist = 10  # [m]
             for nvs in neighborhood_vehicle_states:
                 # calculate distance to neighbor vehicle
                 neigh_position = nvs.position
@@ -806,7 +806,7 @@ class FrameStack(Wrapper):
             # give reward of average cost when both cars drive at average desired
             # velocity to offset desires to complete the mission faster
             if not ego_events.reached_goal:
-                reward += 4 ** 2
+                reward += 4 ** 2 + 5
 
             total_reward = -cost_com - cost_per + reward
             return total_reward

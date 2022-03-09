@@ -33,6 +33,9 @@
 #python run.py scenarios/custom/straight/straight200_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 20 --headless --paradigm decentralized --stop_time 36000
 #python run.py scenarios/custom/straight/straight200_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 20 --headless --paradigm centralized --stop_time 36000
 
-# 08.03.2022
-python run.py scenarios/custom/straight/straight200_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 20 --headless --paradigm decentralized --stop_time 7200 --horizon 200
-python run.py scenarios/custom/straight/straight200_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 20 --headless --paradigm centralized --stop_time 7200 --horizon 200
+# 08.03.2022 / 09.03.2022
+#python run.py scenarios/custom/straight/straight200_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 20 --headless --paradigm decentralized --stop_time 7200 --horizon 200
+#python run.py scenarios/custom/straight/straight200_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 20 --headless --paradigm centralized --stop_time 7200 --horizon 200
+
+# 09.03.2022
+python run.py scenarios/custom/straight/straight200_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 20 --headless --paradigm decentralized --stop_time 3600 --horizon 200

@@ -786,14 +786,14 @@ class FrameStack(Wrapper):
 
             neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
 
-            safety_dist_coef = 750
+            safety_dist_coef = 10 * 750
             safety_dist = 10  # [m]
             for nvs in neighborhood_vehicle_states:
                 # calculate distance to neighbor vehicle
                 neigh_position = nvs.position
                 dist = np.linalg.norm(ego_position - neigh_position)
                 if dist <= safety_dist:
-                    cost_com += safety_dist_coef * (np.power((dist + 0.1) ** 2, -1) - np.power((safety_dist + 0.1) ** 2, -1))
+                    cost_com += min(safety_dist_coef * (np.power(dist**2, -1) - np.power(safety_dist**2, -1)), 6000)
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = last_obs.events

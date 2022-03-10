@@ -25,8 +25,8 @@ import smarts.sstudio.types as t
 from smarts.sstudio import gen_scenario
 
 missions = [
-    t.Mission(t.Route(begin=("E0", 0, 5), end=("E0", 0, 95))),
-    t.Mission(t.Route(begin=("E0", 0, 15), end=("E0", 0, 95)))
+    t.Mission(t.Route(begin=("E0", 0, 15), end=("E0", 0, 95))),
+    t.Mission(t.Route(begin=("E0", 0, 5), end=("E0", 0, 95)))
 ]
 
 gen_scenario(

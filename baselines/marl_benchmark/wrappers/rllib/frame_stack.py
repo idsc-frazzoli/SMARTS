@@ -813,17 +813,46 @@ class FrameStack(Wrapper):
     #
     #     return func
 
-    # lexicographic cost: <com_cost, per_cost>, where per_cost = <off-road, goal reached, time cost>
+    # # lexicographic cost: <com_cost, per_cost>, where per_cost = <off-road, goal reached, time cost>
+    # @staticmethod
+    # def get_reward_adapter(observation_adapter):
+    #     def func(env_obs_seq, env_reward):
+    #         cost_com, cost_per, reward = 0.0, 0.0, 0.0
+    #
+    #         # get observation of most recent time step
+    #         last_obs = env_obs_seq[-1]
+    #
+    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+    #         ego_events = last_obs.events
+    #         # ::collision
+    #         cost_com += 1000.0 if len(ego_events.collisions) > 0 else 0.0
+    #         # ::off-road increases personal cost
+    #         cost_per += 500.0 if ego_events.off_road else 0.0
+    #         # ::reach goal decreases personal cost
+    #         if ego_events.reached_goal:
+    #             reward += 300.0
+    #         else:
+    #             # time penalty increases personal cost
+    #             cost_per += 1.0
+    #
+    #         total_reward = -cost_com - cost_per + reward
+    #         return total_reward
+    #
+    #     return func
+
+    # lexicographic cost: <com_cost, per_cost>, where
+    # per_cost = <off-road, goal reached, (time cost, closer to goal)>
     @staticmethod
     def get_reward_adapter(observation_adapter):
         def func(env_obs_seq, env_reward):
             cost_com, cost_per, reward = 0.0, 0.0, 0.0
 
             # get observation of most recent time step
-            last_obs = env_obs_seq[-1]
+            current_obs = env_obs_seq[-1]
+            last_obs = env_obs_seq[-2]
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
-            ego_events = last_obs.events
+            ego_events = current_obs.events
             # ::collision
             cost_com += 1000.0 if len(ego_events.collisions) > 0 else 0.0
             # ::off-road increases personal cost
@@ -833,9 +862,89 @@ class FrameStack(Wrapper):
                 reward += 300.0
             else:
                 # time penalty increases personal cost
-                cost_per += 1.0
+                cost_per += 2.0
+
+            x_gc = current_obs.ego_vehicle_state.mission.goal.position
+            x_c = current_obs.ego_vehicle_state.position
+            x_gl = last_obs.ego_vehicle_state.mission.goal.position
+            x_l = last_obs.ego_vehicle_state.position
+            current_dist_to_goal = np.sqrt((x_c[0]-x_gc[0])**2 + (x_c[1]-x_gc[1])**2)
+            last_dist_to_goal = np.sqrt((x_l[0]-x_gl[0])**2 + (x_l[1]-x_gl[1])**2)
+
+            goal_improvement = last_dist_to_goal - current_dist_to_goal
+
+            if goal_improvement > 0:
+                reward += 3 * min(goal_improvement, 1)
+            elif goal_improvement < 0:
+                reward += 3 * max(goal_improvement, -1)
 
             total_reward = -cost_com - cost_per + reward
             return total_reward
 
         return func
+
+    #         obs_seq = observation_adapter(env_obs_seq)
+    #
+    #         # ======== Penalty: too close to neighbor vehicles
+    #         # if the mean ttc or mean speed or mean dist is higher than before, get penalty
+    #         # otherwise, get bonus
+    #         last_env_obs = env_obs_seq[-1]
+    #         neighbor_features_np = np.asarray([e.get("neighbor") for e in obs_seq])
+    #         if neighbor_features_np is not None:
+    #             new_neighbor_feature_np = neighbor_features_np[-1].reshape((-1, 5))
+    #             mean_dist = np.mean(new_neighbor_feature_np[:, 0])
+    #             mean_ttc = np.mean(new_neighbor_feature_np[:, 2])
+    #
+    #             last_neighbor_feature_np = neighbor_features_np[-2].reshape((-1, 5))
+    #             mean_dist2 = np.mean(last_neighbor_feature_np[:, 0])
+    #             # mean_speed2 = np.mean(last_neighbor_feature[:, 1])
+    #             mean_ttc2 = np.mean(last_neighbor_feature_np[:, 2])
+    #             penalty += (
+    #                 0.03 * (mean_dist - mean_dist2)
+    #                 # - 0.01 * (mean_speed - mean_speed2)
+    #                 + 0.01 * (mean_ttc - mean_ttc2)
+    #             )
+    #
+    #         # ======== Penalty: distance to goal =========
+    #         goal = last_env_obs.ego_vehicle_state.mission.goal
+    #         ego_2d_position = last_env_obs.ego_vehicle_state.position[:2]
+    #         if hasattr(goal, "position"):
+    #             goal_position = goal.position
+    #         else:
+    #             goal_position = ego_2d_position
+    #         goal_dist = distance.euclidean(ego_2d_position, goal_position)
+    #         penalty += -0.01 * goal_dist
+    #
+    #         old_obs = env_obs_seq[-2]
+    #         old_goal = old_obs.ego_vehicle_state.mission.goal
+    #         old_ego_2d_position = old_obs.ego_vehicle_state.position[:2]
+    #         if hasattr(old_goal, "position"):
+    #             old_goal_position = old_goal.position
+    #         else:
+    #             old_goal_position = old_ego_2d_position
+    #         old_goal_dist = distance.euclidean(old_ego_2d_position, old_goal_position)
+    #         penalty += 0.1 * (old_goal_dist - goal_dist)  # 0.05
+    #
+    #         # ======== Penalty: distance to the center
+    #         distance_to_center_np = np.asarray(
+    #             [e["distance_to_center"] for e in obs_seq]
+    #         )
+    #         diff_dist_to_center_penalty = np.abs(distance_to_center_np[-2]) - np.abs(
+    #             distance_to_center_np[-1]
+    #         )
+    #         penalty += 0.01 * diff_dist_to_center_penalty[0]
+    #
+    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+    #         ego_events = last_env_obs.events
+    #         # ::collision
+    #         penalty += -50.0 if len(ego_events.collisions) > 0 else 0.0
+    #         # ::off road
+    #         penalty += -50.0 if ego_events.off_road else 0.0
+    #         # ::reach goal
+    #         if ego_events.reached_goal:
+    #             bonus += 20.0
+    #
+    #         # ::reached max_episode_step
+    #         if ego_events.reached_max_episode_steps:
+    #             penalty += -0.5
+    #         else:

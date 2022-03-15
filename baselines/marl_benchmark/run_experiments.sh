@@ -53,7 +53,27 @@
 #python run.py scenarios/custom/straight/straight100_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm centralized --stop_time 7200 --horizon 140
 
 # 14.03.2022
+#scl scenario build-all scenarios/custom/merge110_lanes2
+#python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 18000 --horizon 300
+##python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm centralized --stop_time 36000 --horizon 300
+
+# 15.03.2022
 scl scenario build-all scenarios/custom/merge110_lanes2
-python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 18000 --horizon 300
-#python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm centralized --stop_time 36000 --horizon 300
+python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 18000 --horizon 150
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

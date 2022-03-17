@@ -65,7 +65,7 @@
 # run centralized for 10 hours
 #python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 36000 --horizon 150
 
-# 17.03.2022 run centralized for 72 hrs
+# 17.03.2022 run centralized for 20 hrs
 python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm centralized --stop_time 72000 --horizon 150
 
 

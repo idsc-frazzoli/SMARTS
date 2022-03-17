@@ -874,6 +874,7 @@ scenario = 'merge110_lanes2-4'
 # name_1 = ''
 #decentralized
 name_2 = 'PPO_FrameStack_67136_00000_0_2022-03-15_10-33-50'
+name_3 = 'PPO_FrameStack_84551_00000_0_2022-03-15_17-08-21'
 
 title = ''
 
@@ -885,31 +886,44 @@ title = ''
 #                                 'progress.csv')
 
 progress_path_decen = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
+                                    scenario,
+                                    name_2,
+                                    'progress.csv')
+
+progress_path_3 = os.path.join('../baselines', 'marl_benchmark', 'log', 'results', 'run',
                                 scenario,
-                                name_2,
+                                name_3,
                                 'progress.csv')
 
 # df_progress_cen = pd.read_csv(progress_path_cen)
 df_progress_decen = pd.read_csv(progress_path_decen)
+df_progress_3 = pd.read_csv(progress_path_3)
 
 # df_ep_rew_cen = df_progress_cen['hist_stats/episode_reward']
 df_ep_rew_decen = df_progress_decen['hist_stats/episode_reward']
+df_ep_rew_3 = df_progress_3['hist_stats/episode_reward']
 
 # rewards_cen = df_progress_cen[['episode_reward_mean','episode_reward_max','episode_reward_min']]
 rewards_decen = df_progress_decen[['episode_reward_mean','episode_reward_max','episode_reward_min']]
+rewards_3 = df_progress_3[['episode_reward_mean','episode_reward_max','episode_reward_min']]
 
 # rew_std_up_cen = [np.percentile(str2list(x),84) for x in df_ep_rew_cen]
 # rew_std_lo_cen = [np.percentile(str2list(x),16) for x in df_ep_rew_cen]
 rew_std_up_decen = [np.percentile(str2list(x),84) for x in df_ep_rew_decen]
 rew_std_lo_decen = [np.percentile(str2list(x),16) for x in df_ep_rew_decen]
+rew_std_up_3 = [np.percentile(str2list(x),84) for x in df_ep_rew_3]
+rew_std_lo_3 = [np.percentile(str2list(x),16) for x in df_ep_rew_3]
 
 # rew_2std_up_cen = [np.percentile(str2list(x),97.5) for x in df_ep_rew_cen]
 # rew_2std_lo_cen = [np.percentile(str2list(x),2.5) for x in df_ep_rew_cen]
 rew_2std_up_decen = [np.percentile(str2list(x),97.5) for x in df_ep_rew_decen]
 rew_2std_lo_decen = [np.percentile(str2list(x),2.5) for x in df_ep_rew_decen]
+rew_2std_up_3 = [np.percentile(str2list(x),97.5) for x in df_ep_rew_3]
+rew_2std_lo_3 = [np.percentile(str2list(x),2.5) for x in df_ep_rew_3]
 
 # rew_median_cen = [np.median(str2list(x)) for x in df_ep_rew_cen]
 rew_median_decen = [np.median(str2list(x)) for x in df_ep_rew_decen]
+rew_median_3 = [np.median(str2list(x)) for x in df_ep_rew_3]
 
 # rew_75_decen = [np.percentile(str2list(x),75) for x in df_ep_rew_decen]
 # rew_25_decen = [np.percentile(str2list(x),25) for x in df_ep_rew_decen]
@@ -924,11 +938,14 @@ ax = plt.axes()
 
 # ax.fill_between(np.arange(1,len(rew_std_up_cen)+1), rew_std_up_cen, rew_std_lo_cen, color=[0,0.3,1,0.2])
 ax.fill_between(np.arange(1,len(rew_std_up_decen)+1), rew_std_up_decen, rew_std_lo_decen, color=[1,0.3,0,0.2])
+ax.fill_between(np.arange(1,len(rew_std_up_3)+1), rew_std_up_3, rew_std_lo_3, color=[0,1,0.3,0.2])
+
 
 # ax.fill_between(np.arange(1,len(rew_2std_up_cen)+1), rew_2std_up_cen, rew_2std_lo_cen, color=[0,0.3,1,0.2])
 # ax.fill_between(np.arange(1,len(rew_2std_up_decen)+1), rew_2std_up_decen, rew_2std_lo_decen, color=[1,0.3,0,0.2])
 # ax.plot(rew_median_cen, color=[0,0.3,1,1], label='centralized')
-ax.plot(rew_median_decen, color=[1,0.3,0,1], label='decentralized')
+ax.plot(rew_median_decen, color=[1,0.3,0,1], label='decentralized 1')
+ax.plot(rew_median_3, color=[0,1,0.3,1], label='decentralized 2')
 
 # plt.ylim([-2000, 1000])
 
@@ -938,11 +955,7 @@ plt.title(title)
 
 plt.legend()
 
-plt.savefig("plots/{}_cen_decen.pdf".format(scenario))
+# plt.savefig("plots/{}_cen_decen.pdf".format(scenario))
 plt.show()
-
-
-
-
 
 

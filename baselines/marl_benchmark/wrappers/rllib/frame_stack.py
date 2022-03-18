@@ -874,9 +874,13 @@ class FrameStack(Wrapper):
             goal_improvement = last_dist_to_goal - current_dist_to_goal
 
             if goal_improvement > 0:
-                reward += 3 * min(goal_improvement, 1)
+                # # before
+                # reward += 3 * min(goal_improvement, 1)
+                reward += 0.5 * min(goal_improvement, 3)
             elif goal_improvement < 0:
-                reward += 3 * max(goal_improvement, -1)
+                # # before
+                # reward += 3 * max(goal_improvement, -1)
+                reward += 0.5 * max(goal_improvement, -3)
 
             total_reward = -cost_com - cost_per + reward
             return total_reward

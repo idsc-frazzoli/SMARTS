@@ -73,8 +73,10 @@
 #python run.py scenarios/custom/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm centralized --stop_time 86400 --horizon 150
 
 # 21.03.2022 decentralized training on new wintersection scenario 2hrs
-scl scenario build-all scenarios/custom/intersection/int_4_rand2
-python run.py scenarios/custom/intersection/int_4_rand2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 7200 --horizon 150
+#scl scenario build-all scenarios/custom/intersection/int_4_rand2
+#python run.py scenarios/custom/intersection/int_4_rand2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 7200 --horizon 150
+python run.py scenarios/custom/intersection/int_4_rand2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 36000 --horizon 150
+python run.py scenarios/custom/intersection/int_4_rand2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm centralized --stop_time 36000 --horizon 150
 
 
 

@@ -62,6 +62,7 @@ def main(
         png=False,
         pdf=False,
         high_res=False,
+        x_axis="checkpoints",
 ):
     if high_res:
         matplotlib.rcParams['savefig.dpi'] = 300
@@ -85,12 +86,22 @@ def main(
     n_agents = [x[0] for x in agents_info]
     paradigms = [x[1] for x in agents_info]
 
+    assert x_axis == "checkpoints" or x_axis == "time_total_s", "for --x_axis, only checkpoints or time_total_s are possible arguments"
+
+    if x_axis == "checkpoints":
+        xaxis = [np.arange(1, len(df['done'])+1) for df in dfs]
+        xlabel = 'checkpoint'
+
+    if x_axis == "time_total_s":
+        xaxis = [df['time_total_s'] for df in dfs]
+        xlabel = 'total time [s]'
+
     if mean_reward:
         fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
         for i, df in enumerate(dfs):
             std_devs = [np.std(str2list(x)) for x in df['hist_stats/episode_reward']]
-            ax.plot(df['timesteps_total'], df['episode_reward_mean'], color=PALETTE[2 * i])
-            ax.fill_between(df['timesteps_total'],
+            ax.plot(xaxis[i], df['episode_reward_mean'], color=PALETTE[2 * i])
+            ax.fill_between(xaxis[i],
                             df['episode_reward_mean'] - std_devs,
                             df['episode_reward_mean'] + std_devs,
                             color=PALETTE[2 * i], alpha=0.2)
@@ -98,7 +109,7 @@ def main(
             ax.legend(legend)
         plt.title(title)
         plt.ylabel('episode reward')
-        plt.xlabel('time steps')
+        plt.xlabel(xlabel)
         if png:
             plt.savefig(Path(log_path, 'mean_episode_reward.png'))
         if pdf:
@@ -108,8 +119,8 @@ def main(
         fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
         for i, df in enumerate(dfs):
             std_devs = [np.std(str2list(x)) for x in df['hist_stats/episode_lengths']]
-            ax.plot(df['timesteps_total'], df['episode_len_mean'], color=PALETTE[2 * i])
-            ax.fill_between(df['timesteps_total'],
+            ax.plot(df['agent_timesteps_total'], df['episode_len_mean'], color=PALETTE[2 * i])
+            ax.fill_between(xaxis[i],
                             df['episode_len_mean'] - std_devs,
                             df['episode_len_mean'] + std_devs,
                             color=PALETTE[2 * i], alpha=0.2)
@@ -117,7 +128,7 @@ def main(
             ax.legend(legend)
         plt.title(title)
         plt.ylabel('episode length')
-        plt.xlabel('time steps')
+        plt.xlabel(xlabel)
         if png:
             plt.savefig(Path(log_path, 'mean_episode_length.png'))
         if pdf:
@@ -143,13 +154,13 @@ def main(
                 for key, item in learner_stats_postfix.items():
                     fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
                     for agent in range(n_agents[i]):
-                        ax.plot(df['timesteps_total'],
+                        ax.plot(xaxis[i],
                                 df[learner_stats_prefix + 'AGENT-' + str(agent) + item],
                                 color=AGENT_COLORS[agent], label='Agent ' + str(agent))
                     # plt.title(title)
                     plt.legend()
                     plt.ylabel(key)
-                    plt.xlabel('time steps')
+                    plt.xlabel(xlabel)
                     if png:
                         plt.savefig(Path(scenario_path, '{}.png'.format(item[15:])))
                     if pdf:
@@ -157,12 +168,12 @@ def main(
             if paradigms[i] == 'centralized':
                 for key, item in learner_stats_postfix.items():
                     fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-                    ax.plot(df['timesteps_total'],
+                    ax.plot(xaxis[i],
                             df[learner_stats_prefix + 'default_policy' + item],
                             color=PALETTE[2])
                     # plt.title(title)
                     plt.ylabel(key)
-                    plt.xlabel('time steps')
+                    plt.xlabel(xlabel)
                     if png:
                         plt.savefig(Path(scenario_path, '{}.png'.format(item[15:])))
                     if pdf:
@@ -180,21 +191,21 @@ def main(
                 postfix = '_reward'
                 fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
                 for agent in range(n_agents[i]):
-                    ax.plot(df['timesteps_total'],
+                    ax.plot(xaxis[i],
                             df['policy_reward_mean/AGENT-' + str(agent)],
                             color=AGENT_COLORS[agent], label='Agent ' + str(agent))
                     std_devs = [np.std(str2list(x)) for x in df[prefix + str(agent) + postfix]]
-                    ax.fill_between(df['timesteps_total'],
+                    ax.fill_between(xaxis[i],
                                     df['policy_reward_mean/AGENT-' + str(agent)] - std_devs,
                                     df['policy_reward_mean/AGENT-' + str(agent)] + std_devs,
                                     color=AGENT_COLORS[agent], alpha=0.2)
-                ax.plot(df['timesteps_total'], df['episode_reward_mean']/n_agents[i],
+                ax.plot(xaxis[i], df['episode_reward_mean']/n_agents[i],
                         color=COLORS['black'], label='Average Reward',
                         linewidth=3)
                 # plt.title(title)
                 plt.legend()
                 plt.ylabel('mean reward')
-                plt.xlabel('time steps')
+                plt.xlabel(xlabel)
                 if png:
                     plt.savefig(Path(scenario_path, 'mean_reward.png'))
                 if pdf:
@@ -266,6 +277,13 @@ def parse_args():
         help="Saved png is of higher resolution."
     )
 
+    parser.add_argument(
+        "--x_axis",
+        type=str,
+        default="checkpoints",
+        help="x-axis values. can be checkpoints (default) or time_total_s"
+    )
+
     return parser.parse_args()
 
 
@@ -283,5 +301,6 @@ if __name__ == "__main__":
         agent_wise=args.agent_wise,
         png=args.png,
         pdf=args.pdf,
-        high_res=args.high_res
+        high_res=args.high_res,
+        x_axis=args.x_axis
     )

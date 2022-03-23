@@ -20,6 +20,7 @@ class World():
         self.max_timesteps = max_timesteps
         self.desired_velocity = desired_velocity
         self.resources = resources
+        # self.render_path = render_path
         
     
     def check_goal_reached(self, agent_state, agent):

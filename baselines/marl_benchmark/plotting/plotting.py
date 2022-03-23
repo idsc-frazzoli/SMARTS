@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils import str2list, get_number_agents
+from utils import str2list, get_number_agents, plot_mean
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -86,53 +86,33 @@ def main(
     n_agents = [x[0] for x in agents_info]
     paradigms = [x[1] for x in agents_info]
 
-    assert x_axis == "checkpoints" or x_axis == "time_total_s", "for --x_axis, only checkpoints or time_total_s are possible arguments"
+    xaxes = []
+    xlabels = []
+    xnames = []
+    if 'checkpoints' in x_axis:
+        xaxes.append([np.arange(1, len(df['done'])+1) for df in dfs])
+        xlabels.append('checkpoint')
+        xnames.append('checkpoint')
+    if 'time_total_s' in x_axis:
+        xaxes.append([df['time_total_s'] for df in dfs])
+        xlabels.append('total time [s]')
+        xnames.append('time_total_s')
+    if 'episodes_total' in x_axis:
+        xaxes.append([df['episodes_total'] for df in dfs])
+        xlabels.append('total episodes')
+        xnames.append('episodes_total')
 
-    if x_axis == "checkpoints":
-        xaxis = [np.arange(1, len(df['done'])+1) for df in dfs]
-        xlabel = 'checkpoint'
+    if legend is None:
+        legend = [''] * len(dfs)
 
-    if x_axis == "time_total_s":
-        xaxis = [df['time_total_s'] for df in dfs]
-        xlabel = 'total time [s]'
-
+    # Remark: This could be done similarly as for learner_stats, but I'm too lazy to rewrite the code.
     if mean_reward:
-        fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-        for i, df in enumerate(dfs):
-            std_devs = [np.std(str2list(x)) for x in df['hist_stats/episode_reward']]
-            ax.plot(xaxis[i], df['episode_reward_mean'], color=PALETTE[2 * i])
-            ax.fill_between(xaxis[i],
-                            df['episode_reward_mean'] - std_devs,
-                            df['episode_reward_mean'] + std_devs,
-                            color=PALETTE[2 * i], alpha=0.2)
-        if legend is not None:
-            ax.legend(legend)
-        plt.title(title)
-        plt.ylabel('episode reward')
-        plt.xlabel(xlabel)
-        if png:
-            plt.savefig(Path(log_path, 'mean_episode_reward.png'))
-        if pdf:
-            plt.savefig(Path(log_path, 'mean_episode_reward.pdf'))
+        ylabel, yname = 'episode reward', 'episode_reward_mean'
+        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path)
 
     if mean_len:
-        fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-        for i, df in enumerate(dfs):
-            std_devs = [np.std(str2list(x)) for x in df['hist_stats/episode_lengths']]
-            ax.plot(df['agent_timesteps_total'], df['episode_len_mean'], color=PALETTE[2 * i])
-            ax.fill_between(xaxis[i],
-                            df['episode_len_mean'] - std_devs,
-                            df['episode_len_mean'] + std_devs,
-                            color=PALETTE[2 * i], alpha=0.2)
-        if legend is not None:
-            ax.legend(legend)
-        plt.title(title)
-        plt.ylabel('episode length')
-        plt.xlabel(xlabel)
-        if png:
-            plt.savefig(Path(log_path, 'mean_episode_length.png'))
-        if pdf:
-            plt.savefig(Path(log_path, 'mean_episode_length.pdf'))
+        ylabel, yname = 'episode length', 'episode_len_mean'
+        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path)
 
     if learner_stats:
         learner_stats_prefix = 'info/learner/'
@@ -152,32 +132,34 @@ def main(
             scenario_path.mkdir(parents=True, exist_ok=True)
             if paradigms[i] == "decentralized":
                 for key, item in learner_stats_postfix.items():
-                    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-                    for agent in range(n_agents[i]):
-                        ax.plot(xaxis[i],
-                                df[learner_stats_prefix + 'AGENT-' + str(agent) + item],
-                                color=AGENT_COLORS[agent], label='Agent ' + str(agent))
-                    # plt.title(title)
-                    plt.legend()
-                    plt.ylabel(key)
-                    plt.xlabel(xlabel)
-                    if png:
-                        plt.savefig(Path(scenario_path, '{}.png'.format(item[15:])))
-                    if pdf:
-                        plt.savefig(Path(scenario_path, '{}.pdf'.format(item[15:])))
+                    for j, xaxis in enumerate(xaxes):
+                        fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+                        for agent in range(n_agents[i]):
+                            ax.plot(xaxis[i],
+                                    df[learner_stats_prefix + 'AGENT-' + str(agent) + item],
+                                    color=AGENT_COLORS[agent], label='Agent ' + str(agent))
+                        # plt.title(title)
+                        plt.legend()
+                        plt.ylabel(key)
+                        plt.xlabel(xlabels[j])
+                        if png:
+                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.png'))
+                        if pdf:
+                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.pdf'))
             if paradigms[i] == 'centralized':
                 for key, item in learner_stats_postfix.items():
-                    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-                    ax.plot(xaxis[i],
-                            df[learner_stats_prefix + 'default_policy' + item],
-                            color=PALETTE[2])
-                    # plt.title(title)
-                    plt.ylabel(key)
-                    plt.xlabel(xlabel)
-                    if png:
-                        plt.savefig(Path(scenario_path, '{}.png'.format(item[15:])))
-                    if pdf:
-                        plt.savefig(Path(scenario_path, '{}.pdf'.format(item[15:])))
+                    for j, xaxis in enumerate(xaxes):
+                        fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+                        ax.plot(xaxis[i],
+                                df[learner_stats_prefix + 'default_policy' + item],
+                                color=PALETTE[2])
+                        # plt.title(title)
+                        plt.ylabel(key)
+                        plt.xlabel(xlabels[j])
+                        if png:
+                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.png'))
+                        if pdf:
+                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.pdf'))
 
     if mean_reward and agent_wise:
         agent_wise_path = Path(Path(log_path, 'agent_wise'))
@@ -186,30 +168,30 @@ def main(
             scenario_path = Path(agent_wise_path, paths[i].split('/')[2])
             scenario_path.mkdir(parents=True, exist_ok=True)
             if paradigms[i] == 'decentralized':
-                # prefix = 'policy_reward_mean/AGENT-'
                 prefix = 'hist_stats/policy_AGENT-'
                 postfix = '_reward'
-                fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-                for agent in range(n_agents[i]):
-                    ax.plot(xaxis[i],
-                            df['policy_reward_mean/AGENT-' + str(agent)],
-                            color=AGENT_COLORS[agent], label='Agent ' + str(agent))
-                    std_devs = [np.std(str2list(x)) for x in df[prefix + str(agent) + postfix]]
-                    ax.fill_between(xaxis[i],
-                                    df['policy_reward_mean/AGENT-' + str(agent)] - std_devs,
-                                    df['policy_reward_mean/AGENT-' + str(agent)] + std_devs,
-                                    color=AGENT_COLORS[agent], alpha=0.2)
-                ax.plot(xaxis[i], df['episode_reward_mean']/n_agents[i],
-                        color=COLORS['black'], label='Average Reward',
-                        linewidth=3)
-                # plt.title(title)
-                plt.legend()
-                plt.ylabel('mean reward')
-                plt.xlabel(xlabel)
-                if png:
-                    plt.savefig(Path(scenario_path, 'mean_reward.png'))
-                if pdf:
-                    plt.savefig(Path(scenario_path, 'mean_reward.pdf'))
+                for j, xaxis in enumerate(xaxes):
+                    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+                    for agent in range(n_agents[i]):
+                        ax.plot(xaxis[i],
+                                df['policy_reward_mean/AGENT-' + str(agent)],
+                                color=AGENT_COLORS[agent], label='Agent ' + str(agent))
+                        std_devs = [np.std(str2list(x)) for x in df[prefix + str(agent) + postfix]]
+                        ax.fill_between(xaxis[i],
+                                        df['policy_reward_mean/AGENT-' + str(agent)] - std_devs,
+                                        df['policy_reward_mean/AGENT-' + str(agent)] + std_devs,
+                                        color=AGENT_COLORS[agent], alpha=0.2)
+                    ax.plot(xaxis[i], df['episode_reward_mean']/n_agents[i],
+                            color=COLORS['black'], label='Average Reward',
+                            linewidth=3)
+                    # plt.title(title)
+                    plt.legend()
+                    plt.ylabel('mean reward')
+                    plt.xlabel(xlabels[j])
+                    if png:
+                        plt.savefig(Path(scenario_path, 'mean_reward' + '_' + xnames[j] + '.png'))
+                    if pdf:
+                        plt.savefig(Path(scenario_path, 'mean_reward' + '_' + xnames[j] + '.pdf'))
             # TODO: Also implement for centralized.
             if paradigms[i] == 'centralized':
                 pass
@@ -279,6 +261,7 @@ def parse_args():
 
     parser.add_argument(
         "--x_axis",
+        nargs='+',
         type=str,
         default="checkpoints",
         help="x-axis values. can be checkpoints (default) or time_total_s"

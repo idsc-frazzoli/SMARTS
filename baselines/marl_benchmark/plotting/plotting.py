@@ -101,6 +101,10 @@ def main(
         xaxes.append([df['episodes_total'] for df in dfs])
         xlabels.append('total episodes')
         xnames.append('episodes_total')
+    if 'timesteps_total' in x_axis:
+        xaxes.append([df['timesteps_total'] for df in dfs])
+        xlabels.append('total time steps')
+        xnames.append('timesteps_total')
 
     if legend is None:
         legend = [''] * len(dfs)
@@ -141,6 +145,8 @@ def main(
                         # plt.title(title)
                         plt.legend()
                         plt.ylabel(key)
+                        if key == 'cur_lr':
+                            plt.yscale("log")
                         plt.xlabel(xlabels[j])
                         if png:
                             plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.png'))

@@ -840,7 +840,56 @@ class FrameStack(Wrapper):
     #
     #     return func
 
-    # lexicographic cost: <com_cost, per_cost>, where
+    # # lexicographic cost: <com_cost, per_cost>, where
+    # # per_cost = <off-road, goal reached, (time cost, closer to goal)>
+    # @staticmethod
+    # def get_reward_adapter(observation_adapter):
+    #     def func(env_obs_seq, env_reward):
+    #         cost_com, cost_per, reward = 0.0, 0.0, 0.0
+    #
+    #         # get observation of most recent time step
+    #         current_obs = env_obs_seq[-1]
+    #         last_obs = env_obs_seq[-2]
+    #
+    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+    #         ego_events = current_obs.events
+    #         # ::collision
+    #         cost_com += 1000.0 if len(ego_events.collisions) > 0 else 0.0
+    #         # ::off-road increases personal cost
+    #         cost_per += 500.0 if ego_events.off_road else 0.0
+    #         # ::reach goal decreases personal cost
+    #         if ego_events.reached_goal:
+    #             reward += 300.0
+    #         else:
+    #             # time penalty increases personal cost
+    #             cost_per += 2.0
+    #
+    #         x_gc = current_obs.ego_vehicle_state.mission.goal.position
+    #         x_c = current_obs.ego_vehicle_state.position
+    #         x_gl = last_obs.ego_vehicle_state.mission.goal.position
+    #         x_l = last_obs.ego_vehicle_state.position
+    #         current_dist_to_goal = np.sqrt((x_c[0]-x_gc[0])**2 + (x_c[1]-x_gc[1])**2)
+    #         last_dist_to_goal = np.sqrt((x_l[0]-x_gl[0])**2 + (x_l[1]-x_gl[1])**2)
+    #
+    #         goal_improvement = last_dist_to_goal - current_dist_to_goal
+    #
+    #         if goal_improvement > 0:
+    #             # lexicost1
+    #             reward += 3 * min(goal_improvement, 1)
+    #             # # lexicost2
+    #             # reward += 0.5 * min(goal_improvement, 3)
+    #         elif goal_improvement < 0:
+    #             # lexicost1
+    #             reward += 3 * max(goal_improvement, -1)
+    #             # # lexicost2
+    #             # reward += 0.5 * max(goal_improvement, -3)
+    #
+    #         total_reward = -cost_com - cost_per + reward
+    #         return total_reward
+    #
+    #     return func
+
+    # pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
     # per_cost = <off-road, goal reached, (time cost, closer to goal)>
     @staticmethod
     def get_reward_adapter(observation_adapter):
@@ -868,8 +917,8 @@ class FrameStack(Wrapper):
             x_c = current_obs.ego_vehicle_state.position
             x_gl = last_obs.ego_vehicle_state.mission.goal.position
             x_l = last_obs.ego_vehicle_state.position
-            current_dist_to_goal = np.sqrt((x_c[0]-x_gc[0])**2 + (x_c[1]-x_gc[1])**2)
-            last_dist_to_goal = np.sqrt((x_l[0]-x_gl[0])**2 + (x_l[1]-x_gl[1])**2)
+            current_dist_to_goal = np.sqrt((x_c[0] - x_gc[0]) ** 2 + (x_c[1] - x_gc[1]) ** 2)
+            last_dist_to_goal = np.sqrt((x_l[0] - x_gl[0]) ** 2 + (x_l[1] - x_gl[1]) ** 2)
 
             goal_improvement = last_dist_to_goal - current_dist_to_goal
 
@@ -883,6 +932,16 @@ class FrameStack(Wrapper):
                 reward += 3 * max(goal_improvement, -1)
                 # # lexicost2
                 # reward += 0.5 * max(goal_improvement, -3)
+
+            neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
+            safety_dist_coef = 100
+            safety_dist = float(10)  # [m]
+            for nvs in neighborhood_vehicle_states:
+                # calculate distance to neighbor vehicle
+                neigh_position = nvs.position
+                dist = float(np.linalg.norm(x_c - neigh_position))
+                if dist <= safety_dist:
+                    cost_com += min(safety_dist_coef * (np.power(dist ** 2, -1) - np.power(safety_dist ** 2, -1)), 5)
 
             total_reward = -cost_com - cost_per + reward
             return total_reward

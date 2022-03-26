@@ -75,4 +75,8 @@ def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path):
         xaxis = [df['episodes_total'] for df in dfs]
         xlabel, xname = 'total episodes', 'episodes_total'
         plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path)
+    if 'timesteps_total' in x_axis:
+        xaxis = [df['timesteps_total'] for df in dfs]
+        xlabel, xname = 'total time steps', 'timesteps_total'
+        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path)
 

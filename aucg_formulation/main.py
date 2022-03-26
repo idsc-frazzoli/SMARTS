@@ -23,7 +23,7 @@ def quadspeedcost(agent, state, desired_velocity, dones, resources, time_step):
 
 
 def aucg_cost(agent, state, desired_velocity, dones, resources, time_step):
-    # resource cost function of degree d = 2
+    # resource cost function of degree d
     def resource_cost(load, total_load, neighborhood_factor):
         degree = 5
         return neighborhood_factor * load * total_load ** degree

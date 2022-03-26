@@ -2,21 +2,28 @@
 
 # 23.03.2022
 # 24h decent vs cent merge110_lanes2 fully lexicographic cost (2)
-# 20220323_172214_merge110_lanes2
-#python plotting/plotting.py -p ./merge110_lanes2-4/PPO_FrameStack_93b35_00000_0_2022-03-18_16-00-48 ./merge110_lanes2-4/PPO_FrameStack_1728f_00000_0_2022-03-19_17-07-43 --scenario_name merge110_lanes2 --title "Decentralized vs. Centralized" --mean_reward --mean_len --agent_wise --learner_stats --png --legend decentralized centralized --x_axis checkpoints time_total_s episodes_total
+# 
+python plotting/plotting.py -p ./merge110_lanes2-4/PPO_FrameStack_93b35_00000_0_2022-03-18_16-00-48 ./merge110_lanes2-4/PPO_FrameStack_1728f_00000_0_2022-03-19_17-07-43 --scenario_name merge110_lanes2_lexicost2 --title "Decentralized vs. Centralized" --mean_reward --mean_len --agent_wise --learner_stats --png --legend decentralized centralized --x_axis checkpoints time_total_s episodes_total timesteps_total
 
 # 10h/10h/20h decent vs 20 h cent merge110_lanes2 lexicographic cost (1)
-# 20220323_174201_merge110_lanes2
-#python plotting/plotting.py -p ./merge110_lanes2-4/PPO_FrameStack_4f155_00000_0_2022-03-16_08-44-36 ./merge110_lanes2-4/PPO_FrameStack_84551_00000_0_2022-03-15_17-08-21 ./merge110_lanes2-4/PPO_FrameStack_a0024_00000_0_2022-03-22_20-21-16 ./merge110_lanes2-4/PPO_FrameStack_f8f98_00000_0_2022-03-17_11-39-58 --scenario_name merge110_lanes2 --title "Decentralized vs. Centralized" --mean_reward --mean_len --agent_wise --learner_stats --png --legend "decentralized run 1" "decentralized run 2" "decentralized run 3" "centralized" --x_axis checkpoints time_total_s episodes_total
+# 
+python plotting/plotting.py -p ./merge110_lanes2-4/PPO_FrameStack_4f155_00000_0_2022-03-16_08-44-36 ./merge110_lanes2-4/PPO_FrameStack_84551_00000_0_2022-03-15_17-08-21 ./merge110_lanes2-4/PPO_FrameStack_a0024_00000_0_2022-03-22_20-21-16 ./merge110_lanes2-4/PPO_FrameStack_f8f98_00000_0_2022-03-17_11-39-58 --scenario_name merge110_lanes2_lexicost1 --title "Decentralized vs. Centralized" --mean_reward --mean_len --agent_wise --learner_stats --png --legend "decentralized run 1" "decentralized run 2" "decentralized run 3" "centralized" --x_axis checkpoints time_total_s episodes_total timesteps_total
 
 # 2h test for intersection
-# 20220323_172238_int_4_rand2
-#python plotting/plotting.py -p ./int_4_rand2-4/PPO_FrameStack_1d4ea_00000_0_2022-03-21_14-13-43 --scenario_name int_4_rand2 --title "Intersection Decentralized Test" --mean_reward --mean_len --agent_wise --learner_stats --png --x_axis checkpoints time_total_s episodes_total
+# 
+python plotting/plotting.py -p ./int_4_rand2-4/PPO_FrameStack_1d4ea_00000_0_2022-03-21_14-13-43 --scenario_name int_4_rand2_lexicost2_test --title "Intersection Decentralized Test" --mean_reward --mean_len --agent_wise --learner_stats --png --x_axis checkpoints time_total_s episodes_total timesteps_total
 
 # 10h decent vs. cent for intersection
-# 20220323_172244_int_4_rand2
-#python plotting/plotting.py -p ./int_4_rand2-4/PPO_FrameStack_fedd0_00000_0_2022-03-21_20-46-34 ./int_4_rand2-4/PPO_FrameStack_5fb1d_00000_0_2022-03-22_06-50-34 --scenario_name int_4_rand2 --title "Intersection Decentralized vs. Centralized" --mean_reward --mean_len --png --x_axis checkpoints time_total_s episodes_total --legend "decentralized" "centralized" --agent_wise --learner_stats
+# 
+python plotting/plotting.py -p ./int_4_rand2-4/PPO_FrameStack_fedd0_00000_0_2022-03-21_20-46-34 ./int_4_rand2-4/PPO_FrameStack_5fb1d_00000_0_2022-03-22_06-50-34 --scenario_name int_4_rand2_lexicost2 --title "Intersection Decentralized vs. Centralized" --mean_reward --mean_len --png --x_axis checkpoints time_total_s episodes_total timesteps_total --legend "decentralized" "centralized" --agent_wise --learner_stats
 
 # 20h decent vs 20 h cent merge110_lanes2 lexicographic cost (1)
-# 20220323_174201_merge110_lanes2
-python plotting/plotting.py -p ./merge110_lanes2-4/PPO_FrameStack_a0024_00000_0_2022-03-22_20-21-16 ./merge110_lanes2-4/PPO_FrameStack_f8f98_00000_0_2022-03-17_11-39-58 --scenario_name merge110_lanes2 --title "Decentralized vs. Centralized" --mean_reward --mean_len --agent_wise --learner_stats --png --legend "decentralized" "centralized" --x_axis checkpoints time_total_s episodes_total
+# 
+python plotting/plotting.py -p ./merge110_lanes2-4/PPO_FrameStack_a0024_00000_0_2022-03-22_20-21-16 ./merge110_lanes2-4/PPO_FrameStack_f8f98_00000_0_2022-03-17_11-39-58 --scenario_name merge110_lanes2_lexicost1 --title "Decentralized vs. Centralized" --mean_reward --mean_len --agent_wise --learner_stats --png --legend "decentralized" "centralized" --x_axis checkpoints time_total_s episodes_total timesteps_total
+
+# 23.03.2022
+# int31 tests decent
+python plotting/plotting.py -p ./int31-4/PPO_FrameStack_f334d_00000_0_2022-03-24_07-28-07 --scenario_name int31_lexicost2 --title "Intersection Tests" --mean_reward --mean_len --agent_wise --learner_stats --png --legend "decentralized" --x_axis checkpoints time_total_s episodes_total timesteps_total
+
+
+

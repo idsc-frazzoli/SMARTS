@@ -140,3 +140,5 @@ ultra/ultra/scenarios/task*/*/
 **/logs/**
 **/data_replay/**
 nando/
+**/plots/**
+aucg_formulation/training/

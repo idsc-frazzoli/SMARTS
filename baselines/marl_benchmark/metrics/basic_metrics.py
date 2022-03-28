@@ -63,7 +63,7 @@ class BehaviorMetric:
             average_speed.append(np.mean(mean_speed_list))
         self.agility = np.mean(average_speed)
 
-    def _compute_stability_index(self, agent_central_dist_seq):
+    def _compute_stability_index(self, git sldfjksad):
         agent_vars = defaultdict(lambda: [])
         for agent_central_dist in agent_central_dist_seq:
             for agent, central_dist_list in agent_central_dist.items():

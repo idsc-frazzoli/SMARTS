@@ -54,7 +54,7 @@ run:
     clip_param: 0.2
     num_sgd_iter: 10
     sgd_minibatch_size: 32
-    lr: 1.0e-3
-    lr_schedule: [[0, 1.0e-3], [6000, 1.0e-3], [12000, 1.0e-2], [24000, 1.0e-5]]
+    lr: 1.0e-4
+    lr_schedule: [[0, 1.0e-4], [5000000, 1.0e-5]]
     lambda: 0
     

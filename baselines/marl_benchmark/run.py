@@ -130,6 +130,8 @@ def main(
     config["run"]["stop"]["time_total_s"] = stop_time
     config["run"]["config"]["env_config"]["envision_record_data_replay_path"] = data_replay_path
 
+    # config["run"]["config"]["monitor"] = True
+
     analysis = tune.run(**config["run"])
 
     print(analysis.dataframe().head())

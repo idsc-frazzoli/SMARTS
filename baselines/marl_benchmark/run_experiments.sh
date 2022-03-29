@@ -91,7 +91,7 @@
 #python run.py scenarios/custom/merge/merge100_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule1.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 72000 --horizon 150
 
 # 28.03.2022 merge100_lanes2 (randomized starting positions) decent training with different lr_schedules (constant and linear decline), 10 hrs each
-python run.py scenarios/custom/merge/merge100_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 36000 --horizon 150
+#python run.py scenarios/custom/merge/merge100_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 36000 --horizon 150
 python run.py scenarios/custom/merge/merge100_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule2.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 36000 --horizon 150
 
 

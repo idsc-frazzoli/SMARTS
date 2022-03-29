@@ -133,7 +133,8 @@ def main(
 
     # config["run"]["config"]["monitor"] = True
 
-    analysis = tune.run(**config["run"])
+    # analysis = tune.run(**config["run"])
+    analysis = tune.run(**config["run"], resources_per_trial={'gpu': 1})
 
     print(analysis.dataframe().head())
 

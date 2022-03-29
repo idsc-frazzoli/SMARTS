@@ -132,10 +132,10 @@ def main(
     config["run"]["config"]["env_config"]["envision_record_data_replay_path"] = data_replay_path
 
     # config["run"]["config"]["monitor"] = True
-    config['run']['config']['num_gpus'] = 2
+    # config['run']['config']['num_gpus'] = 2
 
-    # analysis = tune.run(**config["run"])
     analysis = tune.run(**config["run"])
+    # analysis = tune.run(**config["run"], resources_per_trial=tune.PlacementGroupFactory([{"CPU": 1, "GPU": 1}]))
 
     print(analysis.dataframe().head())
 

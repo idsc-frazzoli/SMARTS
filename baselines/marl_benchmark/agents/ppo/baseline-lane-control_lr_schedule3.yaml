@@ -55,6 +55,6 @@ run:
     num_sgd_iter: 10
     sgd_minibatch_size: 32
     lr: 1.0e-4
-    lr_schedule: [[0, 1.0e-4], [2500000, 1.0e-4], [5000000, 1.0e-5]]
+    lr_schedule: [[0, 1.0e-4], [1000000, 1.0e-4], [1000100, 1.0e-5], [5000000, 1.0e-5]]
     lambda: 0
     

@@ -64,7 +64,7 @@ def main(
     # use for debugging
     # print("WARNING: local mode on")
     # ray.init(local_mode=True)
-    # ray.init(num_gpus=4)
+    ray.init(num_gpus=2)
 
     scenarios = [scenario]
     if scenario1 != "":
@@ -132,9 +132,10 @@ def main(
     config["run"]["config"]["env_config"]["envision_record_data_replay_path"] = data_replay_path
 
     # config["run"]["config"]["monitor"] = True
+    config['run']['config']['num_gpus'] = 2
 
     # analysis = tune.run(**config["run"])
-    analysis = tune.run(**config["run"], resources_per_trial={'gpu': 1})
+    analysis = tune.run(**config["run"])
 
     print(analysis.dataframe().head())
 

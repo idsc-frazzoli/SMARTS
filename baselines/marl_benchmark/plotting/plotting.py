@@ -138,6 +138,9 @@ def main(
     # rew_std_up_cen = [np.percentile(str2list(x), 84) for x in df_ep_rew_cen]
     # rew_std_lo_cen = [np.percentile(str2list(x), 16) for x in df_ep_rew_cen]
 
+    axes_map = {0: (0, 0), 1: (0, 1), 2: (0, 2),
+                3: (1, 0), 4: (1, 1), 5: (1, 2),
+                6: (2, 0), 7: (2, 1), 8: (2, 2)}
     if learner_stats:
         learner_stats_prefix = 'info/learner/'
         learner_stats_postfix = {'cur_kl_coef': '/learner_stats/cur_kl_coeff',
@@ -155,37 +158,46 @@ def main(
             scenario_path = Path(learner_path, paths[i].split('/')[2])
             scenario_path.mkdir(parents=True, exist_ok=True)
             if paradigms[i] == "decentralized":
-                for key, item in learner_stats_postfix.items():
-                    for j, xaxis in enumerate(xaxes):
-                        fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+                labels = ["Agent {}".format(agent) for agent in range(n_agents[i])]
+
+                for j, xaxis in enumerate(xaxes):
+                    k = 0
+                    fig, axs = plt.subplots(3, 3, figsize=FIGSIZE, tight_layout=True)
+                    fig.suptitle("x-axis: " + xlabels[j])
+                    for key, item in learner_stats_postfix.items():
                         for agent in range(n_agents[i]):
-                            ax.plot(xaxis[i],
-                                    df[learner_stats_prefix + 'AGENT-' + str(agent) + item],
-                                    color=AGENT_COLORS[agent], label='Agent ' + str(agent))
-                        # plt.title(title)
-                        plt.legend()
-                        plt.ylabel(key)
+                            axs[axes_map[k][0], axes_map[k][1]].plot(xaxis[i],
+                                                                     df[learner_stats_prefix + 'AGENT-' + str(agent) + item],
+                                                                     color=AGENT_COLORS[agent], label='Agent ' + str(agent),
+                                                                     linewidth=1)
+                            axs[axes_map[k][0], axes_map[k][1]].set_title(key)
                         if key == 'cur_lr':
-                            plt.yscale("log")
-                        plt.xlabel(xlabels[j])
-                        if png:
-                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.png'))
-                        if pdf:
-                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.pdf'))
+                            axs[axes_map[k][0], axes_map[k][1]].set(yscale="log")
+                        k += 1
+                    fig.legend(labels, loc='upper right')
+                    if png:
+                        plt.savefig(Path(scenario_path, xnames[j] + 'learner_stats.png'))
+                    if pdf:
+                        plt.savefig(Path(scenario_path, xnames[j] + 'learner_stats.pdf'))
+                    plt.clf()
             if paradigms[i] == 'centralized':
-                for key, item in learner_stats_postfix.items():
-                    for j, xaxis in enumerate(xaxes):
-                        fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-                        ax.plot(xaxis[i],
-                                df[learner_stats_prefix + 'default_policy' + item],
-                                color=PALETTE[2])
-                        # plt.title(title)
-                        plt.ylabel(key)
-                        plt.xlabel(xlabels[j])
-                        if png:
-                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.png'))
-                        if pdf:
-                            plt.savefig(Path(scenario_path, '{}'.format(item[15:]) + '_' + xnames[j] + '.pdf'))
+                for j, xaxis in enumerate(xaxes):
+                    k = 0
+                    fig, axs = plt.subplots(3, 3, figsize=FIGSIZE, tight_layout=True)
+                    fig.suptitle("x-axis: " + xlabels[j])
+                    for key, item in learner_stats_postfix.items():
+                        axs[axes_map[k][0], axes_map[k][1]].plot(xaxis[i],
+                                                                 df[learner_stats_prefix + 'default_policy' + item],
+                                                                 color=PALETTE[2], linewidth=1)
+                        axs[axes_map[k][0], axes_map[k][1]].set_title(key)
+                        if key == 'cur_lr':
+                            axs[axes_map[k][0], axes_map[k][1]].set(yscale="log")
+                        k += 1
+                    if png:
+                        plt.savefig(Path(scenario_path, xnames[j] + 'learner_stats.png'))
+                    if pdf:
+                        plt.savefig(Path(scenario_path, xnames[j] + 'learner_stats.pdf'))
+                    plt.clf()
 
     if mean_reward and agent_wise:
         agent_wise_path = Path(Path(log_path, 'agent_wise'))

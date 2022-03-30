@@ -63,6 +63,7 @@ def main(
         pdf=False,
         high_res=False,
         x_axis="checkpoints",
+        boxplot=False,
 ):
     if high_res:
         matplotlib.rcParams['savefig.dpi'] = 300
@@ -112,11 +113,11 @@ def main(
     # Remark: This could be done similarly as for learner_stats, but I'm too lazy to rewrite the code.
     if mean_reward:
         ylabel, yname = 'episode reward', 'episode_reward_mean'
-        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path)
+        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot)
 
     if mean_len:
         ylabel, yname = 'episode length', 'episode_len_mean'
-        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path)
+        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot)
 
     # plot simulation time steps over simulation real time
     fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
@@ -133,6 +134,9 @@ def main(
         plt.savefig(Path(log_path, 'simulation_time_steps.png'))
     if pdf:
         plt.savefig(Path(log_path, 'simulation_time_steps.pdf'))
+
+    # rew_std_up_cen = [np.percentile(str2list(x), 84) for x in df_ep_rew_cen]
+    # rew_std_lo_cen = [np.percentile(str2list(x), 16) for x in df_ep_rew_cen]
 
     if learner_stats:
         learner_stats_prefix = 'info/learner/'
@@ -289,6 +293,11 @@ def parse_args():
         help="x-axis values. can be checkpoints (default) or time_total_s"
     )
 
+    parser.add_argument(
+        "--boxplot", default=False, action="store_true",
+        help="Enable boxplot mode."
+    )
+
     return parser.parse_args()
 
 
@@ -307,5 +316,6 @@ if __name__ == "__main__":
         png=args.png,
         pdf=args.pdf,
         high_res=args.high_res,
-        x_axis=args.x_axis
+        x_axis=args.x_axis,
+        boxplot=args.boxplot,
     )

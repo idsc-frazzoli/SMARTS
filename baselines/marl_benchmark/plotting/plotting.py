@@ -118,6 +118,22 @@ def main(
         ylabel, yname = 'episode length', 'episode_len_mean'
         plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path)
 
+    # plot simulation time steps over simulation real time
+    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+    for i, df in enumerate(dfs):
+        ax.plot(df['time_total_s'],
+                df['timesteps_total'],
+                color=PALETTE[2 * i], label=legend[i])
+        # plt.title(title)
+    plt.legend()
+    plt.ylabel('total time steps')
+    plt.xlabel('total time [s]')
+    plt.grid()
+    if png:
+        plt.savefig(Path(log_path, 'simulation_time_steps.png'))
+    if pdf:
+        plt.savefig(Path(log_path, 'simulation_time_steps.pdf'))
+
     if learner_stats:
         learner_stats_prefix = 'info/learner/'
         learner_stats_postfix = {'cur_kl_coef': '/learner_stats/cur_kl_coeff',

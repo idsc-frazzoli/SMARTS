@@ -26,6 +26,7 @@ import ray
 
 from baselines.marl_benchmark import gen_config
 from baselines.marl_benchmark.metrics import basic_handler
+from baselines.marl_benchmark.metrics import basic_metrics
 from baselines.marl_benchmark.utils.rollout import rollout
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -80,6 +81,7 @@ def main(
 
     ray.init()
     metrics_handler = basic_handler.BasicMetricHandler()
+    metrics = basic_metrics.BehaviorMetric()
 
     for config_file in config_files:
         config = gen_config(
@@ -119,6 +121,8 @@ def main(
         )
         rollout(trainer, None, metrics_handler, num_steps, num_episodes, log_dir)
         trainer.stop()
+
+    results, metric_keys = metrics.compute(metrics_handler)
 
     if show_plots:
         metrics_handler.show_plots()

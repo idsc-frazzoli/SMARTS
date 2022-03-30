@@ -38,6 +38,11 @@ class BasicEpisodeLog(EpisodeLog):
     agent_step: dict = field(default_factory=lambda: defaultdict(lambda: 0))
     operations: dict = field(default_factory=lambda: defaultdict(lambda: []))
 
+    linear_acceleration: dict = field(default_factory=lambda: defaultdict(lambda: []))
+    ego_pos_x: dict = field(default_factory=lambda: defaultdict(lambda: []))
+    ego_pos_y: dict = field(default_factory=lambda: defaultdict(lambda: []))
+    num_off_road: dict = field(default_factory=lambda: defaultdict(lambda: 0))
+
     def record_step(
         self, observations=None, actions=None, rewards=None, dones=None, infos=None
     ):
@@ -59,7 +64,15 @@ class BasicEpisodeLog(EpisodeLog):
                 self.agent_step[agent_id] += 1
                 self.operations[agent_id].append(actions[agent_id])
                 self.distance_to_center[agent_id].append(
-                    infos[agent_id]["distance_to_center"]
+                    infos[agent_id]["distance_to_center"][0]
                 )
+
+                self.linear_acceleration[agent_id].append(info["acceleration"])
+                self.ego_pos_x[agent_id].append(info["x_pos"])
+                self.ego_pos_y[agent_id].append(info["y_pos"])
+                self.num_off_road[agent_id] += info["off_road"]
+
+                # TODO: distances to the other cars
+
 
         self.steps += 1

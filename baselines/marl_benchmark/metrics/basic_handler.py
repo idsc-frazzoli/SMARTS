@@ -39,6 +39,7 @@ def agent_info_adapter(env_obs, shaped_reward: float, raw_info: dict):
     info = dict()
     info["speed"] = env_obs.ego_vehicle_state.speed
     info["collision"] = 1 if len(env_obs.events.collisions) > 0 else 0
+    info["off_road"] = 1 if env_obs.events.off_road else 0
 
     goal = env_obs.ego_vehicle_state.mission.goal
     goal_pos = goal.position
@@ -46,6 +47,16 @@ def agent_info_adapter(env_obs, shaped_reward: float, raw_info: dict):
 
     info["distance_to_goal"] = distance.euclidean(ego_2d_pos, goal_pos)
     info["distance_to_center"] = CalObs.cal_distance_to_center(env_obs, "")
+    info["x_pos"] = ego_2d_pos[0]
+    info["y_pos"] = ego_2d_pos[1]
+    info["acceleration"] = np.linalg.norm(env_obs.ego_vehicle_state.linear_acceleration)
+
+    neighborhood_distances = []
+    for neighborhood_state in env_obs.neighborhood_vehicle_states:
+        neigh_2d_pos = neighborhood_state.position[:2]
+        neighborhood_distances.append(distance.euclidean(ego_2d_pos, neigh_2d_pos))
+
+    info["neighborhood_distances"] = np.array(neighborhood_distances)
 
     return info
 
@@ -117,14 +128,21 @@ class BasicMetricHandler(MetricHandler):
                     ]
                     writer.writerow(headers)
                     writer.writerow(["Speed"] + logger.ego_speed[agent_id])
+                    writer.writerow(["Xpos"] + logger.ego_pos_x[agent_id])
+                    writer.writerow(["Ypos"] + logger.ego_pos_y[agent_id])
+                    writer.writerow(["Operations"] + logger.operations[agent_id])
                     writer.writerow(["GDistance"] + logger.distance_to_goal[agent_id])
                     # writer.writerow(
                     #     ["EDistance"] + logger.distance_to_ego_car[agent_id]
                     # )
-                    # writer.writerow(["Acceleration"] + logger.acceleration[agent_id])
+                    writer.writerow(["Acceleration"] + logger.linear_acceleration[agent_id])
                     writer.writerow(
                         ["Num_Collision"] + [logger.num_collision[agent_id]]
                     )
+                    writer.writerow(
+                        ["Num_Off_Road"] + [logger.num_off_road[agent_id]]
+                    )
+                    # TODO: distances to the other cars (could also be done later with the position information)
 
     def read_logs(self, csv_dir):
         agent_record = defaultdict(

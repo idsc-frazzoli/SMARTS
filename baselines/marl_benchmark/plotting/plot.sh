@@ -29,5 +29,9 @@
 #python plotting/plotting.py -p ./merge100_lanes2-4/PPO_FrameStack_a627e_00000_0_2022-03-26_11-12-40 ./merge100_lanes2-4/PPO_FrameStack_dbf10_00000_0_2022-03-27_07-52-33 --scenario_name merge110_lanes2_lr_schedule_tests --title "Learning Rate Tests" --mean_reward --mean_len --agent_wise --learner_stats --png --legend "lr_schedule 1" "lr_schedule 2" --x_axis checkpoints time_total_s episodes_total timesteps_total
 
 # 29.03.2022
-python plotting/plotting.py -p ./merge100_lanes2-4/PPO_FrameStack_2e54c_00000_0_2022-03-28_10-38-18 --scenario_name merge110_lanes2_constant_lr --mean_reward --mean_len --agent_wise --learner_stats --png --legend "constant learning rate" --x_axis checkpoints time_total_s episodes_total timesteps_total
+#python plotting/plotting.py -p ./merge100_lanes2-4/PPO_FrameStack_2e54c_00000_0_2022-03-28_10-38-18 --scenario_name merge110_lanes2_constant_lr --mean_reward --mean_len --agent_wise --learner_stats --png --legend "constant learning rate" --x_axis checkpoints time_total_s episodes_total timesteps_total
+
+# 30.03.2022
+python plotting/plotting.py -p ./merge100_lanes2-4/PPO_FrameStack_2e54c_00000_0_2022-03-28_10-38-18 ./merge100_lanes2-4/PPO_FrameStack_8ba13_00000_0_2022-03-30_02-10-18 ./merge100_lanes2-4/PPO_FrameStack_3254c_00000_0_2022-03-29_16-06-30 --scenario_name merge110_lanes2_different_lr_schedules --mean_reward --mean_len --agent_wise --learner_stats --png --legend "constant" "linear decline" "drop" --x_axis checkpoints time_total_s episodes_total timesteps_total --boxplot
+
 

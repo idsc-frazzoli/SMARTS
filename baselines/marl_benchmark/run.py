@@ -134,6 +134,9 @@ def main(
     # config["run"]["config"]["monitor"] = True
     # config['run']['config']['num_gpus'] = 2
 
+    # config["run"]["stop"]["timesteps_total"] = 500
+    # config["run"]["stop"]["episodes_total"] = 20
+
     analysis = tune.run(**config["run"])
     # analysis = tune.run(**config["run"], resources_per_trial=tune.PlacementGroupFactory([{"CPU": 1, "GPU": 1}]))
 

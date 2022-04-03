@@ -81,7 +81,8 @@ def main(
 
     ray.init()
     metrics_handler = basic_handler.BasicMetricHandler()
-    metrics = basic_metrics.BehaviorMetric()
+    # metrics = basic_metrics.BehaviorMetric()
+    metrics = basic_metrics.CustomMetric()
 
     for config_file in config_files:
         config = gen_config(

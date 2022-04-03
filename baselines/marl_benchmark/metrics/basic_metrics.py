@@ -148,3 +148,34 @@ class PerformanceMetric:
     collision_rate: float
     completion_rate: float
     generalization: Any
+
+
+@dataclass
+class CustomMetric:
+    # variance in accelerations
+    acceleration_variance: float = 0.0
+    # fraction of time where the cars are closer than the safety distance
+    high_risk_index: float = 0.0
+
+    def _compute_acceleration_variance(self, agent_acceleration_seq):
+
+        acceleration: list = []
+        for episode in agent_acceleration_seq:
+            nested_accs = [episode[key] for key in episode]
+            for agent_accs in nested_accs:
+                for acc in agent_accs:
+                    acceleration.append(acc)
+
+        self.acceleration_variance = np.std(acceleration)
+
+    def _compute_high_risk_index(self, agent_pos_x_seq, agent_pos_y_seq):
+        pass
+
+    def compute(self, handler: MetricHandler):
+        episode_logs_mapping: Dict[str, List[BasicEpisodeLog]] = handler.logs_mapping
+        results = {}
+
+        for algorithm, episode_logs in episode_logs_mapping.items():
+            self._compute_acceleration_variance([log.linear_acceleration for log in episode_logs])
+
+        return self.acceleration_variance, ""

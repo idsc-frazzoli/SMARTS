@@ -62,17 +62,17 @@ def parse_args():
 
 
 def main(
-    scenario,
-    config_files,
-    log_dir,
-    num_steps=1000,
-    num_episodes=10,
-    paradigm="decentralized",
-    headless=False,
-    show_plots=False,
-    # NK
-    checkpoint=None,
-    data_replay_path=None,
+        scenario,
+        config_files,
+        log_dir,
+        num_steps=1000,
+        num_episodes=10,
+        paradigm="decentralized",
+        headless=False,
+        show_plots=False,
+        # NK
+        checkpoint=None,
+        data_replay_path=None,
 
 ):
     # use for debugging
@@ -94,7 +94,6 @@ def main(
             headless=headless,
             mode="evaluation",
         )
-
 
         config["checkpoint"] = checkpoint
 
@@ -123,7 +122,7 @@ def main(
         rollout(trainer, None, metrics_handler, num_steps, num_episodes, log_dir)
         trainer.stop()
 
-    results, metric_keys = metrics.compute(metrics_handler)
+    # results, metric_keys = metrics.compute(metrics_handler)
 
     if show_plots:
         metrics_handler.show_plots()

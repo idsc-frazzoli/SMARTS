@@ -99,12 +99,13 @@
 #python run.py scenarios/custom/merge/merge100_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule2.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 54000 --horizon 150 --restore_path ./log/results/run/merge100_lanes2-4/PPO_FrameStack_3254c_00000_0_2022-03-29_16-06-30/checkpoint_000500/checkpoint-500
 #python run.py scenarios/custom/merge/merge100_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule3.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 54000 --horizon 150 --restore_path ./log/results/run/merge100_lanes2-4/PPO_FrameStack_8ba13_00000_0_2022-03-30_02-10-18/checkpoint_000512/checkpoint-512
 
-# 03.04.2022 merge110_lanes2 training cent vs. decent with lr_schedule4 (timesteps_total: 4.5 mio)
-python run.py scenarios/custom/merge/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule4.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 150000 --horizon 150
-python run.py scenarios/custom/merge/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule4.yaml --num_workers 19 --headless --paradigm centralized --stop_time 150000 --horizon 150
+# 04.04.2022 merge110_lanes2 training cent vs. decent with lr_schedule4 (timesteps_total: 4.5 mio)
+#python run.py scenarios/custom/merge/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule4.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 150000 --horizon 150
+#python run.py scenarios/custom/merge/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule4.yaml --num_workers 19 --headless --paradigm centralized --stop_time 150000 --horizon 150
 
-
-
+# 05.04.2022 merge110_lanes2 training cent vs. decent with lr_schedule5/6 (episodes_total: 50 k), pseudolexicost with ttc cost
+python run.py scenarios/custom/merge/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule5.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 150000 --horizon 150
+python run.py scenarios/custom/merge/merge110_lanes2 -f marl_benchmark/agents/ppo/baseline-lane-control_lr_schedule6.yaml --num_workers 19 --headless --paradigm centralized --stop_time 150000 --horizon 150
 
 
 

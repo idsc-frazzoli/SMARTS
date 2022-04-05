@@ -34,6 +34,8 @@ from baselines.marl_benchmark.metrics import MetricHandler
 from baselines.marl_benchmark.metrics.basic_metrics import BehaviorMetric
 from baselines.marl_benchmark.utils import episode_log, format, plot
 
+import math
+
 
 def agent_info_adapter(env_obs, shaped_reward: float, raw_info: dict):
     info = dict()
@@ -57,6 +59,13 @@ def agent_info_adapter(env_obs, shaped_reward: float, raw_info: dict):
         neighborhood_distances.append(distance.euclidean(ego_2d_pos, neigh_2d_pos))
 
     info["neighborhood_distances"] = np.array(neighborhood_distances)
+
+    info["step_reward"] = shaped_reward
+
+    heading_angle = env_obs.ego_vehicle_state.heading + math.pi / 2.0
+    ego_heading_vec = np.asarray([math.cos(heading_angle), math.sin(heading_angle)])
+    info["x_heading"] = ego_heading_vec[0]
+    info["y_heading"] = ego_heading_vec[1]
 
     return info
 

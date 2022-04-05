@@ -73,7 +73,7 @@ def get_ttc(env_obs):
         else:
             rel_speed = ego.speed * ego_cosin - v.speed * v_cosin
 
-        ttc.append(min(rel_dist / max(1e-5, rel_speed), 5.0))
+        ttc.append(float(min(rel_dist / max(1e-5, rel_speed), 5.0)))
 
     return ttc
 

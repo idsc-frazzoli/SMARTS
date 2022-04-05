@@ -1032,7 +1032,7 @@ class FrameStack(Wrapper):
                 reward += 1.0 * max(goal_improvement, -2)
 
             ttcs = get_ttc(current_obs)
-            ttc_cutoff = 3  # [s]
+            ttc_cutoff = 3.0  # [s]
             ttc_scaling = 1.0
             ttc_coeff = 5.625
             for ttc in ttcs:

@@ -142,3 +142,4 @@ ultra/ultra/scenarios/task*/*/
 nando/
 **/plots/**
 aucg_formulation/training/
+baselines/marl_benchmark/evaluation/evaluation_data

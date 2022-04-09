@@ -139,8 +139,11 @@ class BasicMetricHandler(MetricHandler):
                     writer.writerow(["Speed"] + logger.ego_speed[agent_id])
                     writer.writerow(["Xpos"] + logger.ego_pos_x[agent_id])
                     writer.writerow(["Ypos"] + logger.ego_pos_y[agent_id])
+                    writer.writerow(["Xheading"] + logger.ego_heading_x[agent_id])
+                    writer.writerow(["Yheading"] + logger.ego_heading_y[agent_id])
                     writer.writerow(["Operations"] + logger.operations[agent_id])
                     writer.writerow(["GDistance"] + logger.distance_to_goal[agent_id])
+                    writer.writerow(["Step_Reward"] + logger.ego_step_reward[agent_id])
                     # writer.writerow(
                     #     ["EDistance"] + logger.distance_to_ego_car[agent_id]
                     # )
@@ -151,6 +154,7 @@ class BasicMetricHandler(MetricHandler):
                     writer.writerow(
                         ["Num_Off_Road"] + [logger.num_off_road[agent_id]]
                     )
+
                     # TODO: distances to the other cars (could also be done later with the position information)
 
     def read_logs(self, csv_dir):

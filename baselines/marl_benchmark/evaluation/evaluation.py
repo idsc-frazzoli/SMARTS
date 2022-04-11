@@ -12,7 +12,7 @@ import numpy as np
 
 import shutil
 
-from utils import get_min_max
+from utils import get_min_max, plot_positions, plot_positions1, animate_positions, animate
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -54,126 +54,7 @@ PALETTE = ['#A93226', '#CB4335',  # red
            ]
 
 
-def make_video(
-        tmp_path,
-        save_path,
-        fps,
-):
-    import moviepy.video.io.ImageSequenceClip
-    image_files = [os.path.join(tmp_path, img)
-                   for img in os.listdir(tmp_path)
-                   if img.endswith(".png")]
-    image_files.sort()
-    clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
-    clip.write_videofile('video.mp4')
 
-    # shutil.rmtree(tmp_path)
-
-
-def plot_positions(checkpoint_path):
-    datetime = strftime("%Y%m%d_%H%M%S_", gmtime())
-    matplotlib.rcParams['savefig.dpi'] = 800
-    times = os.listdir(Path(checkpoint_path))
-    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-    for time in times:
-        if time == "plots":
-            continue
-        episodes = os.listdir(Path(checkpoint_path, time))
-        for episode in episodes:
-            n_agents = len(os.listdir(Path(checkpoint_path, time, episode)))
-            for agent in range(n_agents):
-                csv_path = Path(checkpoint_path, time, episode, 'agent_AGENT-{}.csv'.format(str(agent)))
-                df = pd.read_csv(csv_path, index_col=0, header=None).T
-
-                # ax.plot(df['Xpos'], df['Ypos'],
-                #         color=AGENT_COLORS[agent], label='Agent ' + str(agent))
-                ax.scatter(df['Xpos'], df['Ypos'],
-                           c=df["Speed"]/16, label='Agent ' + str(agent), s=2, cmap=plt.get_cmap("turbo"), alpha=0.1)
-
-    plots_path = Path(checkpoint_path, 'plots')
-    plots_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(Path(plots_path, '{}agent_positions.png'.format(datetime)))
-
-
-# def plot_positions_test(checkpoint_path):
-#     datetime = strftime("%Y%m%d_%H%M%S_", gmtime())
-#     matplotlib.rcParams['savefig.dpi'] = 800
-#     cmap = matplotlib.cm.get_cmap("turbo")
-#     print(cmap)
-#
-#     (max_episode_length,
-#      min_speed, max_speed,
-#      min_step_reward, max_step_reward,
-#      min_x_pos, max_x_pos,
-#      min_y_pos, max_y_pos) = get_min_max(checkpoint_path)
-#
-#     times = os.listdir(Path(checkpoint_path))
-#     fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-#     for time in times:
-#         if time == "plots":
-#             continue
-#         episodes = os.listdir(Path(checkpoint_path, time))
-#         for episode in episodes:
-#             n_agents = len(os.listdir(Path(checkpoint_path, time, episode)))
-#             for agent in range(n_agents):
-#                 csv_path = Path(checkpoint_path, time, episode, 'agent_AGENT-{}.csv'.format(str(agent)))
-#                 df = pd.read_csv(csv_path, index_col=0, header=None).T
-#
-#                 for t in range(df.shape[0]-1):
-#                     color_value = (df['Speed'][t:t+1] - min_speed) / (max_speed - min_speed)
-#                     ax.plot(df['Xpos'][t:t+1], df['Ypos'][t:t+1],
-#                             color=cmap(color_value), label='Agent ' + str(agent))
-#                 # ax.scatter(df['Xpos'], df['Ypos'],
-#                 #            c=df["Speed"] / 16, label='Agent ' + str(agent), s=2, cmap=plt.get_cmap("turbo"), alpha=0.1)
-#
-#     plots_path = Path(checkpoint_path, 'plots')
-#     plots_path.mkdir(parents=True, exist_ok=True)
-#     plt.savefig(Path(plots_path, '{}agent_positions.png'.format(datetime)))
-
-
-def animate_positions(checkpoint_path):
-
-    plots_path = Path(checkpoint_path, 'plots', 'tmp')
-    plots_path.mkdir(parents=True, exist_ok=True)
-
-    matplotlib.rcParams['savefig.dpi'] = 100
-
-    (max_episode_length,
-     min_speed, max_speed,
-     min_step_reward, max_step_reward,
-     min_x_pos, max_x_pos,
-     min_y_pos, max_y_pos) = get_min_max(checkpoint_path)
-
-    times = os.listdir(Path(checkpoint_path))
-    for time_step in range(max_episode_length):
-        print(time_step)
-        fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-        for time in times:
-            if time == "plots":
-                continue
-            episodes = os.listdir(Path(checkpoint_path, time))
-            for episode in episodes:
-                n_agents = len(os.listdir(Path(checkpoint_path, time, episode)))
-                for agent in range(n_agents):
-                    csv_path = Path(checkpoint_path, time, episode, 'agent_AGENT-{}.csv'.format(str(agent)))
-                    df = pd.read_csv(csv_path, index_col=0, header=None).T
-                    # ax.scatter(df['Xpos'][:time_step], df['Ypos'][:time_step],
-                    #            c=(df["Speed"][:time_step] - min_speed) / (max_speed - min_speed),
-                    #            label='Agent ' + str(agent),
-                    #            s=2,
-                    #            cmap=plt.get_cmap("turbo"),
-                    #            alpha=0.1)
-                    ax.scatter(df['Xpos'][:time_step], df['Ypos'][:time_step],
-                               c=df["Speed"][:time_step], vmin=min_speed, vmax=max_speed,
-                               label='Agent ' + str(agent),
-                               s=2,
-                               cmap=plt.get_cmap("turbo"),
-                               alpha=0.1)
-        plt.xlim([min_x_pos-5, max_x_pos+5])
-        plt.ylim([min_y_pos-3, max_y_pos+3])
-        plt.savefig(Path(plots_path, '{:04d}.png'.format(time_step)))
-
-    make_video(plots_path, Path(checkpoint_path, 'plots'), 20)
 
 
 def min_max_reward_filtered(paths: List[str]) -> Tuple[float, float]:
@@ -258,16 +139,31 @@ def main(
 
     cent_path = paths[0]
     decent_path = paths[1]
-    # cent_cp = 340
-    # decent_cp = 560
-    cent_cp = 400
-    decent_cp = 400
 
-    poa = price_of_anarchy(cent_path, decent_path, cent_cp, decent_cp)
+    # checkpoint_path = Path(paths[0], 'checkpoint_000560')
+    # limits = get_min_max(checkpoint_path)
+    # plot_positions1(checkpoint_path, limits)
 
-    print(poa)
-    # checkpoint_path = Path(paths[0], 'checkpoint_000340')
+
+
+
+
+
+
+    # # cent_cp = 340
+    # # decent_cp = 560
+    # cent_cp = 400
+    # decent_cp = 400
+    #
+    # poa = price_of_anarchy(cent_path, decent_path, cent_cp, decent_cp)
+    #
+    # print(poa)
+
+
+
+    checkpoint_path = Path(paths[0], 'checkpoint_000300')
     # animate_positions(checkpoint_path)
+    animate(checkpoint_path)
 
     # for path in paths:
     #     checkpoints = os.listdir(Path(path))

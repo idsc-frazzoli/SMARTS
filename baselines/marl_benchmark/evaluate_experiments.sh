@@ -2,14 +2,13 @@
 
 # This script allows for the queueing of multiple evaluations that can be run in the background. 
 
-num_runs=100
+num_runs=250
 scenario_path="scenarios/custom/merge/merge110_lanes2"
 
 #checkpoints=(20 50 100 200 300 340)
-checkpoints=(260)
-runs=("PPO_FrameStack_d3992_00000_0_2022-04-04_19-02-51")
-#checkpoints=(400)
-#runs=("PPO_FrameStack_3b54a_00000_0_2022-04-06_12-36-51")
+#runs=("PPO_FrameStack_d3992_00000_0_2022-04-04_19-02-51")
+checkpoints=(20 40 100 200 500 800 1120)
+runs=("PPO_FrameStack_3b54a_00000_0_2022-04-06_12-36-51")
 paradigms=("centralized")
 len=${#runs[@]}
 for (( i=0; i<$len; i++ ))
@@ -26,10 +25,10 @@ for (( i=0; i<$len; i++ ))
 done
 
 #checkpoints=(20 50 100 200 300 400 500 560)
-checkpoints=(260)
-runs=("PPO_FrameStack_fada6_00000_0_2022-04-04_08-34-02")
-#checkpoints=(400)
-#runs=("PPO_FrameStack_7b4bb_00000_0_2022-04-05_15-10-08")
+#checkpoints=(260)
+#runs=("PPO_FrameStack_fada6_00000_0_2022-04-04_08-34-02")
+checkpoints=(20 40 100 200 500 680)
+runs=("PPO_FrameStack_7b4bb_00000_0_2022-04-05_15-10-08")
 
 paradigms=("decentralized")
 len=${#runs[@]}

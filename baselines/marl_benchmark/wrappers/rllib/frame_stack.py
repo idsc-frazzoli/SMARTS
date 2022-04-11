@@ -934,6 +934,7 @@ class FrameStack(Wrapper):
     #
     #     return func
 
+    # # cost 04
     # # pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
     # # per_cost = <off-road, goal reached, (time cost, closer to goal)>
     # @staticmethod
@@ -993,6 +994,62 @@ class FrameStack(Wrapper):
     #
     #     return func
 
+    # # cost 05
+    # # pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
+    # # per_cost = <off-road, goal reached, (time cost, closer to goal)>
+    # @staticmethod
+    # def get_reward_adapter(observation_adapter):
+    #     def func(env_obs_seq, env_reward):
+    #         cost_com, cost_per, reward = 0.0, 0.0, 0.0
+    #
+    #         # get observation of most recent time step
+    #         current_obs = env_obs_seq[-1]
+    #         last_obs = env_obs_seq[-2]
+    #
+    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+    #         ego_events = current_obs.events
+    #         # ::collision
+    #         cost_com += 1000.0 if len(ego_events.collisions) > 0 else 0.0
+    #         # ::off-road increases personal cost
+    #         cost_per += 500.0 if ego_events.off_road else 0.0
+    #         # ::reach goal decreases personal cost
+    #         if ego_events.reached_goal:
+    #             reward += 300.0
+    #         else:
+    #             # time penalty increases personal cost
+    #             cost_per += 2.0
+    #
+    #         x_gc = current_obs.ego_vehicle_state.mission.goal.position
+    #         x_c = current_obs.ego_vehicle_state.position
+    #         x_gl = last_obs.ego_vehicle_state.mission.goal.position
+    #         x_l = last_obs.ego_vehicle_state.position
+    #         current_dist_to_goal = np.sqrt((x_c[0] - x_gc[0]) ** 2 + (x_c[1] - x_gc[1]) ** 2)
+    #         last_dist_to_goal = np.sqrt((x_l[0] - x_gl[0]) ** 2 + (x_l[1] - x_gl[1]) ** 2)
+    #
+    #         goal_improvement = last_dist_to_goal - current_dist_to_goal
+    #
+    #         if goal_improvement > 0:
+    #             reward += 1.0 * min(goal_improvement, 2)
+    #         elif goal_improvement < 0:
+    #             reward += 1.0 * max(goal_improvement, -2)
+    #
+    #         ttcs = get_ttc(current_obs)
+    #         ttc_cutoff = 3.0  # [s]
+    #         ttc_scaling = 1.0
+    #         ttc_coeff = 5.625
+    #         for ttc in ttcs:
+    #             if ttc < ttc_cutoff:
+    #                 if ttc > 1e-5:
+    #                     cost_com += ttc_scaling * min(ttc_coeff * (np.power(ttc ** 2, -1) - np.power(ttc_cutoff ** 2, -1)), 5.0)
+    #                 else:
+    #                     cost_com += ttc_scaling * 5.0
+    #
+    #         total_reward = -cost_com - cost_per + reward
+    #         return total_reward
+    #
+    #     return func
+
+    # cost 06
     # pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
     # per_cost = <off-road, goal reached, (time cost, closer to goal)>
     @staticmethod
@@ -1027,20 +1084,26 @@ class FrameStack(Wrapper):
             goal_improvement = last_dist_to_goal - current_dist_to_goal
 
             if goal_improvement > 0:
-                reward += 1.0 * min(goal_improvement, 2)
+                # lexicost3
+                reward += 1 * min(goal_improvement, 2)
             elif goal_improvement < 0:
-                reward += 1.0 * max(goal_improvement, -2)
+                # lexicost3
+                reward += 1 * max(goal_improvement, -2)
 
-            ttcs = get_ttc(current_obs)
-            ttc_cutoff = 3.0  # [s]
-            ttc_scaling = 1.0
-            ttc_coeff = 5.625
-            for ttc in ttcs:
-                if ttc < ttc_cutoff:
-                    if ttc > 1e-5:
-                        cost_com += ttc_scaling * min(ttc_coeff * (np.power(ttc ** 2, -1) - np.power(ttc_cutoff ** 2, -1)), 5.0)
-                    else:
-                        cost_com += ttc_scaling * 5.0
+            neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
+            safety_dist = float(15)  # [m]
+            d = 1.0  # exponent
+            for nvs in neighborhood_vehicle_states:
+                # calculate distance to neighbor vehicle
+                neigh_position = nvs.position
+                dist = float(np.linalg.norm(x_c - neigh_position))
+                # cost_com += min(100 * (np.power(dist ** 2, -1) - np.power(safety_dist ** 2, -1)), 5)
+                # reaches max of 5 at 2.5m distance
+                cost_com += max(min(15 * (np.power(dist ** d, -1) - np.power(safety_dist ** d, -1)), 5.0), 0.0)
+
+            ego_acceleration = np.linalg.norm(current_obs.ego_vehicle_state.linear_acceleration)
+            acc_penalty = min(0.025 * (ego_acceleration - 5)**2, 5.0) if ego_acceleration > 5 else 0.0
+            cost_per += acc_penalty
 
             total_reward = -cost_com - cost_per + reward
             return total_reward

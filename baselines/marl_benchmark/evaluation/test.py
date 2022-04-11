@@ -49,13 +49,51 @@ PALETTE = ['#A93226', '#CB4335',  # red
 
 
 def main():
-    x = np.arange(0, 10, 0.001)
-    print(x)
-    y = 2*np.sin(x)
-    colors = np.abs(y)
-    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
-    ax.scatter(x, y, c=colors, s=1500, cmap=plt.get_cmap("turbo"))
-    plt.savefig('test.png')
+    # x = np.arange(0, 10, 0.001)
+    # print(x)
+    # y = 2*np.sin(x)
+    # colors = np.abs(y)
+    # fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+    # ax.scatter(x, y, c=colors, s=1500, cmap=plt.get_cmap("turbo"))
+    # plt.savefig('test.png')
+
+    # fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+    # lw = 1
+    # ax.plot([0, 51.3], [10, 0], color='k', linewidth=lw)
+    # ax.plot([-1.2, 33.5], [3.8, -3.3], color='k', linewidth=lw)
+    # ax.plot([0, 33.5], [-10, -3.3], color='k', linewidth=lw)
+    # ax.plot([1.2, 51.3], [-16.3, -6.2], color='k', linewidth=lw)
+    # ax.plot([0, 51.3], [10, 0], color='k', linewidth=lw)
+    # ax.plot([51.3, 110], [0, 0], color='k', linewidth=lw)
+    # ax.plot([51.3, 110], [-6.2, -6.2], color='k', linewidth=lw)
+    # ax.plot([-0.6, 32.5], [7, 0.4], color='grey', linewidth=lw, linestyle='--')
+    # ax.plot([0.6, 32.5], [-13.2, -6.7], color='grey', linewidth=lw, linestyle='--')
+    # ax.plot([51.3, 110], [-3.1, -3.1], color='grey', linewidth=lw, linestyle='--')
+    # ax.set_aspect('equal', 'box')
+    # plt.savefig("map_test.png")
+
+    fig, axs = plt.subplots(3, 2, figsize=(15, 3*4), tight_layout=True, gridspec_kw={'width_ratios': [40, 1]})
+    axs[0, 0].plot([1, 5], [2, 3])
+    axs[0, 0].set_xlabel('xlabel')
+    axs[0, 0].set_ylabel('ylabel')
+    axs[0, 0].set_aspect('equal', 'box')
+    axs[0, 0].set_title("title")
+    axs[1, 0].plot([1, 3], [2, 3])
+    axs[2, 0].plot([1, 3], [2, 3])
+
+    cmap = matplotlib.cm.cool
+    norm = matplotlib.colors.Normalize(vmin=5, vmax=10)
+
+    fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
+                 cax=axs[0, 1], orientation='vertical', label='Some Units')
+    # fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
+    #              cax=axs[1, 1], orientation='vertical', label='Some Units')
+    axs[1, 1].set_visible(False)
+    fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
+                 cax=axs[2, 1], orientation='vertical', label='Some Units')
+    # axs[0, 1].
+    fig.tight_layout()
+    plt.savefig("tst.png")
 
 
 if __name__ == "__main__":

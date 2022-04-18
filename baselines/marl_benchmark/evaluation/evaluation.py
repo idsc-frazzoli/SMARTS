@@ -12,7 +12,7 @@ import numpy as np
 
 import shutil
 
-from utils import get_min_max, plot_positions, plot_positions1, animate_positions, animate
+from utils import animate_positions, animate, plot_positions, StraightLane, Map, get_info, make_video
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -54,9 +54,6 @@ PALETTE = ['#A93226', '#CB4335',  # red
            ]
 
 
-
-
-
 def min_max_reward_filtered(paths: List[str]) -> Tuple[float, float]:
     min_reward: float = 1e10
     max_reward: float = -1e10
@@ -79,6 +76,7 @@ def min_max_reward_filtered(paths: List[str]) -> Tuple[float, float]:
                             max_reward = max(max_reward, sum(df["Step_Reward"]))
 
     return min_reward, max_reward
+
 
 def get_mean_reward_checkpoint_filtered(checkpoint_path: str) -> float:
     times = os.listdir(Path(checkpoint_path))
@@ -130,56 +128,76 @@ def price_of_anarchy(cent_path: str, decent_path: str, cent_checkpoint: int, dec
     return poa
 
 
-
-
 def main(
         paths,
+        scenario_name,
 ):
     print(paths)
 
-    cent_path = paths[0]
-    decent_path = paths[1]
+    # Map and Lanes for merge110_lanes2 scenario
+    merge110_lanes2_lanes = [StraightLane(boundaries=[((0.0, 51.3), (10.0, 0.0)), ((-1.2, 33.5), (3.8, -3.3))],
+                                          center_lines=[((-0.6, 32.5), (7.0, 0.4))]
+                                          ),
+                             StraightLane(boundaries=[((0.0, 33.5), (-10.0, -3.3)), ((1.2, 51.3), (-16.3, -6.2))],
+                                          center_lines=[((0.6, 32.5), (-13.2, -6.7))]
+                                          ),
+                             StraightLane(boundaries=[((51.3, 110.0), (0.0, 0.0)), ((51.3, 110.0), (-6.2, -6.2))],
+                                          center_lines=[((51.3, 110.0), (-3.1, -3.1))]
+                                          ),
+                             ]
+    merge110_lanes2_map = Map(lanes=merge110_lanes2_lanes,
+                              x_lim=(-5.0, 115.0), y_lim=(-17.0, 11.0),
+                              aspect_ratio=(15, 4))
 
-    # checkpoint_path = Path(paths[0], 'checkpoint_000560')
-    # limits = get_min_max(checkpoint_path)
-    # plot_positions1(checkpoint_path, limits)
+    # Map and Lanes for merge40_lanes1 scenario
+    merge40_lanes1_lanes = [StraightLane(boundaries=[((0.0, 15.4), (10.9, 0.0)), ((-1.8, 12.4), (8.3, -1.6))],
+                                         center_lines=[]
+                                         ),
+                            StraightLane(boundaries=[((-3.1, 12.4), (-12.5, -1.6)), ((-1.4, 16.3), (-15.1, -3.1))],
+                                         center_lines=[]
+                                         ),
+                            StraightLane(boundaries=[((15.4, 40.6), (0.0, 0.0)), ((16.3, 40.6), (-3.1, -3.1))],
+                                         center_lines=[]
+                                         ),
+                            ]
+    merge40_lanes1_map = Map(lanes=merge40_lanes1_lanes,
+                             x_lim=(-7.0, 43.0), y_lim=(-18.0, 13.0),
+                             aspect_ratio=(12, 7))
+
+    # empty map
+    empty_map = Map(None, None, None, empty=True)
+
+    if scenario_name == "merge110_lanes2":
+        scenario_map = merge110_lanes2_map
+    elif scenario_name == "merge40_lanes1":
+        scenario_map = merge40_lanes1_map
+    else:
+        scenario_map = empty_map
 
 
 
+    checkpoints = os.listdir(Path(paths[0]))
+    for i, checkpoint in enumerate(checkpoints):
+        if checkpoint != "videos":
+            print(i)
+            checkpoint_path = Path(paths[0], checkpoint)
+            save_path = Path(paths[0], 'videos/tmp_acc')
+            info = get_info(checkpoint_path)
+            plot_positions(checkpoint_path, info, scenario_map, save_path=save_path, coloring="acceleration")
 
-
-
-
-    # # cent_cp = 340
-    # # decent_cp = 560
-    # cent_cp = 400
-    # decent_cp = 400
-    #
-    # poa = price_of_anarchy(cent_path, decent_path, cent_cp, decent_cp)
-    #
-    # print(poa)
-
-
-
-    checkpoint_path = Path(paths[0], 'checkpoint_000300')
-    # animate_positions(checkpoint_path)
-    animate(checkpoint_path)
+    save_path = Path(paths[0], 'videos/tmp_acc')
+    make_video(save_path, paths[0] + "/videos/acc_cp_video.mp4", fps=15, remove_tmp=False)
 
     # for path in paths:
     #     checkpoints = os.listdir(Path(path))
     #     for checkpoint in checkpoints:
-    #         print(checkpoint)
+    #         print('Current checkpoint: {}'.format(checkpoint))
     #         checkpoint_path = Path(path, checkpoint)
-    #         plot_positions(checkpoint_path)
-
-            # times = os.listdir(Path(path, checkpoint))
-            # for time in times:
-            #     episodes = os.listdir(Path(path, checkpoint, time))
-            #     for episode in episodes:
-            #         n_agents = len(os.listdir(Path(path, checkpoint, time, episode)))
-            #         for agent in range(n_agents):
-            #             csv_path = Path(path, checkpoint, time, episode, 'agent_AGENT-{}'.format(str(agent)))
-            #             df = pd.read_csv(csv_path)
+    #         animate_positions(checkpoint_path, scenario_map, "control_input")
+    #         # animate_positions(checkpoint_path, scenario_map, "speed")
+    #         # animate_positions(checkpoint_path, scenario_map, "reward")
+    #         # animate_positions(checkpoint_path, scenario_map, "acceleration")
+    #         # animate_positions(checkpoint_path, scenario_map, "agents")
 
 
 
@@ -192,6 +210,12 @@ def parse_args():
                         help='Paths of evaluations files',
                         required=True)
 
+    parser.add_argument('-n',
+                        '--scenario_name',
+                        type=str,
+                        default="",
+                        required=True)
+
     return parser.parse_args()
 
 
@@ -200,4 +224,5 @@ if __name__ == "__main__":
 
     main(
         paths=args.paths,
+        scenario_name=args.scenario_name,
     )

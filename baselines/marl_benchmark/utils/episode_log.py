@@ -46,6 +46,7 @@ class BasicEpisodeLog(EpisodeLog):
     ego_heading_x: dict = field(default_factory=lambda: defaultdict(lambda: []))
     ego_heading_y: dict = field(default_factory=lambda: defaultdict(lambda: []))
     ego_step_reward: dict = field(default_factory=lambda: defaultdict(lambda: []))
+    goal_reached: dict = field(default_factory=lambda: defaultdict(lambda: 0))
 
     def record_step(
         self, observations=None, actions=None, rewards=None, dones=None, infos=None
@@ -79,6 +80,7 @@ class BasicEpisodeLog(EpisodeLog):
                 self.ego_heading_x[agent_id].append(info["x_heading"])
                 self.ego_heading_y[agent_id].append(info["y_heading"])
                 self.ego_step_reward[agent_id].append(info["step_reward"])
+                self.goal_reached[agent_id] = info["goal_reached"]
 
                 # TODO: distances to the other cars
 

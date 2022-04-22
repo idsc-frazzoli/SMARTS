@@ -73,7 +73,7 @@ def main():
     # plt.savefig("map_test.png")
 
     fig, axs = plt.subplots(3, 2, figsize=(15, 3*4), tight_layout=True, gridspec_kw={'width_ratios': [40, 1]})
-    axs[0, 0].plot([1, 5], [2, 3])
+    axs[0, 0].plot((1, 5), [2, 3])
     axs[0, 0].set_xlabel('xlabel')
     axs[0, 0].set_ylabel('ylabel')
     axs[0, 0].set_aspect('equal', 'box')
@@ -96,5 +96,13 @@ def main():
     plt.savefig("tst.png")
 
 
+def test(empty):
+    if empty:
+        return
+    print('Not empty.')
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    test(True)
+

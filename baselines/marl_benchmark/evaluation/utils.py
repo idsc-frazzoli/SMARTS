@@ -15,6 +15,8 @@ import shutil
 
 from timeit import default_timer as timer
 
+from scipy.stats import gaussian_kde
+
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
 # LARGESIZE, MEDIUMSIZE, SMALLSIZE = 40, 30, 20
@@ -99,7 +101,14 @@ class Map:
         ax.set_ylim(self.y_lim)
 
 
-def get_info(checkpoint_path: Union[str, Path]) -> dict[str: Union[float, int, bool]]:
+def set_box_color(bp, color):
+    plt.setp(bp['boxes'], color=color)
+    plt.setp(bp['whiskers'], color=color)
+    plt.setp(bp['caps'], color=color)
+    plt.setp(bp['medians'], color=color)
+
+
+def get_info(checkpoint_path: Union[str, Path]):
     info = {'max_episode_length': 0,
             'min_speed': 0.0,
             'max_speed': 16.0,
@@ -159,8 +168,12 @@ def make_video(
         shutil.rmtree(tmp_path)
 
 
-def get_rewards(dfs: dict[str: List[DataFrame]], masks: dict[str: List]) -> Tuple[List[float], List[float]]:
+def get_rewards(dfs: Dict[str, List[DataFrame]],
+                masks: Dict[str, List],
+                goal_reached_reward: float = 300.0,
+                ) -> Tuple[List[float], List[float]]:
     """
+    :param goal_reached_reward: Reward an agent gets upon reaching the goal position/region.
     :param dfs: Lists of all episode dataframes in a dict with agent keys.
     :param masks: Masks containing information whether an off-road event happened, a collision happened, or all the
     agents reached the goals.
@@ -171,7 +184,7 @@ def get_rewards(dfs: dict[str: List[DataFrame]], masks: dict[str: List]) -> Tupl
     goal_reached_mask = masks["goal_reached_mask"]
 
     rewards = [0] * len(dfs[0])
-    filtered_rewards = [0] * len(dfs[0])
+    filtered_rewards = [np.nan] * len(dfs[0])
 
     for i in range(len(dfs[0])):
         for agent in dfs.keys():
@@ -179,27 +192,34 @@ def get_rewards(dfs: dict[str: List[DataFrame]], masks: dict[str: List]) -> Tupl
         # if no car went off-road and no collision happened and all cars reached the goal
         if not off_road_mask[i] and not collision_mask[i] and goal_reached_mask[i]:
             for agent in dfs.keys():
-                # don't include the last reward as it contains +300 for reaching the goal
-                filtered_rewards[i] += sum(dfs[agent][i]["Step_Reward"][:-1])
+                filtered_rewards[i] = 0.0
+                # sum rewards and subtract goal_reached_reward
+                filtered_rewards[i] += sum(dfs[agent][i]["Step_Reward"]) - goal_reached_reward
+
+    filtered_rewards = [x for x in filtered_rewards if x is not np.nan]
 
     return rewards, filtered_rewards
 
 
-def get_poa(cent_rewards_filtered: List[float], decent_rewards_filtered: List[float]) -> float:
+def get_poa(cent_rewards_filtered: List[float], decent_rewards_filtered: List[float]) -> Tuple[float, list, list]:
+
     min_rew = min(min(cent_rewards_filtered), min(decent_rewards_filtered))
     max_rew = max(max(cent_rewards_filtered), max(decent_rewards_filtered))
 
+    # print(min_rew)
+    # print(max_rew)
+
     rew_range = max_rew - min_rew
 
-    cent_rew = (sum(cent_rewards_filtered) / len(cent_rewards_filtered) - min_rew) / rew_range
-    decent_rew = (sum(decent_rewards_filtered) / len(decent_rewards_filtered) - min_rew) / rew_range
+    cent_rew_normalized = [(x - min_rew) / rew_range for x in cent_rewards_filtered]
+    decent_rew_normalized = [(x - min_rew) / rew_range for x in decent_rewards_filtered]
 
-    poa = cent_rew / decent_rew
+    poa = np.mean(cent_rew_normalized) / np.mean(decent_rew_normalized)
 
-    return poa
+    return poa, cent_rew_normalized, decent_rew_normalized
 
 
-def load_checkpoint_dfs(checkpoint_path, info):
+def load_checkpoint_dfs(checkpoint_path: Union[str, Path], info: dict) -> Tuple[dict, dict]:
     dfs = {}
     for agent in range(info['n_agents']):
         dfs[agent] = []
@@ -238,7 +258,7 @@ def load_checkpoint_dfs(checkpoint_path, info):
 
 
 def plot_positions(checkpoint_path: Union[str, Path],
-                   info: Dict,
+                   info: dict,
                    scenario_map: Map,
                    save_path: Union[str, Path] = None,
                    coloring: str = 'speed',
@@ -625,6 +645,70 @@ def animate(checkpoint_path: Union[str, Path], scenario_map: Map) -> None:
 
     datetime = strftime("%Y%m%d_%H%M%S_", gmtime())
     make_video(plots_path, Path(checkpoint_path, 'plots', '{}'.format(datetime) + 'video.mp4'), 20)
+
+
+# TODO: density plots for velocity, acceleration, etc.
+def density_plot(checkpoint_path: Union[str, Path],
+                 info: dict,
+                 save_path: Union[str, Path] = None,
+                 dpi: int = 100,
+                 ) -> None:
+
+    matplotlib.rcParams['savefig.dpi'] = dpi
+
+    if save_path is None:
+        save_path = Path(checkpoint_path, 'plots')
+
+    save_path.mkdir(parents=True, exist_ok=True)
+
+    dfs, masks = load_checkpoint_dfs(checkpoint_path, info)
+
+    speeds = {}
+    accelerations = {}
+
+    density_speed = []
+    density_acceleration = []
+    for agent in range(info["n_agents"]):
+        speeds[agent] = []
+        accelerations[agent] = []
+        for df in dfs[agent]:
+            # list concatenation
+            speeds[agent] += list(df["Speed"])
+            accelerations[agent] += list(df["Acceleration"])
+        density_speed.append(gaussian_kde(speeds[agent]))
+        density_acceleration.append(gaussian_kde(accelerations[agent]))
+
+    x_speed = np.arange(0, 16, .02)
+    x_acceleration= np.arange(0, 20, .04)
+
+    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+    for agent in range(info["n_agents"]):
+        ax.plot(x_speed, density_speed[agent](x_speed), label='agent {}'.format(agent), color=AGENT_COLORS[agent])
+    plt.legend()
+    plt.xlabel(r"speed $[m/s]$")
+    plt.title("Speed Density")
+    plt.savefig(Path(save_path, "speed_density.png"), dpi=200)
+    plt.close(fig)
+
+    fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
+    for agent in range(info["n_agents"]):
+        ax.plot(x_acceleration, density_acceleration[agent](x_acceleration),
+                label='agent {}'.format(agent),
+                color=AGENT_COLORS[agent])
+    plt.legend()
+    plt.xlabel(r"acceleration $[m/s^2]$")
+    plt.title("Acceleration Density")
+    plt.savefig(Path(save_path, "acceleration_density.png"), dpi=200)
+    plt.close(fig)
+
+
+
+
+
+
+
+
+
 
 # def plot_positions_test(checkpoint_path):
 #     datetime = strftime("%Y%m%d_%H%M%S_", gmtime())

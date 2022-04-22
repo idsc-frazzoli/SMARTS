@@ -42,6 +42,7 @@ def agent_info_adapter(env_obs, shaped_reward: float, raw_info: dict):
     info["speed"] = env_obs.ego_vehicle_state.speed
     info["collision"] = 1 if len(env_obs.events.collisions) > 0 else 0
     info["off_road"] = 1 if env_obs.events.off_road else 0
+    info["goal_reached"] = 1 if env_obs.events.reached_goal else 0
 
     goal = env_obs.ego_vehicle_state.mission.goal
     goal_pos = goal.position
@@ -154,6 +155,7 @@ class BasicMetricHandler(MetricHandler):
                     writer.writerow(
                         ["Num_Off_Road"] + [logger.num_off_road[agent_id]]
                     )
+                    writer.writerow(["Goal_Reached"] + [logger.goal_reached[agent_id]])
 
                     # TODO: distances to the other cars (could also be done later with the position information)
 

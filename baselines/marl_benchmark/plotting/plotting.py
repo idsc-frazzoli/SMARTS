@@ -40,13 +40,20 @@ AGENT_COLORS = {
     4: '#e41a1c'
 }
 
-PALETTE = ['#A93226', '#CB4335',  # red
-           '#884EA0', '#7D3C98',  # purple
-           '#2471A3', '#2E86C1',  # blue
-           '#17A589', '#138D75',  # blue/green
-           '#229954', '#28B463',  # green
-           '#D4AC0D', '#D68910',  # yellow
-           '#CA6F1E', '#BA4A00',  # orange
+PALETTE = ['#A93226',  # red
+           '#884EA0',  # purple
+           '#2471A3',  # blue
+           '#D4AC0D',  # yellow
+           '#229954',  # green
+           '#CA6F1E',  # orange
+           '#17A589',  # blue/green
+           '#CB4335',  # red 2
+           '#7D3C98',  # purple 2
+           '#2E86C1',  # blue 2
+           '#D68910',  # yellow 2
+           '#28B463',  # green 2
+           '#BA4A00',  # orange 2
+           '#138D75',  # #blue/green 2
            ]
 
 
@@ -91,7 +98,7 @@ def main(
     xlabels = []
     xnames = []
     if 'checkpoints' in x_axis:
-        xaxes.append([np.arange(1, len(df['done'])+1) for df in dfs])
+        xaxes.append([np.arange(1, len(df['done']) + 1) for df in dfs])
         xlabels.append('checkpoint')
         xnames.append('checkpoint')
     if 'time_total_s' in x_axis:
@@ -124,7 +131,7 @@ def main(
     for i, df in enumerate(dfs):
         ax.plot(df['time_total_s'],
                 df['timesteps_total'],
-                color=PALETTE[2 * i], label=legend[i])
+                color=PALETTE[i], label=legend[i])
         # plt.title(title)
     plt.legend()
     plt.ylabel('total time steps')
@@ -155,7 +162,7 @@ def main(
         learner_path = Path(log_path, 'learner_stats')
         learner_path.mkdir(parents=True, exist_ok=True)
         for i, df in enumerate(dfs):
-            scenario_path = Path(learner_path, paths[i].split('/')[2])
+            scenario_path = Path(learner_path, paths[i].split('/')[-1])
             scenario_path.mkdir(parents=True, exist_ok=True)
             if paradigms[i] == "decentralized":
                 labels = ["Agent {}".format(agent) for agent in range(n_agents[i])]
@@ -167,8 +174,10 @@ def main(
                     for key, item in learner_stats_postfix.items():
                         for agent in range(n_agents[i]):
                             axs[axes_map[k][0], axes_map[k][1]].plot(xaxis[i],
-                                                                     df[learner_stats_prefix + 'AGENT-' + str(agent) + item],
-                                                                     color=AGENT_COLORS[agent], label='Agent ' + str(agent),
+                                                                     df[learner_stats_prefix + 'AGENT-' + str(
+                                                                         agent) + item],
+                                                                     color=AGENT_COLORS[agent],
+                                                                     label='Agent ' + str(agent),
                                                                      linewidth=1)
                             axs[axes_map[k][0], axes_map[k][1]].set_title(key)
                         if key == 'cur_lr':
@@ -203,7 +212,7 @@ def main(
         agent_wise_path = Path(Path(log_path, 'agent_wise'))
         agent_wise_path.mkdir(parents=True, exist_ok=True)
         for i, df in enumerate(dfs):
-            scenario_path = Path(agent_wise_path, paths[i].split('/')[2])
+            scenario_path = Path(agent_wise_path, paths[i].split('/')[-1])
             scenario_path.mkdir(parents=True, exist_ok=True)
             if paradigms[i] == 'decentralized':
                 prefix = 'hist_stats/policy_AGENT-'
@@ -219,7 +228,7 @@ def main(
                                         df['policy_reward_mean/AGENT-' + str(agent)] - std_devs,
                                         df['policy_reward_mean/AGENT-' + str(agent)] + std_devs,
                                         color=AGENT_COLORS[agent], alpha=0.2)
-                    ax.plot(xaxis[i], df['episode_reward_mean']/n_agents[i],
+                    ax.plot(xaxis[i], df['episode_reward_mean'] / n_agents[i],
                             color=COLORS['black'], label='Average Reward',
                             linewidth=3)
                     # plt.title(title)

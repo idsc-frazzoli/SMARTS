@@ -6,13 +6,20 @@ from pathlib import Path
 
 FIGSIZE = (16, 9)
 
-PALETTE = ['#A93226', '#CB4335',  # red
-           '#884EA0', '#7D3C98',  # purple
-           '#2471A3', '#2E86C1',  # blue
-           '#17A589', '#138D75',  # blue/green
-           '#229954', '#28B463',  # green
-           '#D4AC0D', '#D68910',  # yellow
-           '#CA6F1E', '#BA4A00',  # orange
+PALETTE = ['#A93226',  # red
+           '#884EA0',  # purple
+           '#2471A3',  # blue
+           '#D4AC0D',  # yellow
+           '#229954',  # green
+           '#CA6F1E',  # orange
+           '#17A589',  # blue/green
+           '#CB4335',  # red 2
+           '#7D3C98',  # purple 2
+           '#2E86C1',  # blue 2
+           '#D68910',  # yellow 2
+           '#28B463',  # green 2
+           '#BA4A00',  # orange 2
+           '#138D75',  # #blue/green 2
            ]
 
 
@@ -49,26 +56,27 @@ def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, box
         for i, df in enumerate(dfs):
             if not bxplt:
                 std_devs = [np.std(str2list(x)) for x in df[hist]]
-                ax.plot(xax[i], df[yna], color=PALETTE[2 * i], label=leg[i])
+                ax.plot(xax[i], df[yna], color=PALETTE[i], label=leg[i])
                 ax.fill_between(xax[i],
                                 df[yna] - std_devs,
                                 df[yna] + std_devs,
-                                color=PALETTE[2 * i], alpha=0.2)
+                                color=PALETTE[i], alpha=0.2)
             else:
                 medians = [np.median(str2list(x)) for x in df[hist]]
                 upper = [np.percentile(str2list(x), 75) for x in df[hist]]
                 lower = [np.percentile(str2list(x), 25) for x in df[hist]]
                 maximum = [np.max(str2list(x)) for x in df[hist]]
                 minimum = [np.min(str2list(x)) for x in df[hist]]
-                ax.plot(xax[i], medians, color=PALETTE[2 * i], label=leg[i])
+                ax.plot(xax[i], medians, color=PALETTE[i], label=leg[i])
                 ax.fill_between(xax[i], lower, upper,
-                                color=PALETTE[2 * i], alpha=0.2)
+                                color=PALETTE[i], alpha=0.2)
                 ax.fill_between(xax[i], minimum, maximum,
-                                color=PALETTE[2 * i], alpha=0.05)
+                                color=PALETTE[i], alpha=0.05)
 
         if leg != [''] * len(dfs):
             ax.legend()
         plt.title(tit)
+        plt.grid()
         plt.ylabel(ylab)
         plt.xlabel(xlab)
         if pn:
@@ -92,4 +100,3 @@ def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, box
         xaxis = [df['timesteps_total'] for df in dfs]
         xlabel, xname = 'total time steps', 'timesteps_total'
         plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot)
-

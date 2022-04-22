@@ -5,8 +5,8 @@ agent:
     wrapper:
       name: FrameStack
       num_stack: 3
-      alpha: 2.0
-      degree: 2.5
+      alpha: 1.0
+      degree: 2.0
     features:
       # relative position of goal
       goal_relative_pos: True
@@ -41,13 +41,13 @@ policy:
     name: PPOTrainer
 
 run:
-  checkpoint_freq: 1
+  checkpoint_freq: 5
   checkpoint_at_end: True
   max_failures: 1000
   resume: False
   export_formats: [model, checkpoint]
   stop:
-    episodes_total: 50
+    episodes_total: 16000
   config:
     log_level: WARN
     num_workers: 1
@@ -57,6 +57,6 @@ run:
     num_sgd_iter: 10
     sgd_minibatch_size: 32
     lr: 1.0e-4
-    lr_schedule: [[0, 1.0e-4], [9000000, 1.0e-4], [9000001, 5.0e-5], [12000000, 5.0e-5], [12000001, 1.0e-5], [15000000, 1.0e-5], [15000001, 5.0e-6]]
+    lr_schedule: [[0, 1.0e-4], [250000, 9.0e-5], [500000, 1.0e-5]]
     lambda: 0
     

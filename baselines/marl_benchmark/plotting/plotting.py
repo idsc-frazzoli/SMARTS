@@ -71,6 +71,7 @@ def main(
         high_res=False,
         x_axis="checkpoints",
         boxplot=False,
+        y_lim=None,
 ):
     if high_res:
         matplotlib.rcParams['savefig.dpi'] = 300
@@ -120,11 +121,11 @@ def main(
     # Remark: This could be done similarly as for learner_stats, but I'm too lazy to rewrite the code.
     if mean_reward:
         ylabel, yname = 'episode reward', 'episode_reward_mean'
-        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot)
+        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot, y_lim)
 
     if mean_len:
         ylabel, yname = 'episode length', 'episode_len_mean'
-        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot)
+        plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot, None)
 
     # plot simulation time steps over simulation real time
     fig, ax = plt.subplots(figsize=FIGSIZE, tight_layout=True)
@@ -315,6 +316,14 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--y_lim",
+        nargs=2,
+        type=float,
+        default=None,
+        help="lower and upper limits on y-axis"
+    )
+
+    parser.add_argument(
         "--boxplot", default=False, action="store_true",
         help="Enable boxplot mode."
     )
@@ -339,4 +348,5 @@ if __name__ == "__main__":
         high_res=args.high_res,
         x_axis=args.x_axis,
         boxplot=args.boxplot,
+        y_lim=args.y_lim,
     )

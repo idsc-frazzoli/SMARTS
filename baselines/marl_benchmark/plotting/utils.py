@@ -46,8 +46,8 @@ def get_number_agents(cols):
     return n_agents, paradigm
 
 
-def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot):
-    def plt_mn(dfs, xax, xlab, ylab, xna, yna, leg, tit, pn, pd, log_p, bxplt):
+def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, boxplot, y_lim):
+    def plt_mn(dfs, xax, xlab, ylab, xna, yna, leg, tit, pn, pd, log_p, bxplt, y_lm):
         if yna == 'episode_reward_mean':
             hist = 'hist_stats/episode_reward'
         if yna == 'episode_len_mean':
@@ -79,6 +79,9 @@ def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, box
         plt.grid()
         plt.ylabel(ylab)
         plt.xlabel(xlab)
+        if y_lm:
+            plt.ylim(y_lm[0], y_lm[1])
+
         if pn:
             plt.savefig(Path(log_p, yna + '_' + xna + '.png'))
         if pd:
@@ -87,16 +90,16 @@ def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, box
     if 'checkpoints' in x_axis:
         xaxis = [np.arange(1, len(df['done']) + 1) for df in dfs]
         xlabel, xname = 'checkpoint', 'checkpoint'
-        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot)
+        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot, y_lim)
     if 'time_total_s' in x_axis:
         xaxis = [df['time_total_s'] for df in dfs]
         xlabel, xname = 'total time [s]', 'total_time_s'
-        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot)
+        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot, y_lim)
     if 'episodes_total' in x_axis:
         xaxis = [df['episodes_total'] for df in dfs]
         xlabel, xname = 'total episodes', 'episodes_total'
-        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot)
+        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot, y_lim)
     if 'timesteps_total' in x_axis:
         xaxis = [df['timesteps_total'] for df in dfs]
         xlabel, xname = 'total time steps', 'timesteps_total'
-        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot)
+        plt_mn(dfs, xaxis, xlabel, ylabel, xname, yname, legend, title, png, pdf, log_path, boxplot, y_lim)

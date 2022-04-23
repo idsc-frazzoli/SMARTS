@@ -147,6 +147,9 @@ def main(
     if checkpoints is not None:
         cps = ["checkpoint_{:06d}".format(int(x)) for x in checkpoints]
 
+    if not coloring:
+        coloring = ["control_input", "speed", "reward", "acceleration", "agents"]
+
     # for PoA calculations
     dec_cp = []
     if decentralized_cp is not None:
@@ -216,15 +219,15 @@ def main(
                 if checkpoints is None or checkpoint in cps:
                     print('Current checkpoint: {}'.format(checkpoint))
                     checkpoint_path = Path(path, checkpoint)
-                    if "control_input" in coloring or coloring is None:
+                    if "control_input" in coloring:
                         animate_positions(checkpoint_path, scenario_map, "control_input")
-                    if "speed" in coloring or coloring is None:
+                    if "speed" in coloring:
                         animate_positions(checkpoint_path, scenario_map, "speed")
-                    if "reward" in coloring or coloring is None:
+                    if "reward" in coloring:
                         animate_positions(checkpoint_path, scenario_map, "reward")
-                    if "acceleration" in coloring or coloring is None:
+                    if "acceleration" in coloring:
                         animate_positions(checkpoint_path, scenario_map, "acceleration")
-                    if "agents" in coloring or coloring is None:
+                    if "agents" in coloring:
                         animate_positions(checkpoint_path, scenario_map, "agents")
 
     if poa:

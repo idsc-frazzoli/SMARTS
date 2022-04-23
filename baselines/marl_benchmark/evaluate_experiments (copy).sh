@@ -2,7 +2,7 @@
 
 # This script allows for the queueing of multiple evaluations that can be run in the background. 
 
-num_runs=250
+num_runs=500
 #scenario_path="scenarios/custom/merge/merge110_lanes2"
 scenario_path="scenarios/custom/merge/merge40_lanes1"
 
@@ -26,10 +26,10 @@ scenario_path="scenarios/custom/merge/merge40_lanes1"
 #runs=("PPO_FrameStack_a6b8a_00000_0_2022-04-13_19-05-15")
 #paradigms=("centralized")
 
-runs=("alpha1_degree2/decent/PPO_FrameStack_febfa_00000_0_2022-04-23_10-41-55")
-paradigms=("decentralized")
+runs=("20220412/PPO_FrameStack_d7035_00000_0_2022-04-12_08-23-32" "20220412/PPO_FrameStack_d9b8f_00000_0_2022-04-12_17-13-19")
+paradigms=("decentralized" "centralized")
 
-checkpoints=(80)
+checkpoints=(70 100)
 
 num_steps=60
 len=${#runs[@]}
@@ -39,8 +39,7 @@ for (( i=0; i<$len; i++ ))
   for cp in ${checkpoints[@]}
   do
     cpf=$(printf "%06d" $cp)
-    #cp_dir="./log/results/run/merge40_lanes1-4/${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
-    cp_dir="./log/results/run/merge40_lanes1_asym_time_test/${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
+    cp_dir="./log/results/run/merge40_lanes1-4/${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
     log_dir="./evaluation/evaluation_data/${runs[$i]}/checkpoint_${cpf}"
     echo "cp folder: ${cp_dir}"
     python evaluate.py ${scenario_path} -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --log_dir ${log_dir} --checkpoint ${cp_dir} --paradigm ${paradigms[$i]} --headless --num_runs ${num_runs} --num_steps ${num_steps}

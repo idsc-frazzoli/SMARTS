@@ -134,10 +134,19 @@
 #  python run.py scenarios/custom/merge/merge40_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/merge40_lanes1/alpha1_degree2/cent
 #done
 
-# 23.04.2022 merge40_lanes1, 15k episodes per run, 5 runs for decent,asym time cost tests
+## 23.04.2022 merge40_lanes1, 15k episodes per run, 10 runs for decent, asym time cost tests (1, 3)
+#for (( i=0; i<10; i++ ))
+#do
+#  python run.py scenarios/custom/merge/merge40_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/merge40_lanes1_asym_time_test/alpha1_degree2/decent
+#done
+
+
+# merge40_lanes1, 15k episodes per run, 10 runs for decent and cent, asym time cost tests (1, 5)
 for (( i=0; i<10; i++ ))
 do
-  python run.py scenarios/custom/merge/merge40_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/merge40_lanes1_asym_time_test/alpha1_degree2/decent
+  python run.py scenarios/custom/merge/merge40_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 9 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/merge40_lanes1_asym_time_test_1_5/alpha1_degree2/decent
+  python run.py scenarios/custom/merge/merge40_lanes1 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 9 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/merge40_lanes1_asym_time_test_1_5/alpha1_degree2/cent
+
 done
 
 

@@ -139,9 +139,9 @@ def main(
 
             for k in range(len(mean_vf_expl_var)):
                 c = 'g' if conv_mn[k] else 'r'
-                plt.scatter(checkpoints[k], 0.5, color=c, s=200, alpha=1, marker='s')
+                plt.scatter(checkpoints[k], 0.3, color=c, s=200, alpha=1, marker='s')
 
-            plt.text(filter_window, 0.5, "mean convergence")
+            plt.text(1, 0.3, "mean converged", color='white')
 
             # conv = []
             for i in range(len(vf_expl_var)):
@@ -152,12 +152,12 @@ def main(
                 ax.plot([x+filter_window/2 for x in range(len(vf_expl_var[i]) - filter_window)],
                         [100*x for x in var],
                         color=PALETTE[i], linestyle='-.', alpha=0.3)
-                conv = [filt[k + 5] > mean_thres for k in range(len(vf_expl_var[i]) - filter_window)]
+                conv = [filt[k] > mean_thres for k in range(len(vf_expl_var[i]))]
                 # conv = [filt[k+5] > mean_thres and var[k] < var_thres for k in range(len(vf_expl_var[i]) - filter_window)]
-                for k in range(len(vf_expl_var[i]) - filter_window):
+                for k in range(len(vf_expl_var[i])):
                     c = 'g' if conv[k] else 'r'
-                    plt.scatter(checkpoints[int(k+filter_window/2)], 0.1*(i+1), color=c, s=200, alpha=1, marker='s')
-                plt.text(filter_window, 0.1*(i+1), "agent {}".format(i))
+                    plt.scatter(checkpoints[k], 0.15+(i*0.04), color=c, s=200, alpha=1, marker='s')
+                plt.text(1, 0.15+(i*0.04), "agent {} converged".format(i), color='white')
 
             plt.ylim([0, 1])
 

@@ -1137,7 +1137,7 @@ class FrameStack(Wrapper):
             if ego_vehicle_nr == 0:
                 time_penalty = 1.0
             else:
-                time_penalty = 5.0
+                time_penalty = 3.0
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = current_obs.events

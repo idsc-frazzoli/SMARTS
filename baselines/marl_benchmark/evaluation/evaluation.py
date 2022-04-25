@@ -38,11 +38,12 @@ COLORS = {
 }
 
 AGENT_COLORS = {
-    0: '#377eb8',
-    1: '#4daf4a',
-    2: '#984ea3',
-    3: '#ff7f00',
-    4: '#e41a1c'
+    0: '#e41a1c',  # red
+    1: '#377eb8',  # blue
+    2: '#4daf4a',  # green
+    3: '#984ea3',  # purple
+    4: '#ff7f00',  # orange
+
 }
 
 PALETTE = ['#A93226', '#CB4335',  # red

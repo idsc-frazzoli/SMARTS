@@ -6,11 +6,13 @@ import os
 
 from typing import List, Tuple
 from pandas import DataFrame
+from pandas.errors import ParserError
 
 from scipy.ndimage.filters import uniform_filter1d
 
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 import numpy as np
 
 import shutil
@@ -30,7 +32,7 @@ PALETTE = ['#A93226',  # red
            '#28B463',  # green 2
            '#BA4A00',  # orange 2
            '#138D75',  # #blue/green 2
-           ]
+           ] * 10
 
 
 def extract_date_time(name: str) -> Tuple[str, str]:
@@ -49,13 +51,35 @@ def get_paradigm(df_progress: DataFrame) -> str:
     return "decentralized" if decent else "centralized"
 
 
+def str2list(s):
+    slist = s[1:-1].split(',')
+    return [float(x) for x in slist]
+
+
+def get_reward_stats(df_progress: DataFrame, checkpoint: int) -> Tuple[float, float]:
+    mean_reward = df_progress["episode_reward_mean"][checkpoint - 1]
+    episode_rewards = str2list(df_progress["hist_stats/episode_reward"][checkpoint - 1])
+    standard_deviation = float(np.std(episode_rewards))
+
+    return mean_reward, standard_deviation
+
+
+def get_length_stats(df_progress: DataFrame, checkpoint: int) -> Tuple[float, float]:
+    mean_len = df_progress["episode_len_mean"][checkpoint - 1]
+    episode_len = str2list(df_progress["hist_stats/episode_lengths"][checkpoint - 1])
+    standard_deviation = float(np.std(episode_len))
+
+    return mean_len, standard_deviation
+
+
 def main(
         training_path,
 ):
     save_path = Path(training_path, "logs_and_plots")
     save_path.mkdir(parents=True, exist_ok=True)
 
-    log_keys = {"date", "time", "run", "paradigm", "name", "converged", "stable_checkpoint", "first_stable", "total_checkpoints"}
+    log_keys = {"date", "time", "run", "paradigm", "name", "converged", "stable_checkpoint", "first_stable",
+                "total_checkpoints", "converged_len"}
     logs = dict([(key, []) for key in log_keys])
     # get list of only folders (excluding .json, etc.)
     runs_dirs = [name for name in os.listdir(training_path) if os.path.isdir(os.path.join(training_path, name)) and
@@ -68,7 +92,19 @@ def main(
         date, time = extract_date_time(dir)
         logs["date"].append(date)
         logs["time"].append(time)
-        df_progress = pd.read_csv(progress_path)
+
+        try:
+            df_progress = pd.read_csv(progress_path)
+        except ParserError:
+            logs["paradigm"].append("CSV_PARSE_ERROR")
+            logs["converged"].append("CSV_PARSE_ERROR")
+            logs["stable_checkpoint"].append("CSV_PARSE_ERROR")
+            logs["first_stable"].append("CSV_PARSE_ERROR")
+            logs["total_checkpoints"].append("CSV_PARSE_ERROR")
+            logs["converged_len"].append("CSV_PARSE_ERROR")
+            continue
+
+
         logs["paradigm"].append(get_paradigm(df_progress))
         cols = list(df_progress.columns)
         vf_expl_var_cols = [col for col in cols if "vf_explained_var" in col]
@@ -109,6 +145,8 @@ def main(
                 converged_len += 1
             else:
                 break
+
+        logs["converged_len"].append(converged_len)
 
         if converged_len >= min_converged_len:
             logs["converged"].append(1)
@@ -171,6 +209,36 @@ def main(
 
     df_logs = pd.DataFrame.from_dict(logs)
     df_logs.to_csv(Path(training_path, "logs_and_plots/convergence_logs.csv"))
+
+    # plot lengths and rewards of converged stable checkpoints
+    fig, ax = plt.subplots(figsize=(10, 10), tight_layout=True)
+    max_len, max_rew = 0, -1e6
+    for run, dir in enumerate(logs["name"]):
+        if logs["converged"][run] == 1:
+            progress_path = Path(training_path, dir, "progress.csv")
+            df_progress = pd.read_csv(progress_path)
+            mean_reward, std_dev_rew = get_reward_stats(df_progress, logs["stable_checkpoint"][run])
+            mean_len, std_dev_len = get_length_stats(df_progress, logs["stable_checkpoint"][run])
+            if mean_len + std_dev_len/2 > max_len:
+                max_len = mean_len + std_dev_len/2
+            if mean_reward + std_dev_rew/2 > max_rew:
+                max_rew = mean_reward + std_dev_rew/2
+            e = Ellipse(xy=(mean_len, mean_reward),
+                        width=std_dev_len, height=std_dev_rew,
+                        color=PALETTE[run], alpha=0.2)
+            ax.scatter(mean_len, mean_reward, color=PALETTE[run], label=logs["name"][run])
+            ax.text(mean_len, mean_reward,
+                    "cp {}, ({}, {})".format(logs["stable_checkpoint"][run], int(mean_len), int(mean_reward)))
+            ax.add_artist(e)
+
+    plt.legend()
+    plt.grid()
+    plt.xlabel("episode length")
+    plt.ylabel("episode reward")
+    plt.xlim([30, max_len])
+    plt.ylim([-300, max_rew])
+    plt.savefig(Path(training_path, "logs_and_plots/converged_len_reward.png"))
+
 
 
 def parse_args():

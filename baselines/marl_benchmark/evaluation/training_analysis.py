@@ -6,7 +6,7 @@ import os
 
 from typing import List, Tuple
 from pandas import DataFrame
-from pandas.errors import ParserError
+from pandas.errors import ParserError, EmptyDataError
 
 from scipy.ndimage.filters import uniform_filter1d
 
@@ -75,24 +75,34 @@ def get_length_stats(df_progress: DataFrame, checkpoint: int) -> Tuple[float, fl
 def main(
         training_path,
 ):
+    """
+    Generate a log-file and qualitative plots to automate convergence detection of multiple training runs.
+
+    :param training_path: path to a folder full of training runs (sub-folders typically starting with PPO_FrameStack...)
+    :return:
+    """
     save_path = Path(training_path, "logs_and_plots")
     save_path.mkdir(parents=True, exist_ok=True)
 
+    # first, set up log dict and convert to DataFrame in tend
     log_keys = {"date", "time", "run", "paradigm", "name", "converged", "stable_checkpoint", "first_stable",
                 "total_checkpoints", "converged_len"}
     logs = dict([(key, []) for key in log_keys])
+
     # get list of only folders (excluding .json, etc.)
     runs_dirs = [name for name in os.listdir(training_path) if os.path.isdir(os.path.join(training_path, name)) and
                  name != "logs_and_plots"]
-    for run, dir in enumerate(runs_dirs):
+
+    for run, d in enumerate(runs_dirs):
         logs["run"].append(run)
         # run_str = "{:03d}".format(run)
-        logs["name"].append(dir)
-        progress_path = Path(training_path, dir, "progress.csv")
-        date, time = extract_date_time(dir)
+        logs["name"].append(d)
+        progress_path = Path(training_path, d, "progress.csv")
+        date, time = extract_date_time(d)
         logs["date"].append(date)
         logs["time"].append(time)
 
+        # somtimes there is an error in the progress.csv file (file could be cleaned up manually) -> ignore and log
         try:
             df_progress = pd.read_csv(progress_path)
         except ParserError:
@@ -103,7 +113,14 @@ def main(
             logs["total_checkpoints"].append("CSV_PARSE_ERROR")
             logs["converged_len"].append("CSV_PARSE_ERROR")
             continue
-
+        except EmptyDataError:
+            logs["paradigm"].append("CSV_EMPTY_DATA_ERROR")
+            logs["converged"].append("CSV_EMPTY_DATA_ERROR")
+            logs["stable_checkpoint"].append("CSV_EMPTY_DATA_ERROR")
+            logs["first_stable"].append("CSV_EMPTY_DATA_ERROR")
+            logs["total_checkpoints"].append("CSV_EMPTY_DATA_ERROR")
+            logs["converged_len"].append("CSV_EMPTY_DATA_ERROR")
+            continue
 
         logs["paradigm"].append(get_paradigm(df_progress))
         cols = list(df_progress.columns)
@@ -112,9 +129,14 @@ def main(
 
         n_agents = len(vf_expl_var)
 
-        var_thres = 1e-3
+        # converged detection parameters
+        var_thres = 1e-3  # switched back to not using variance as a detection metric
+        # vf_expl_var mean has to be above this threshold
+        # mean_thres = 0.97
         mean_thres = 0.97 - 0.01 * (n_agents - 1)
-        filter_window = 14
+        # window size for mean filter
+        filter_window = 5
+        reward_derivative_threshold = 100  # currently not used -> TODO
 
         min_converged_len = 17
 
@@ -148,11 +170,13 @@ def main(
 
         logs["converged_len"].append(converged_len)
 
+        # TODO: stable checkpoint selection should include the reward directly
         if converged_len >= min_converged_len:
             logs["converged"].append(1)
             logs["first_stable"].append(checkpoints[-1] - converged_len + 1)
 
             cp = checkpoints[-1] - converged_len
+            # checkpoints are only saved each 5 checkpoints -> go to next and add 5
             cp_stable = cp + (5 - cp % 5) + 5
             logs["stable_checkpoint"].append(cp_stable)
         else:
@@ -163,49 +187,70 @@ def main(
             logs["stable_checkpoint"].append(0)
             logs["converged"].append(0)
 
+        # qualitative plotting for sanity check
         make_plots = True
 
         if make_plots:
             # plotting for my own understanding
             fig, ax = plt.subplots(figsize=(16, 9), tight_layout=True)
+            ax2 = ax.twinx()
 
-            ax.plot(checkpoints, mean_vf_expl_var, color='k')
-            ax.plot(checkpoints, filt_mn, color='k', linestyle='--')
-            ax.plot([x + filter_window/2 for x in range(len(mean_vf_expl_var) - filter_window)],
-                    [100 * x for x in var_mn],
-                    color='k', linestyle='-.', alpha=0.3)
+            ax.plot(checkpoints, mean_vf_expl_var, color='k', label="mean_vf_expl_var")
+            ax.plot(checkpoints, filt_mn, color='k', linestyle='--', label='mean_filtered_{}'.format(filter_window))
+            # ax.plot([x + filter_window/2 for x in range(len(mean_vf_expl_var) - filter_window)],
+            #         [100 * x for x in var_mn],
+            #         color='k', linestyle='-.', alpha=0.3)
+
+            mean_reward = df_progress["episode_reward_mean"]
+            hist_rewards = df_progress["hist_stats/episode_reward"]
+            upper = [np.percentile(str2list(x), 75) for x in hist_rewards]
+            lower = [np.percentile(str2list(x), 25) for x in hist_rewards]
+            median_reward = [np.median(str2list(x)) for x in hist_rewards]
+            reward_derivative = [0] + [np.abs(mean_reward[i-1] - mean_reward[i]) for i in range(1, len(mean_reward))]
+            ax2.plot(checkpoints, median_reward, color='r')
+            ax2.plot(checkpoints, reward_derivative, color='b', alpha=0.2)
+            ax2.fill_between(checkpoints, [0 for _ in checkpoints], [reward_derivative_threshold for _ in checkpoints],
+                             color='b', alpha=0.05)
+            ax2.fill_between(checkpoints, lower, upper,
+                             color='r', alpha=0.2)
+            ax2.set_ylabel('median reward with IQR')
+
+            # only used for legend
+            ax.plot([-1, -0.9], [-1, -1], color='r', label="median episode reward")
+            ax.plot([-1, -0.9], [-1, -1], color='b', alpha=0.2, label="absolute reward derivative")
+            ax.set_xlabel("checkpoint")
+            ax.set_ylabel("vf_expl_var")
 
             for k in range(len(mean_vf_expl_var)):
                 c = 'g' if conv_mn[k] else 'r'
-                plt.scatter(checkpoints[k], 0.3, color=c, s=200, alpha=1, marker='s')
+                ax.scatter(checkpoints[k], 0.3, color=c, s=200, alpha=1, marker='s')
 
-            plt.text(1, 0.3, "mean converged", color='white')
+            ax.text(1, 0.3, "mean converged", color='white')
 
             # conv = []
             for i in range(len(vf_expl_var)):
                 filt = uniform_filter1d(vf_expl_var[i], size=filter_window)
-                ax.plot(checkpoints, filt, color=PALETTE[i], linestyle='--')
-                ax.plot(checkpoints, vf_expl_var[i], color=PALETTE[i], label='{}'.format(i))
-                var = [np.var(vf_expl_var[i][j:j+filter_window]) for j in range(len(vf_expl_var[i]) - filter_window)]
-                ax.plot([x+filter_window/2 for x in range(len(vf_expl_var[i]) - filter_window)],
-                        [100*x for x in var],
-                        color=PALETTE[i], linestyle='-.', alpha=0.3)
+                ax.plot(checkpoints, filt, color=PALETTE[i], linestyle='--', label="filtered_agent_{}".format(i))
+                ax.plot(checkpoints, vf_expl_var[i], color=PALETTE[i], label="vf_expl_var_agent_{}".format(i))
+                # var = [np.var(vf_expl_var[i][j:j+filter_window]) for j in range(len(vf_expl_var[i]) - filter_window)]
+                # ax.plot([x+filter_window/2 for x in range(len(vf_expl_var[i]) - filter_window)],
+                #         [100*x for x in var],
+                #         color=PALETTE[i], linestyle='-.', alpha=0.3)
                 conv = [filt[k] > mean_thres for k in range(len(vf_expl_var[i]))]
                 # conv = [filt[k+5] > mean_thres and var[k] < var_thres for k in range(len(vf_expl_var[i]) - filter_window)]
                 for k in range(len(vf_expl_var[i])):
                     c = 'g' if conv[k] else 'r'
-                    plt.scatter(checkpoints[k], 0.15+(i*0.04), color=c, s=200, alpha=1, marker='s')
-                plt.text(1, 0.15+(i*0.04), "agent {} converged".format(i), color='white')
+                    ax.scatter(checkpoints[k], 0.15+(i*0.04), color=c, s=200, alpha=1, marker='s')
+                ax.text(1, 0.15+(i*0.04), "agent {} converged".format(i), color='white')
 
-            plt.ylim([0, 1])
-
-            # ax.fill_between(checkpoints, [0.95 for _ in checkpoints], [1 for _ in checkpoints],
-            #                 color='r', alpha=0.2)
+            ax.set_ylim([0, 1])
             ax.fill_between(checkpoints, [mean_thres for _ in checkpoints], [1 for _ in checkpoints],
                             color='g', alpha=0.2)
 
             plt.grid()
-            plt.savefig(Path(training_path, "logs_and_plots/convergence_analysis_{}.png".format(dir)))
+            ax.legend()
+            ax.legend()
+            plt.savefig(Path(training_path, "logs_and_plots/convergence_analysis_{}.png".format(d)))
 
     df_logs = pd.DataFrame.from_dict(logs)
     df_logs.to_csv(Path(training_path, "logs_and_plots/convergence_logs.csv"))
@@ -213,9 +258,9 @@ def main(
     # plot lengths and rewards of converged stable checkpoints
     fig, ax = plt.subplots(figsize=(10, 10), tight_layout=True)
     max_len, max_rew = 0, -1e6
-    for run, dir in enumerate(logs["name"]):
+    for run, d in enumerate(logs["name"]):
         if logs["converged"][run] == 1:
-            progress_path = Path(training_path, dir, "progress.csv")
+            progress_path = Path(training_path, d, "progress.csv")
             df_progress = pd.read_csv(progress_path)
             mean_reward, std_dev_rew = get_reward_stats(df_progress, logs["stable_checkpoint"][run])
             mean_len, std_dev_len = get_length_stats(df_progress, logs["stable_checkpoint"][run])
@@ -238,7 +283,6 @@ def main(
     plt.xlim([30, max_len])
     plt.ylim([-300, max_rew])
     plt.savefig(Path(training_path, "logs_and_plots/converged_len_reward.png"))
-
 
 
 def parse_args():

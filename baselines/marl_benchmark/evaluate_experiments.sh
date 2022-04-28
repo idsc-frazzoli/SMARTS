@@ -29,6 +29,8 @@ scenario_path="scenarios/custom/merge/merge40_lanes1"
 runs=("alpha1_degree2/decent/PPO_FrameStack_febfa_00000_0_2022-04-23_10-41-55")
 paradigms=("decentralized")
 
+
+
 checkpoints=(80)
 
 num_steps=60

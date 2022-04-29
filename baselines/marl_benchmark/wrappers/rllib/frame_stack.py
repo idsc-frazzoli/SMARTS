@@ -1134,10 +1134,10 @@ class FrameStack(Wrapper):
             # Number of vehicle, for two vehicles this should be either 0 or 1
             ego_vehicle_nr = int(ego_id[6])
 
-            if ego_vehicle_nr == 0:
-                time_penalty = 1.0
-            else:
-                time_penalty = 5.0
+            # if ego_vehicle_nr == 0:
+            #     time_penalty = 1.0
+            # else:
+            #     time_penalty = 5.0
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = current_obs.events
@@ -1150,8 +1150,8 @@ class FrameStack(Wrapper):
                 goal_reached_reward += 300.0
             else:
                 # # time penalty increases personal cost
-                # cost_per += 2.0
-                cost_per += time_penalty
+                cost_per += 2.0
+                # cost_per += time_penalty
 
             x_gc = current_obs.ego_vehicle_state.mission.goal.position
             x_c = current_obs.ego_vehicle_state.position

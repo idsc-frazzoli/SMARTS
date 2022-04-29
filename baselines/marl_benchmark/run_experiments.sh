@@ -156,20 +156,25 @@
 #done
 
 
+# 28.04.2022 tests with different starting positions fo agent 0
+##scl scenario build-all scenarios/custom/merge/merge40_lanes1_2
+##scl scenario build-all scenarios/custom/merge/merge40_lanes1_3
+##scl scenario build-all scenarios/custom/merge/merge40_lanes1_4
+#for (( i=0; i<7; i++ ))
+#do
+##  python run.py scenarios/custom/merge/merge40_lanes1_2 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_2_asym_time_test_1_5/alpha1_degree2/decent
+##  python run.py scenarios/custom/merge/merge40_lanes1_2 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_2_asym_time_test_1_5/alpha1_degree2/cent
+##  python run.py scenarios/custom/merge/merge40_lanes1_3 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_3_asym_time_test_1_5/alpha1_degree2/decent
+##  python run.py scenarios/custom/merge/merge40_lanes1_3 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_3_asym_time_test_1_5/alpha1_degree2/cent
+#  python run.py scenarios/custom/merge/merge40_lanes1_4 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_4_asym_time_test_1_5/alpha1_degree2/decent
+#  python run.py scenarios/custom/merge/merge40_lanes1_4 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_4_asym_time_test_1_5/alpha1_degree2/cent
+#
+#done
 
-#scl scenario build-all scenarios/custom/merge/merge40_lanes1_2
-#scl scenario build-all scenarios/custom/merge/merge40_lanes1_3
-#scl scenario build-all scenarios/custom/merge/merge40_lanes1_4
-for (( i=0; i<7; i++ ))
-do
-#  python run.py scenarios/custom/merge/merge40_lanes1_2 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_2_asym_time_test_1_5/alpha1_degree2/decent
-#  python run.py scenarios/custom/merge/merge40_lanes1_2 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_2_asym_time_test_1_5/alpha1_degree2/cent
-#  python run.py scenarios/custom/merge/merge40_lanes1_3 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_3_asym_time_test_1_5/alpha1_degree2/decent
-#  python run.py scenarios/custom/merge/merge40_lanes1_3 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_3_asym_time_test_1_5/alpha1_degree2/cent
-  python run.py scenarios/custom/merge/merge40_lanes1_4 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_4_asym_time_test_1_5/alpha1_degree2/decent
-  python run.py scenarios/custom/merge/merge40_lanes1_4 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 60 --log_dir ./log/results/run/20220428_merge40_lanes1_4_asym_time_test_1_5/alpha1_degree2/cent
 
-done
+# test merge75_lanes321
+scl scenario build-all scenarios/custom/merge/merge75_lanes321
+python run.py scenarios/custom/merge/merge75_lanes321 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2_test.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220429_merge75_lanes321/alpha1_degree2/decent
 
 
 

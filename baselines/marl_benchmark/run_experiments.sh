@@ -180,8 +180,8 @@
 scl scenario build-all scenarios/custom/merge/merge90_lanes32
 for (( i=0; i<5; i++ ))
 do
-  python run.py scenarios/custom/merge/merge90_lanes32 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220502_merge90_lanes32/alpha1_degree2/decent
-#  python run.py scenarios/custom/merge/merge90_lanes32 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220502_merge90_lanes32/alpha1_degree2/cent
+#  python run.py scenarios/custom/merge/merge90_lanes32 -f marl_benchmark/agents/ppo/baseline-lane-control_decent_1_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220502_merge90_lanes32/alpha1_degree2/decent
+  python run.py scenarios/custom/merge/merge90_lanes32 -f marl_benchmark/agents/ppo/baseline-lane-control_cent_1_2.yaml --num_workers 5 --headless --paradigm centralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220502_merge90_lanes32/alpha1_degree2/cent
 done
 
 

@@ -2,7 +2,7 @@
 
 # This script allows for the queueing of multiple evaluations that can be run in the background. 
 
-num_runs=250
+num_runs=10
 #scenario_path="scenarios/custom/merge/merge110_lanes2"
 scenario_path="scenarios/custom/merge/merge40_lanes1"
 

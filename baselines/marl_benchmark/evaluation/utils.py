@@ -406,7 +406,10 @@ def animate_positions(checkpoint_path: Path,
 
     dfs, _ = load_checkpoint_dfs(checkpoint_path, info)
 
-    dx_dy = (scenario_map.x_lim[1] - scenario_map.x_lim[0]) / (scenario_map.y_lim[1] - scenario_map.y_lim[0])
+    if scenario_map.empty:
+        dx_dy = 5
+    else:
+        dx_dy = (scenario_map.x_lim[1] - scenario_map.x_lim[0]) / (scenario_map.y_lim[1] - scenario_map.y_lim[0])
     aspect_ratio = scenario_map.aspect_ratio
 
     if coloring == "speed":

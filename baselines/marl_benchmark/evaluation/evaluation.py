@@ -15,6 +15,8 @@ import shutil
 from utils import animate_positions, animate, plot_positions, StraightLane, Map, get_info, make_video, get_rewards, \
     get_poa, load_checkpoint_dfs, set_box_color, density_plot
 
+from scenarios import get_empty, get_merge40_lanes1, get_merge110_lanes2, get_merge75_lanes321, get_merge90_lanes32
+
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
 # LARGESIZE, MEDIUMSIZE, SMALLSIZE = 40, 30, 20
@@ -159,45 +161,17 @@ def main(
     if centralized_cp is not None:
         c_cp = ["checkpoint_{:06d}".format(int(centralized_cp))]
 
-    # Map and Lanes for merge110_lanes2 scenario
-    merge110_lanes2_lanes = [StraightLane(boundaries=[((0.0, 51.3), (10.0, 0.0)), ((-1.2, 33.5), (3.8, -3.3))],
-                                          center_lines=[((-0.6, 32.5), (7.0, 0.4))]
-                                          ),
-                             StraightLane(boundaries=[((0.0, 33.5), (-10.0, -3.3)), ((1.2, 51.3), (-16.3, -6.2))],
-                                          center_lines=[((0.6, 32.5), (-13.2, -6.7))]
-                                          ),
-                             StraightLane(boundaries=[((51.3, 110.0), (0.0, 0.0)), ((51.3, 110.0), (-6.2, -6.2))],
-                                          center_lines=[((51.3, 110.0), (-3.1, -3.1))]
-                                          ),
-                             ]
-    merge110_lanes2_map = Map(lanes=merge110_lanes2_lanes,
-                              x_lim=(-5.0, 115.0), y_lim=(-17.0, 11.0),
-                              aspect_ratio=(15, 4))
-
-    # Map and Lanes for merge40_lanes1 scenario
-    merge40_lanes1_lanes = [StraightLane(boundaries=[((0.0, 15.4), (10.9, 0.0)), ((-1.8, 12.4), (8.3, -1.6))],
-                                         center_lines=[]
-                                         ),
-                            StraightLane(boundaries=[((-3.1, 12.4), (-12.5, -1.6)), ((-1.4, 16.3), (-15.1, -3.1))],
-                                         center_lines=[]
-                                         ),
-                            StraightLane(boundaries=[((15.4, 40.6), (0.0, 0.0)), ((16.3, 40.6), (-3.1, -3.1))],
-                                         center_lines=[]
-                                         ),
-                            ]
-    merge40_lanes1_map = Map(lanes=merge40_lanes1_lanes,
-                             x_lim=(-7.0, 43.0), y_lim=(-18.0, 13.0),
-                             aspect_ratio=(12, 7))
-
-    # empty map
-    empty_map = Map(None, None, None, empty=True)
 
     if scenario_name == "merge110_lanes2":
-        scenario_map = merge110_lanes2_map
+        scenario_map = get_merge110_lanes2()
     elif scenario_name == "merge40_lanes1":
-        scenario_map = merge40_lanes1_map
+        scenario_map = get_merge40_lanes1()
+    elif scenario_name == "merge75_lanes321":
+        scenario_map = get_merge75_lanes321()
+    elif scenario_name == "merge90_lanes32":
+        scenario_map = get_merge90_lanes32()
     else:
-        scenario_map = empty_map
+        scenario_map = get_empty()
 
     if training_progress_video:
         for path in paths:

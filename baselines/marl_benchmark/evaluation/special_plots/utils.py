@@ -201,6 +201,40 @@ def get_rewards(dfs: Dict[str, List[DataFrame]],
     return rewards, filtered_rewards
 
 
+def get_lengths(dfs: Dict[str, List[DataFrame]],
+                 masks: Dict[str, List],
+                 ) -> Tuple[List[float], List[float]]:
+    """
+    :param dfs: Lists of all episode dataframes in a dict with agent keys.
+    :param masks: Masks containing information whether an off-road event happened, a collision happened, or all the
+    agents reached the goals.
+    :return: Two lists of unfiltered and filtered episode lengths.
+    """
+    off_road_mask = masks["off_road_mask"]
+    collision_mask = masks["collision_mask"]
+    goal_reached_mask = masks["goal_reached_mask"]
+
+    lengths = [0] * len(dfs[0])
+    filtered_lengths = [np.nan] * len(dfs[0])
+
+    for i in range(len(dfs[0])):
+        cur_l = []
+        for agent in dfs.keys():
+            cur_l.append(dfs[agent][i]["Step_Reward"].shape[0])
+            lengths[i] = max(cur_l)
+        # if no car went off-road and no collision happened and all cars reached the goal
+        if not off_road_mask[i] and not collision_mask[i] and goal_reached_mask[i]:
+            cur_l = []
+            for agent in dfs.keys():
+                cur_l.append(dfs[agent][i]["Step_Reward"].shape[0])
+            filtered_lengths[i] = max(cur_l)
+
+    # remove nan entries if present
+    filtered_lengths = [x for x in filtered_lengths if x is not np.nan]
+
+    return lengths, filtered_lengths
+
+
 def get_poa(cent_rewards_filtered: List[float], decent_rewards_filtered: List[float]) -> Tuple[float, list, list]:
     min_rew = min(min(cent_rewards_filtered), min(decent_rewards_filtered))
     max_rew = max(max(cent_rewards_filtered), max(decent_rewards_filtered))

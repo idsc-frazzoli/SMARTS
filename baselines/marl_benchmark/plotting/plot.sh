@@ -71,7 +71,8 @@
 # asym time cost tests decent
 #python plotting/plotting.py -p ./merge40_lanes1_asym_time_test/alpha1_degree2/decent/PPO_FrameStack_2fa67_00000_0_2022-04-23_10-00-21 ./merge40_lanes1_asym_time_test/alpha1_degree2/decent/PPO_FrameStack_febfa_00000_0_2022-04-23_10-41-55 --scenario_name merge40_lanes1_saym_time_cost --mean_reward --mean_len --agent_wise --learner_stats --png --legend "decent 2022-04-23_10-00-21" "decent 2022-04-23_10-41-55" --x_axis checkpoints time_total_s episodes_total timesteps_total --boxplot
 
-# 24.04.2022
+# 03.05.2022 merge90_lanes32 tests
+python plotting/plotting.py -p ./20220502_merge90_lanes32/alpha1_degree2/cent/run/merge90_lanes32-4/PPO_FrameStack_2ff16_00000_0_2022-05-02_18-03-36 ./20220502_merge90_lanes32/alpha1_degree2/cent/run/merge90_lanes32-4/PPO_FrameStack_23195_00000_0_2022-05-03_00-15-28 ./20220502_merge90_lanes32/alpha1_degree2/decent/run/merge90_lanes32-4/PPO_FrameStack_8b6a8_00000_0_2022-05-03_00-18-23 ./20220502_merge90_lanes32/alpha1_degree2/cent/run/merge90_lanes32-4/PPO_FrameStack_79ec0_00000_0_2022-05-03_06-08-39 ./20220502_merge90_lanes32/alpha1_degree2/decent/run/merge90_lanes32-4/PPO_FrameStack_10565_00000_0_2022-05-02_18-02-43 ./20220502_merge90_lanes32/alpha1_degree2/decent/run/merge90_lanes32-4/PPO_FrameStack_ffe12_00000_0_2022-05-03_05-22-18 --scenario_name merge90_lanes32_cent_decent_2_runs_each --mean_reward --mean_len --agent_wise --learner_stats --png --legend "cent 2022-05-02_18-03-36" "cent 2022-05-03_00-15-28" "cent 2022-05-03_06-08-39" "decent 2022-05-03_00-18-23" "decent 2022-05-02_18-02-43" "decent 2022-05-03_05-22-18" --x_axis checkpoints time_total_s episodes_total timesteps_total --boxplot
 
 
 

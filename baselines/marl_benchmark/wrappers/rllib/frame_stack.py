@@ -1188,7 +1188,92 @@ class FrameStack(Wrapper):
     #     return func
 
 
-    # 08
+    # # 08
+    # # pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
+    # # per_cost = <off-road, goal reached, (time cost, closer to goal)>
+    # # includes proposed changes from 14.04.2022 meeting (clearance cost shape, acceleration cost shape)
+    # @staticmethod
+    # def get_reward_adapter(observation_adapter, **kwargs):
+    #
+    #     alpha = kwargs.get("alpha", 1.0)
+    #     degree = kwargs.get("degree", 2.0)
+    #
+    #     def func(env_obs_seq, env_reward):
+    #         cost_com, cost_per, collision_cost, off_road_cost = 0.0, 0.0, 0.0, 0.0
+    #
+    #         goal_improvement_reward, goal_reached_reward = 0.0, 0.0
+    #
+    #         # get observation of most recent time step
+    #         current_obs = env_obs_seq[-1]
+    #         last_obs = env_obs_seq[-2]
+    #
+    #         ego_id: str = last_obs.ego_vehicle_state.id
+    #         # Number of vehicle, for two vehicles this should be either 0 or 1
+    #         ego_vehicle_nr = int(ego_id[6])
+    #
+    #         # if ego_vehicle_nr == 0:
+    #         #     time_penalty = 1.0
+    #         # else:
+    #         #     time_penalty = 5.0
+    #
+    #         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
+    #         ego_events = current_obs.events
+    #         # ::collision
+    #         collision_cost += 1000.0 if len(ego_events.collisions) > 0 else 0.0
+    #         # ::off-road increases personal cost
+    #         off_road_cost += 500.0 if ego_events.off_road else 0.0
+    #         # ::reach goal decreases personal cost
+    #         if ego_events.reached_goal:
+    #             goal_reached_reward += 300.0
+    #         else:
+    #             # # time penalty increases personal cost
+    #             cost_per += 2.0
+    #             # cost_per += time_penalty
+    #
+    #         x_gc = current_obs.ego_vehicle_state.mission.goal.position
+    #         x_c = current_obs.ego_vehicle_state.position
+    #         x_gl = last_obs.ego_vehicle_state.mission.goal.position
+    #         x_l = last_obs.ego_vehicle_state.position
+    #         current_dist_to_goal = np.sqrt((x_c[0] - x_gc[0]) ** 2 + (x_c[1] - x_gc[1]) ** 2)
+    #         last_dist_to_goal = np.sqrt((x_l[0] - x_gl[0]) ** 2 + (x_l[1] - x_gl[1]) ** 2)
+    #
+    #         goal_improvement = last_dist_to_goal - current_dist_to_goal
+    #
+    #         if goal_improvement > 0:
+    #             # lexicost3
+    #             goal_improvement_reward += 1 * min(goal_improvement, 2)
+    #
+    #         neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
+    #         safety_dist = float(15)  # [m]
+    #         x_factor = 1.0
+    #         y_factor = 0.1
+    #         # note: this cost makes no sense since in the beginning they all have the same x position and therefore incur a huge cost.
+    #         for nvs in neighborhood_vehicle_states:
+    #             # calculate distance to neighbor vehicle
+    #             neigh_position = nvs.position
+    #             x_dist, y_dist, _ = np.abs(x_c - neigh_position)
+    #             dist = float(np.linalg.norm([x_dist, y_dist]))
+    #             # dist = float(np.linalg.norm(x_c - neigh_position))
+    #             cost_com += x_factor * 0.05 * (
+    #                         np.abs(float(x_dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
+    #             cost_com += y_factor * 0.05 * (
+    #                         np.abs(float(y_dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
+    #
+    #         ego_acceleration = np.linalg.norm(current_obs.ego_vehicle_state.linear_acceleration)
+    #         # acc_penalty = min(0.025 * (ego_acceleration - 5)**2, 5.0) if ego_acceleration > 5 else 0.0
+    #         acc_penalty = 5.0 * (1 - np.exp(-0.007 * (ego_acceleration - 5) ** 2)) if ego_acceleration > 5 else 0.0
+    #         cost_per += acc_penalty
+    #
+    #         cost_com /= alpha
+    #
+    #         total_reward = -cost_com - cost_per - collision_cost - off_road_cost
+    #         total_reward += goal_reached_reward + goal_improvement_reward
+    #         return total_reward
+    #
+    #     return func
+
+
+    # 09
     # pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
     # per_cost = <off-road, goal reached, (time cost, closer to goal)>
     # includes proposed changes from 14.04.2022 meeting (clearance cost shape, acceleration cost shape)
@@ -1245,18 +1330,14 @@ class FrameStack(Wrapper):
 
             neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
             safety_dist = float(15)  # [m]
-            x_factor = 1.0
-            y_factor = 0.1
+            y_safety_dist = float(4)  # [m]
             for nvs in neighborhood_vehicle_states:
                 # calculate distance to neighbor vehicle
                 neigh_position = nvs.position
                 x_dist, y_dist, _ = np.abs(x_c - neigh_position)
                 dist = float(np.linalg.norm([x_dist, y_dist]))
-                # dist = float(np.linalg.norm(x_c - neigh_position))
-                cost_com += x_factor * 0.05 * (
-                            np.abs(float(x_dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
-                cost_com += y_factor * 0.05 * (
-                            np.abs(float(y_dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
+                if dist < safety_dist and y_dist < y_safety_dist:
+                    cost_com += 0.05 * (np.abs(safety_dist - dist) ** degree)
 
             ego_acceleration = np.linalg.norm(current_obs.ego_vehicle_state.linear_acceleration)
             # acc_penalty = min(0.025 * (ego_acceleration - 5)**2, 5.0) if ego_acceleration > 5 else 0.0

@@ -50,7 +50,13 @@ def get_merge75_lanes321():
 
 
 def get_merge90_lanes32():
-    merge90_lanes32_lanes = []
+    merge90_lanes32_lanes = [StraightLane(boundaries=[((0, 43.4), (-3.2, -3.2)), ((0, 43.4), (0, 0))], center_lines=[]),
+                             StraightLane(boundaries=[((0, 31.3), (-9.4, -9.4)), ((0, 31.3), (-6.3, -6.3))], center_lines=[]),
+                             StraightLane(boundaries=[((0, 31.3), (3.1, 3.1)), ((0, 31.3), (6.2, 6.2))], center_lines=[]),
+                             StraightLane(boundaries=[((31.3, 43.4), (3.1, 0)), ((31.3, 55.4), (6.2, 0))], center_lines=[]),
+                             StraightLane(boundaries=[((31.3, 43.4), (-6.3, -3.2)), ((31.3, 45), (-9.4, -6.4))], center_lines=[]),
+                             StraightLane(boundaries=[((45, 90.6), (-6.3, -6.3)), ((55.4, 90.6), (0, 0))],
+                                          center_lines=[((43, 90), (-3.15, -3.15))])]
     merge90_lanes32_map = Map(lanes=merge90_lanes32_lanes,
                               x_lim=(-2.0, 92.0), y_lim=(-10.5, 7.5),
                               aspect_ratio=(17, 4))

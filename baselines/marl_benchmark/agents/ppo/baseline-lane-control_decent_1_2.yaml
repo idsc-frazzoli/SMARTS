@@ -47,7 +47,7 @@ run:
   resume: False
   export_formats: [model, checkpoint]
   stop:
-    episodes_total: 20000
+    episodes_total: 13000
   config:
     log_level: WARN
     num_workers: 1

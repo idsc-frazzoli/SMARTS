@@ -62,8 +62,8 @@ def main(
         )
 
     # use for debugging
-    print("WARNING: local mode on")
-    ray.init(local_mode=True)
+    # print("WARNING: local mode on")
+    # ray.init(local_mode=True)
     # ray.init(num_gpus=2)
 
     scenarios = [scenario]

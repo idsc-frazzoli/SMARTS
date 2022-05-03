@@ -15,7 +15,8 @@ import shutil
 from utils import animate_positions, animate, plot_positions, StraightLane, Map, get_info, make_video, get_rewards, \
     get_poa, load_checkpoint_dfs, set_box_color, density_plot
 
-from scenarios import get_empty, get_merge40_lanes1, get_merge110_lanes2, get_merge75_lanes321, get_merge90_lanes32
+from scenarios import get_empty, get_merge40_lanes1, get_merge110_lanes2, get_merge75_lanes321, get_merge90_lanes32, \
+    get_merge65_lanes42
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -161,7 +162,6 @@ def main(
     if centralized_cp is not None:
         c_cp = ["checkpoint_{:06d}".format(int(centralized_cp))]
 
-
     if scenario_name == "merge110_lanes2":
         scenario_map = get_merge110_lanes2()
     elif scenario_name == "merge40_lanes1":
@@ -170,6 +170,8 @@ def main(
         scenario_map = get_merge75_lanes321()
     elif scenario_name == "merge90_lanes32":
         scenario_map = get_merge90_lanes32()
+    elif scenario_name == "merge65_lanes42":
+        scenario_map = get_merge65_lanes42()
     else:
         scenario_map = get_empty()
 

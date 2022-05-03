@@ -115,12 +115,36 @@
 #done
 
 
+#num_runs=300
+#scenario_path="scenarios/custom/merge/merge90_lanes32"
+#runs=("log/results/run/20220502_merge90_lanes32/alpha1_degree2/cent/run/merge90_lanes32-4/PPO_FrameStack_2ff16_00000_0_2022-05-02_18-03-36" "log/results/run/20220502_merge90_lanes32/alpha1_degree2/cent/run/merge90_lanes32-4/PPO_FrameStack_23195_00000_0_2022-05-03_00-15-28")
+#names=("PPO_FrameStack_2ff16_00000_0_2022-05-02_18-03-36" "PPO_FrameStack_23195_00000_0_2022-05-03_00-15-28")
+#paradigms=("centralized" "centralized")
+#checkpoints=(600 600)
+#num_steps=80
+#
+#len=${#runs[@]}
+#for (( i=0; i<len; i++ ))
+#  do
+#  echo "Doing evaluation for ${runs[$i]} (${paradigms[$i]})."
+##  for cp in ${checkpoints[@]}
+#  cp=${checkpoints[$i]}
+#  cpf=$(printf "%06d" "$cp")
+#  #cp_dir="./log/results/run/merge40_lanes1-4/${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
+#  cp_dir="./${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
+#  #log_dir="./evaluation/evaluation_data/${runs[$i]}/checkpoint_${cpf}"
+#  log_dir="./${runs[$i]}/../logs_and_plots/evaluation_data/${names[$i]}/checkpoint_${cpf}"
+#  echo "cp folder: ${cp_dir}"
+#  python evaluate.py ${scenario_path} -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --log_dir ${log_dir} --checkpoint ${cp_dir} --paradigm ${paradigms[$i]} --headless --num_runs ${num_runs} --num_steps ${num_steps}
+#done
+
+
 num_runs=300
-scenario_path="scenarios/custom/merge/merge90_lanes32"
-runs=("log/results/run/20220502_merge90_lanes32/alpha1_degree2/cent/run/merge90_lanes32-4/PPO_FrameStack_2ff16_00000_0_2022-05-02_18-03-36" "log/results/run/20220502_merge90_lanes32/alpha1_degree2/cent/run/merge90_lanes32-4/PPO_FrameStack_23195_00000_0_2022-05-03_00-15-28")
-names=("PPO_FrameStack_2ff16_00000_0_2022-05-02_18-03-36" "PPO_FrameStack_23195_00000_0_2022-05-03_00-15-28")
-paradigms=("centralized" "centralized")
-checkpoints=(600 600)
+scenario_path="scenarios/custom/merge/merge65_lanes42"
+runs=("log/results/run/20220503_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_219bd_00000_0_2022-05-03_12-32-44")
+names=("PPO_FrameStack_219bd_00000_0_2022-05-03_12-32-44")
+paradigms=("decentralized")
+checkpoints=(150)
 num_steps=80
 
 len=${#runs[@]}

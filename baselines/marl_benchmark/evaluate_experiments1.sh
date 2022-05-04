@@ -139,12 +139,60 @@
 #done
 
 
+#num_runs=300
+#scenario_path="scenarios/custom/merge/merge65_lanes42"
+#runs=("log/results/run/20220503_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_219bd_00000_0_2022-05-03_12-32-44")
+#names=("PPO_FrameStack_219bd_00000_0_2022-05-03_12-32-44")
+#paradigms=("decentralized")
+#checkpoints=(150)
+#num_steps=80
+#
+#len=${#runs[@]}
+#for (( i=0; i<len; i++ ))
+#  do
+#  echo "Doing evaluation for ${runs[$i]} (${paradigms[$i]})."
+##  for cp in ${checkpoints[@]}
+#  cp=${checkpoints[$i]}
+#  cpf=$(printf "%06d" "$cp")
+#  #cp_dir="./log/results/run/merge40_lanes1-4/${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
+#  cp_dir="./${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
+#  #log_dir="./evaluation/evaluation_data/${runs[$i]}/checkpoint_${cpf}"
+#  log_dir="./${runs[$i]}/../logs_and_plots/evaluation_data/${names[$i]}/checkpoint_${cpf}"
+#  echo "cp folder: ${cp_dir}"
+#  python evaluate.py ${scenario_path} -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --log_dir ${log_dir} --checkpoint ${cp_dir} --paradigm ${paradigms[$i]} --headless --num_runs ${num_runs} --num_steps ${num_steps}
+#done
+
+
+#num_runs=300
+#scenario_path="scenarios/custom/merge/merge65_lanes42"
+#runs=("log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_5ba24_00000_0_2022-05-03_21-16-55" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_6dbeb_00000_0_2022-05-03_23-33-25" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_aa792_00000_0_2022-05-04_01-51-08" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_bbf6e_00000_0_2022-05-03_16-33-16" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_ffa84_00000_0_2022-05-03_18-58-20")
+#names=("PPO_FrameStack_5ba24_00000_0_2022-05-03_21-16-55" "PPO_FrameStack_6dbeb_00000_0_2022-05-03_23-33-25" "PPO_FrameStack_aa792_00000_0_2022-05-04_01-51-08" "PPO_FrameStack_bbf6e_00000_0_2022-05-03_16-33-16" "PPO_FrameStack_ffa84_00000_0_2022-05-03_18-58-20")
+#paradigms=("decentralized" "decentralized" "decentralized" "decentralized" "decentralized")
+#checkpoints=(160 150 150 190 150)
+#num_steps=80
+#
+#len=${#runs[@]}
+#for (( i=0; i<len; i++ ))
+#  do
+#  echo "Doing evaluation for ${runs[$i]} (${paradigms[$i]})."
+##  for cp in ${checkpoints[@]}
+#  cp=${checkpoints[$i]}
+#  cpf=$(printf "%06d" "$cp")
+#  #cp_dir="./log/results/run/merge40_lanes1-4/${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
+#  cp_dir="./${runs[$i]}/checkpoint_${cpf}/checkpoint-${cp}"
+#  #log_dir="./evaluation/evaluation_data/${runs[$i]}/checkpoint_${cpf}"
+#  log_dir="./${runs[$i]}/../logs_and_plots/evaluation_data/${names[$i]}/checkpoint_${cpf}"
+#  echo "cp folder: ${cp_dir}"
+#  python evaluate.py ${scenario_path} -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --log_dir ${log_dir} --checkpoint ${cp_dir} --paradigm ${paradigms[$i]} --headless --num_runs ${num_runs} --num_steps ${num_steps}
+#done
+
+
 num_runs=300
 scenario_path="scenarios/custom/merge/merge65_lanes42"
-runs=("log/results/run/20220503_merge65_lanes42/alpha1_degree2/decent/run/merge65_lanes42-4/PPO_FrameStack_219bd_00000_0_2022-05-03_12-32-44")
-names=("PPO_FrameStack_219bd_00000_0_2022-05-03_12-32-44")
-paradigms=("decentralized")
-checkpoints=(150)
+runs=("log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/cent/run/merge65_lanes42-4/PPO_FrameStack_73bc9_00000_0_2022-05-03_21-03-16" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/cent/run/merge65_lanes42-4/PPO_FrameStack_80f50_00000_0_2022-05-04_01-21-20" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/cent/run/merge65_lanes42-4/PPO_FrameStack_1717d_00000_0_2022-05-03_18-51-50" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/cent/run/merge65_lanes42-4/PPO_FrameStack_ca073_00000_0_2022-05-03_23-14-32" "log/results/run/20220503_1_merge65_lanes42/alpha1_degree2/cent/run/merge65_lanes42-4/PPO_FrameStack_e7c55_00000_0_2022-05-03_16-34-30")
+names=("PPO_FrameStack_73bc9_00000_0_2022-05-03_21-03-16" "PPO_FrameStack_80f50_00000_0_2022-05-04_01-21-20" "PPO_FrameStack_1717d_00000_0_2022-05-03_18-51-50" "PPO_FrameStack_ca073_00000_0_2022-05-03_23-14-32" "PPO_FrameStack_e7c55_00000_0_2022-05-03_16-34-30")
+paradigms=("centralized" "centralized" "centralized" "centralized" "centralized")
+checkpoints=(230 235 235 220 200)
 num_steps=80
 
 len=${#runs[@]}
@@ -161,4 +209,3 @@ for (( i=0; i<len; i++ ))
   echo "cp folder: ${cp_dir}"
   python evaluate.py ${scenario_path} -f marl_benchmark/agents/ppo/baseline-lane-control.yaml --log_dir ${log_dir} --checkpoint ${cp_dir} --paradigm ${paradigms[$i]} --headless --num_runs ${num_runs} --num_steps ${num_steps}
 done
-

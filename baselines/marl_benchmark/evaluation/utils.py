@@ -395,7 +395,7 @@ def animate_positions(checkpoint_path: Path,
                       ) -> None:
     assert coloring in ["speed", "agents", "reward", "acceleration", "control_input"]
 
-    plots_path = Path(checkpoint_path, 'plots', 'tmp')
+    plots_path = Path(checkpoint_path, 'plots', 'tmp_{}'.format(coloring))
     plots_path.mkdir(parents=True, exist_ok=True)
 
     matplotlib.rcParams['savefig.dpi'] = 100

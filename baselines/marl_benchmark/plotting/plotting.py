@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils import str2list, get_number_agents, plot_mean
+from baselines.marl_benchmark.plotting.utils import str2list, get_number_agents, plot_mean
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -69,10 +69,15 @@ def main(
         png=False,
         pdf=False,
         high_res=False,
-        x_axis="checkpoints",
+        x_axis=None,
         boxplot=False,
         y_lim=None,
+        log_path=None,
 ):
+
+    if x_axis is None:
+        x_axis = ["checkpoints", "time_total_s", "episodes_total", "timesteps_total"]
+
     if high_res:
         matplotlib.rcParams['savefig.dpi'] = 300
 
@@ -80,12 +85,19 @@ def main(
         title = scenario_name
 
     datetime = strftime("%Y%m%d_%H%M%S_", gmtime())
-    log_path = Path('plotting/plots', datetime + scenario_name)
+    if log_path is None:
+        log_path = Path('plotting/plots', datetime + scenario_name)
+    else:
+        log_path = Path(log_path, datetime + scenario_name)
     log_path.mkdir(parents=True, exist_ok=True)
 
     abs_paths = []
     for path in paths:
-        abs_paths.append(Path("log/results/run", path, "progress.csv"))
+        # check the format of the provided paths
+        if path[:15] == "log/results/run":
+            abs_paths.append(Path(path, "progress.csv"))
+        else:
+            abs_paths.append(Path("log/results/run", path, "progress.csv"))
 
     dfs = []
     for path in abs_paths:
@@ -272,6 +284,11 @@ def parse_args():
                         default="",
                         required=False)
 
+    parser.add_argument("--log_path",
+                        type=str,
+                        default=None,
+                        required=False)
+
     parser.add_argument(
         "--mean_reward", default=False, action="store_true",
         help="Make plot of mean episode reward."
@@ -349,4 +366,5 @@ if __name__ == "__main__":
         x_axis=args.x_axis,
         boxplot=args.boxplot,
         y_lim=args.y_lim,
+        log_path=args.log_path,
     )

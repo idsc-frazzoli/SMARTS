@@ -1,4 +1,4 @@
-from utils import StraightLane, Map
+from baselines.marl_benchmark.evaluation.utils import StraightLane, Map
 
 
 def get_merge110_lanes2():

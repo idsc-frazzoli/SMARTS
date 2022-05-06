@@ -12,11 +12,11 @@ import numpy as np
 
 import shutil
 
-from utils import animate_positions, animate, plot_positions, StraightLane, Map, get_info, make_video, get_rewards, \
-    get_poa, load_checkpoint_dfs, set_box_color, density_plot
+from baselines.marl_benchmark.evaluation.utils import animate_positions, animate, plot_positions, get_info, \
+    make_video, get_rewards, get_poa, load_checkpoint_dfs, set_box_color, density_plot
 
-from scenarios import get_empty, get_merge40_lanes1, get_merge110_lanes2, get_merge75_lanes321, get_merge90_lanes32, \
-    get_merge65_lanes42
+from baselines.marl_benchmark.evaluation.scenarios import get_empty, get_merge40_lanes1, get_merge110_lanes2, \
+    get_merge75_lanes321, get_merge90_lanes32, get_merge65_lanes42
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10

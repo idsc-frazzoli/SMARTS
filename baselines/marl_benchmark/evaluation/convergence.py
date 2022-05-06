@@ -75,14 +75,8 @@ def get_length_stats(df_progress: DataFrame, checkpoint: int) -> Tuple[float, fl
 def main(
         training_path,
         save_path=None,
+        checkpoint_frequency=5,
 ):
-    """
-    Generate a log-file and qualitative plots to automate convergence detection of multiple training runs.
-
-    :param save_path:
-    :param training_path: path to a folder full of training runs (sub-folders typically starting with PPO_FrameStack...)
-    :return:
-    """
 
     checkpoint_frequency = 5
 
@@ -298,7 +292,7 @@ def parse_args():
     parser.add_argument('-p',
                         '--path',
                         type=str,
-                        help='Path to PPO_FrameStack training folders.',
+                        help='Path to training run, i.e. .../PPO_FrameStack...',
                         required=True)
 
     return parser.parse_args()

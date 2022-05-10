@@ -1120,6 +1120,7 @@ class FrameStack(Wrapper):
 
         alpha = kwargs.get("alpha", 1.0)
         degree = kwargs.get("degree", 2.0)
+        asym_cost = kwargs.get("asym_cost", True)
 
         def func(env_obs_seq, env_reward):
             cost_com, cost_per, collision_cost, off_road_cost = 0.0, 0.0, 0.0, 0.0
@@ -1134,10 +1135,13 @@ class FrameStack(Wrapper):
             # Number of vehicle, for two vehicles this should be either 0 or 1
             ego_vehicle_nr = int(ego_id[6])
 
-            if ego_vehicle_nr == 0:
-                time_penalty = 1.0
+            if asym_cost:
+                if ego_vehicle_nr == 0:
+                    time_penalty = 1.0
+                else:
+                    time_penalty = 5.0
             else:
-                time_penalty = 5.0
+                time_penalty = 2.0
 
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = current_obs.events

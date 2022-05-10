@@ -5,7 +5,7 @@ agent:
     wrapper:
       name: FrameStack
       num_stack: 3
-      alpha: 0.1
+      alpha: 2.0
       degree: 2.0
       asym_cost: False
     features:
@@ -48,7 +48,7 @@ run:
   resume: False
   export_formats: [model, checkpoint]
   stop:
-    episodes_total: 13000
+    timesteps_total: 1800000
   config:
     log_level: WARN
     num_workers: 1
@@ -58,6 +58,6 @@ run:
     num_sgd_iter: 10
     sgd_minibatch_size: 32
     lr: 1.0e-4
-    lr_schedule: [[0, 1.0e-4], [500000, 9.0e-5], [1000000, 1.0e-5]]
+    lr_schedule: [[0, 1.0e-4], [1080000, 8.0e-5], [1800000, 1.0e-5]]
     lambda: 0
     

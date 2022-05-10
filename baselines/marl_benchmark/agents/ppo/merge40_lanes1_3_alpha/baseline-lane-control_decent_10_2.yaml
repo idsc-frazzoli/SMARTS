@@ -7,6 +7,7 @@ agent:
       num_stack: 3
       alpha: 10.0
       degree: 2.0
+      asym_cost: True
     features:
       # relative position of goal
       goal_relative_pos: True

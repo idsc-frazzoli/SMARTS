@@ -79,6 +79,7 @@ def main(
     # print("WARNING: local mode on")
     # ray.init(local_mode=True)
 
+    ray.shutdown()
     ray.init()
     metrics_handler = basic_handler.BasicMetricHandler()
     # metrics = basic_metrics.BehaviorMetric()
@@ -116,8 +117,12 @@ def main(
         trainer = trainer_cls(env=tune_config["env"], config=trainer_config)
 
         trainer.restore(config["checkpoint"])
+        # metrics_handler.set_log(
+        #     algorithm=config_file.split("/")[-2], num_episodes=num_episodes
+        # )
+        # NK: changed this to PPO to avoid problems with sub-folder structure in agents
         metrics_handler.set_log(
-            algorithm=config_file.split("/")[-2], num_episodes=num_episodes
+            algorithm="ppo", num_episodes=num_episodes
         )
         rollout(trainer, None, metrics_handler, num_steps, num_episodes, log_dir)
         trainer.stop()

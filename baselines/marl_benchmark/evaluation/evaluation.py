@@ -164,13 +164,13 @@ def main(
 
     if scenario_name == "merge110_lanes2":
         scenario_map = get_merge110_lanes2()
-    elif scenario_name == "merge40_lanes1":
+    elif scenario_name in ["merge40_lanes1", "merge40_lanes1_2", "merge40_lanes1_3", "merge40_lanes1_4"]:
         scenario_map = get_merge40_lanes1()
     elif scenario_name == "merge75_lanes321":
         scenario_map = get_merge75_lanes321()
     elif scenario_name == "merge90_lanes32":
         scenario_map = get_merge90_lanes32()
-    elif scenario_name == "merge65_lanes42":
+    elif scenario_name in ["merge65_lanes42", "merge65_lanes42_asym"]:
         scenario_map = get_merge65_lanes42()
     else:
         scenario_map = get_empty()

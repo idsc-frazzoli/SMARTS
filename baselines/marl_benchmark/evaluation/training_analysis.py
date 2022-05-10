@@ -17,6 +17,8 @@ import numpy as np
 
 import shutil
 
+import sys
+import subprocess
 
 PALETTE = ['#A93226',  # red
            '#884EA0',  # purple
@@ -84,6 +86,8 @@ def main(
     :return:
     """
 
+    human_mode = True
+
     checkpoint_frequency = 5
 
     if save_path is None:
@@ -92,7 +96,7 @@ def main(
 
     # first, set up log dict and convert to DataFrame in tend
     log_keys = {"date", "time", "run", "paradigm", "name", "converged", "stable_checkpoint", "first_stable",
-                "total_checkpoints", "converged_len", "max_rew", "max_rew_cp"}
+                "total_checkpoints", "converged_len", "max_reward", "max_reward_checkpoint", "run_path"}
     logs = dict([(key, []) for key in log_keys])
 
     # get list of only folders (excluding .json, etc.)
@@ -107,6 +111,7 @@ def main(
         date, time = extract_date_time(d)
         logs["date"].append(date)
         logs["time"].append(time)
+        logs["run_path"].append(str(training_path) + '/' + d)
 
         # somtimes there is an error in the progress.csv file (file could be cleaned up manually) -> ignore and log
         try:
@@ -129,10 +134,16 @@ def main(
             continue
 
         logs["paradigm"].append(get_paradigm(df_progress))
-        logs["max_reward"].append()
         cols = list(df_progress.columns)
         vf_expl_var_cols = [col for col in cols if "vf_explained_var" in col]
         vf_expl_var = [list(df_progress[col]) for col in vf_expl_var_cols]
+
+        mean_checkpoint_rewards = list(df_progress["episode_reward_mean"])
+        max_reward_checkpoint = (np.argmax(mean_checkpoint_rewards[checkpoint_frequency-1::checkpoint_frequency]) + 1) * checkpoint_frequency
+        max_reward = mean_checkpoint_rewards[max_reward_checkpoint - 1]
+
+        logs["max_reward"].append(max_reward)
+        logs["max_reward_checkpoint"].append(max_reward_checkpoint)
 
         n_agents = len(vf_expl_var)
 
@@ -250,17 +261,28 @@ def main(
                     ax.scatter(checkpoints[k], 0.15+(i*0.04), color=c, s=200, alpha=1, marker='s')
                 ax.text(1, 0.15+(i*0.04), "agent {} converged".format(i), color='white')
 
+            ax2.scatter(max_reward_checkpoint, max_reward, color='k')
+
             ax.set_ylim([0, 1])
             ax.fill_between(checkpoints, [mean_thres for _ in checkpoints], [1 for _ in checkpoints],
                             color='g', alpha=0.2)
 
             plt.grid()
             ax.legend()
-            ax.legend()
-            plt.savefig(Path(training_path, "logs_and_plots/convergence_analysis_{}.png".format(d)))
+
+            # # does not work, because the figure can't be shown
+            # if human_mode:
+            #     plt.show()
+            #     print(logs["converged"])
+            #     logs["human_converged"] = int(input())
+            # else:
+            #     logs["human_converged"] = None
+
+            fig_save_path = Path(save_path, "convergence_analysis_{}.png".format(d))
+            plt.savefig(fig_save_path)
 
     df_logs = pd.DataFrame.from_dict(logs)
-    df_logs.to_csv(Path(training_path, "logs_and_plots/convergence_logs.csv"))
+    df_logs.to_csv(Path(save_path, "convergence_logs.csv"))
 
     # plot lengths and rewards of converged stable checkpoints
     fig, ax = plt.subplots(figsize=(10, 10), tight_layout=True)
@@ -271,10 +293,10 @@ def main(
             df_progress = pd.read_csv(progress_path)
             mean_reward, std_dev_rew = get_reward_stats(df_progress, logs["stable_checkpoint"][run])
             mean_len, std_dev_len = get_length_stats(df_progress, logs["stable_checkpoint"][run])
-            if mean_len + std_dev_len/2 > max_len:
-                max_len = mean_len + std_dev_len/2
-            if mean_reward + std_dev_rew/2 > max_rew:
-                max_rew = mean_reward + std_dev_rew/2
+            if mean_len + std_dev_len / 2 > max_len:
+                max_len = mean_len + std_dev_len / 2
+            if mean_reward + std_dev_rew / 2 > max_rew:
+                max_rew = mean_reward + std_dev_rew / 2
             e = Ellipse(xy=(mean_len, mean_reward),
                         width=std_dev_len, height=std_dev_rew,
                         color=PALETTE[run], alpha=0.2)
@@ -289,7 +311,36 @@ def main(
     plt.ylabel("episode reward")
     plt.xlim([30, max_len])
     plt.ylim([-300, max_rew])
-    plt.savefig(Path(training_path, "logs_and_plots/converged_len_reward.png"))
+    plt.savefig(Path(save_path, "converged_len_reward.png"))
+
+    # plot lengths and rewards of maximum reward checkpoints
+    fig, ax = plt.subplots(figsize=(10, 10), tight_layout=True)
+    max_len, max_rew = 0, -1e6
+    for run, d in enumerate(logs["name"]):
+        if logs["converged"][run] == 1:
+            progress_path = Path(training_path, d, "progress.csv")
+            df_progress = pd.read_csv(progress_path)
+            mean_reward, std_dev_rew = get_reward_stats(df_progress, logs["max_reward_checkpoint"][run])
+            mean_len, std_dev_len = get_length_stats(df_progress, logs["max_reward_checkpoint"][run])
+            if mean_len + std_dev_len / 2 > max_len:
+                max_len = mean_len + std_dev_len / 2
+            if mean_reward + std_dev_rew / 2 > max_rew:
+                max_rew = mean_reward + std_dev_rew / 2
+            e = Ellipse(xy=(mean_len, mean_reward),
+                        width=std_dev_len, height=std_dev_rew,
+                        color=PALETTE[run], alpha=0.2)
+            ax.scatter(mean_len, mean_reward, color=PALETTE[run], label=logs["name"][run])
+            ax.text(mean_len, mean_reward,
+                    "cp {}, ({}, {})".format(logs["max_reward_checkpoint"][run], int(mean_len), int(mean_reward)))
+            ax.add_artist(e)
+
+    plt.legend()
+    plt.grid()
+    plt.xlabel("episode length")
+    plt.ylabel("episode reward")
+    plt.xlim([30, max_len])
+    plt.ylim([-300, max_rew])
+    plt.savefig(Path(save_path, "max_len_reward.png"))
 
 
 def parse_args():

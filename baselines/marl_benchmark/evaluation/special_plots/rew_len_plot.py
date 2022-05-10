@@ -23,14 +23,12 @@ NE_COLORS = [{"cent": "#DE3163", "decent": "#FF7F50"},
              ]
 
 
-def extract_rew_len(checkpoint_path):
-    dfs, masks = load_checkpoint_dfs(checkpoint_path)
-    rewards, filtered_rewards = get_rewards(dfs, masks, goal_reached_reward=300)
-    lengths, filtered_lengths = get_lengths(dfs, masks)
-
-    return
-
-
+# def extract_rew_len(checkpoint_path):
+#     dfs, masks = load_checkpoint_dfs(checkpoint_path)
+#     rewards, filtered_rewards = get_rewards(dfs, masks, goal_reached_reward=300)
+#     lengths, filtered_lengths = get_lengths(dfs, masks)
+#
+#     return
 
 
 def main(
@@ -39,7 +37,6 @@ def main(
         ne2_paths_cent,
         ne2_paths_decent,
 ):
-
     # TODO: clean up this code
 
     # clean this up later

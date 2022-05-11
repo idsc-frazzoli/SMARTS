@@ -1,9 +1,11 @@
 import pandas as pd
+import numpy as np
 
 import sys
 # sys.path.append("~/SMARTS/baselines/marl_benchmark")
 # sys.path.append("~/SMARTS/baselines")
 # sys.path.append("/home/nando/SMARTS")
+import yaml
 
 from baselines.marl_benchmark.plotting import plotting
 from baselines.marl_benchmark.evaluation import training_analysis
@@ -14,11 +16,10 @@ import argparse
 import os
 import shutil
 import baselines.marl_benchmark.plotting.utils as plotting_utils
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from pathlib import Path
 
 from baselines.marl_benchmark.wrappers.rllib.frame_stack import FrameStack
-
 
 from timeit import default_timer as timer
 
@@ -35,86 +36,117 @@ PARADIGM_MAP = {"cent": "centralized", "decent": "decentralized"}
 
 # TODO: throw all these functions in utils somewhere...
 
-# BIG TODO: use this for detailed reward evaluation
-# # cost 07
-# # pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
-# # per_cost = <off-road, goal reached, (time cost, closer to goal)>
-# # includes proposed changes from 14.04.2022 meeting (clearance cost shape, acceleration cost shape)
-# @staticmethod
-# def get_reward_adapter(observation_adapter, **kwargs):
-#
-#     alpha = kwargs.get("alpha", 1.0)
-#     degree = kwargs.get("degree", 2.0)
-#     asym_cost = kwargs.get("asym_cost", True)
-#
-#     def func(env_obs_seq, env_reward):
-#         cost_com, cost_per, collision_cost, off_road_cost = 0.0, 0.0, 0.0, 0.0
-#
-#         goal_improvement_reward, goal_reached_reward = 0.0, 0.0
-#
-#         # get observation of most recent time step
-#         current_obs = env_obs_seq[-1]
-#         last_obs = env_obs_seq[-2]
-#
-#         ego_id: str = last_obs.ego_vehicle_state.id
-#         # Number of vehicle, for two vehicles this should be either 0 or 1
-#         ego_vehicle_nr = int(ego_id[6])
-#
-#         if asym_cost:
-#             if ego_vehicle_nr == 0:
-#                 time_penalty = 1.0
-#             else:
-#                 time_penalty = 5.0
-#         else:
-#             time_penalty = 2.0
-#
-#         # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
-#         ego_events = current_obs.events
-#         # ::collision
-#         collision_cost += 1000.0 if len(ego_events.collisions) > 0 else 0.0
-#         # ::off-road increases personal cost
-#         off_road_cost += 500.0 if ego_events.off_road else 0.0
-#         # ::reach goal decreases personal cost
-#         if ego_events.reached_goal:
-#             goal_reached_reward += 300.0
-#         else:
-#             # # time penalty increases personal cost
-#             # cost_per += 2.0
-#             cost_per += time_penalty
-#
-#         x_gc = current_obs.ego_vehicle_state.mission.goal.position
-#         x_c = current_obs.ego_vehicle_state.position
-#         x_gl = last_obs.ego_vehicle_state.mission.goal.position
-#         x_l = last_obs.ego_vehicle_state.position
-#         current_dist_to_goal = np.sqrt((x_c[0] - x_gc[0]) ** 2 + (x_c[1] - x_gc[1]) ** 2)
-#         last_dist_to_goal = np.sqrt((x_l[0] - x_gl[0]) ** 2 + (x_l[1] - x_gl[1]) ** 2)
-#
-#         goal_improvement = last_dist_to_goal - current_dist_to_goal
-#
-#         if goal_improvement > 0:
-#             # lexicost3
-#             goal_improvement_reward += 1 * min(goal_improvement, 2)
-#
-#         neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
-#         safety_dist = float(15)  # [m]
-#         for nvs in neighborhood_vehicle_states:
-#             # calculate distance to neighbor vehicle
-#             neigh_position = nvs.position
-#             dist = float(np.linalg.norm(x_c - neigh_position))
-#             cost_com += 0.05 * (np.abs(float(dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
-#
-#         ego_acceleration = np.linalg.norm(current_obs.ego_vehicle_state.linear_acceleration)
-#         # acc_penalty = min(0.025 * (ego_acceleration - 5)**2, 5.0) if ego_acceleration > 5 else 0.0
-#         acc_penalty = 5.0 * (1 - np.exp(-0.007 * (ego_acceleration - 5) ** 2)) if ego_acceleration > 5 else 0.0
-#         cost_per += acc_penalty
-#
-#         cost_com /= alpha
-#
-#         total_reward = -cost_com - cost_per - collision_cost - off_road_cost
-#         total_reward += goal_reached_reward + goal_improvement_reward
-#         return total_reward
-#
-#     return func
+# cost 07
+# pseudo-lexicographic cost (additional clearance cost): <com_cost, per_cost>, where
+# per_cost = <off-road, goal reached, (time cost, closer to goal)>
+# includes proposed changes from 14.04.2022 meeting (clearance cost shape, acceleration cost shape)
+def get_detailed_reward_adapter(**kwargs):
+    alpha = kwargs.get("alpha", 1.0)
+    degree = kwargs.get("degree", 2.0)
+    asym_cost = kwargs.get("asym_cost", True)
+
+    def func(position: List[float],
+             other_positions: Union[List[List[float]]],
+             agent_id: int,
+             acceleration: float,
+             goal_distance: float,
+             last_goal_distance: Union[float, None]) -> dict:
+
+        cost_com, cost_per_time, cost_per_acceleration = 0.0, 0.0, 0.0
+
+        goal_improvement_reward = 0.0
+
+        if asym_cost:
+            if agent_id == 0:
+                time_penalty = 1.0
+            else:
+                time_penalty = 5.0
+        else:
+            time_penalty = 2.0
+
+        cost_per_time += time_penalty
+
+        if last_goal_distance is not None:
+            goal_improvement = last_goal_distance - goal_distance
+            if goal_improvement > 0:
+                # lexicost3
+                goal_improvement_reward += 1 * min(goal_improvement, 2)
+
+        if other_positions:
+            safety_dist = float(15)  # [m]
+            for pos in other_positions:
+                # calculate distance to neighbor vehicle
+                dist = float(np.linalg.norm(np.array(position) - np.array(pos)))
+                cost_com += 0.05 * (np.abs(float(dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
+
+        acc_penalty = 5.0 * (1 - np.exp(-0.007 * (acceleration - 5) ** 2)) if acceleration > 5 else 0.0
+        cost_per_acceleration += acc_penalty
+
+        cost_com /= alpha
+
+        # # alternatively
+        # cost_per_acceleration *= alpha
+
+        costs = {"cost_com": cost_com,
+                 "cost_per_time": cost_per_time,
+                 "cost_per_acceleration": cost_per_acceleration,
+                 "goal_improvement_reward": goal_improvement_reward,
+                 }
+
+        return costs
+
+    return func
+
+
+def add_rewards_to_csv(episode_path, cost):
+    # get episode dataframes
+    dfs = {agent: pd.read_csv(Path(episode_path, agent), index_col=0, header=None).T
+           for agent in os.listdir(Path(episode_path))}
+    lens = {agent: dfs[agent].shape[0] for agent in dfs.keys()}
+    positions = {agent: [[x, y] for x, y in zip(dfs[agent]["Xpos"], dfs[agent]["Ypos"])]
+                 for agent in dfs.keys()}
+
+    cost_com = dict([(agent, []) for agent in dfs.keys()])
+    cost_per_time = dict([(agent, []) for agent in dfs.keys()])
+    cost_per_acceleration = dict([(agent, []) for agent in dfs.keys()])
+    goal_improvement_reward = dict([(agent, []) for agent in dfs.keys()])
+
+    agents = list(dfs.keys())
+    for agent in agents:
+        for time_step in range(1, lens[agent] + 1):
+            position = positions[agent][time_step - 1]
+            acceleration = dfs[agent]["Acceleration"][time_step]
+            agent_id = int(agent[-5])
+            goal_distance = dfs[agent]["GDistance"][time_step]
+            if time_step != 1:
+                last_goal_distance = dfs[agent]["GDistance"][time_step - 1]
+            else:
+                last_goal_distance = None
+            other_positions = []
+            for other_agent in agents:
+                if other_agent != agent and time_step < lens[other_agent]:
+                    other_positions.append(positions[other_agent][time_step])
+
+            costs = cost(position,
+                         other_positions,
+                         agent_id,
+                         acceleration,
+                         goal_distance,
+                         last_goal_distance)
+
+            cost_com[agent].append(costs["cost_com"])
+            cost_per_time[agent].append(costs["cost_per_time"])
+            cost_per_acceleration[agent].append(costs["cost_per_acceleration"])
+            goal_improvement_reward[agent].append(costs["goal_improvement_reward"])
+
+        dfs[agent]["cost_com"] = cost_com[agent]
+        dfs[agent]["cost_per_time"] = cost_per_time[agent]
+        dfs[agent]["cost_per_acceleration"] = cost_per_acceleration[agent]
+        dfs[agent]["goal_improvement_reward"] = goal_improvement_reward[agent]
+
+        df_transpose = dfs[agent].T
+        df_transpose.to_csv(Path(episode_path, agent))
+
 
 def get_config_yaml_path(config_path, alpha_degree, paradigm):
     alpha = alpha_degree.split("_")[0][5:]
@@ -246,17 +278,35 @@ def main(path,
                         log_dir = Path(eval_runs_path, ad, paradigm, row["name"],
                                        "checkpoint_{:06d}".format(max_reward_checkpoint))
                         print(checkpoint_path)
-                        evaluate.main(df_info["scenario"][0],
-                                      [config_path],
-                                      log_dir,
-                                      num_steps=df_info["num_steps"][0],
-                                      num_episodes=200,
-                                      paradigm=PARADIGM_MAP[paradigm],
-                                      headless=True,
-                                      show_plots=False,
-                                      checkpoint=checkpoint_path,
-                                      data_replay_path=None,
-                                      )
+                        # evaluate.main(df_info["scenario"][0],
+                        #               [config_path],
+                        #               log_dir,
+                        #               num_steps=df_info["num_steps"][0],
+                        #               num_episodes=200,
+                        #               paradigm=PARADIGM_MAP[paradigm],
+                        #               headless=True,
+                        #               show_plots=False,
+                        #               checkpoint=checkpoint_path,
+                        #               data_replay_path=None,
+                        #               )
+
+
+                        # add detailed rewards to episode files
+                        config_path_no_marl_benchmark = Path("/".join(str(config_path).split('/')[1:]))
+                        with open(config_path_no_marl_benchmark, 'r') as stream:
+                            config_yaml = yaml.safe_load(stream)
+                            reward_config = config_yaml["agent"]["state"]["wrapper"]
+
+                        get_detailed_rewards = get_detailed_reward_adapter(**reward_config)
+
+                        times = os.listdir(log_dir)
+                        for time in times:
+                            if time != "plots":
+                                episodes = os.listdir(Path(log_dir, time))
+                                for episode in episodes:
+                                    add_rewards_to_csv(Path(log_dir, time, episode), get_detailed_rewards)
+
+
 
     if do_videos:
         df_info = pd.read_csv(Path(path, "info"), sep=", ", engine="python")

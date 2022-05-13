@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+import warnings
 from collections import deque
 from typing import Sequence
 
@@ -1118,9 +1119,32 @@ class FrameStack(Wrapper):
     @staticmethod
     def get_reward_adapter(observation_adapter, **kwargs):
 
-        alpha = kwargs.get("alpha", 1.0)
-        degree = kwargs.get("degree", 2.0)
-        asym_cost = kwargs.get("asym_cost", True)
+        # alpha = kwargs.get("alpha", 1.0)
+        # degree = kwargs.get("degree", 2.0)
+        # asym_cost = kwargs.get("asym_cost", False)
+
+        com_cost_coef = kwargs.get("com_cost_coef", 0.05)
+        acc_cost_coef = kwargs.get("acc_cost_coef", 5.0)
+        safety_dist = kwargs.get("safety_dist", 15.0)
+        acc_thres = kwargs.get("acc_thres", 5.0)
+        acc_cost_flatness = kwargs.get("acc_cost_flatness", 0.007)
+
+        if com_cost_coef == 0.05:
+            warnings.warn("Using default value for com_cost_coef")
+        if acc_cost_coef == 5.0:
+            warnings.warn("Using default value for acc_cost_coef")
+        if safety_dist == 15.0:
+            warnings.warn("Using default value for safety_dist")
+        if acc_thres == 5.0:
+            warnings.warn("Using default value for acc_thres")
+        if acc_cost_flatness == 0.007:
+            warnings.warn("Using default value for acc_cost_flatness")
+
+        # this is better since we want an error (problem: doesn't work with older config files)
+        alpha = kwargs["alpha"]
+        degree = kwargs["degree"]
+        asym_cost = kwargs["asym_cost"]
+
 
         def func(env_obs_seq, env_reward):
             cost_com, cost_per, collision_cost, off_road_cost = 0.0, 0.0, 0.0, 0.0
@@ -1171,16 +1195,17 @@ class FrameStack(Wrapper):
                 goal_improvement_reward += 1 * min(goal_improvement, 2)
 
             neighborhood_vehicle_states = last_obs.neighborhood_vehicle_states
-            safety_dist = float(15)  # [m]
+            # safety_dist = float(15)  # [m]
             for nvs in neighborhood_vehicle_states:
                 # calculate distance to neighbor vehicle
                 neigh_position = nvs.position
                 dist = float(np.linalg.norm(x_c - neigh_position))
-                cost_com += 0.05 * (np.abs(float(dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
+                cost_com += com_cost_coef * (np.abs(float(dist) - safety_dist) ** degree) if dist < safety_dist else 0.0
 
             ego_acceleration = np.linalg.norm(current_obs.ego_vehicle_state.linear_acceleration)
             # acc_penalty = min(0.025 * (ego_acceleration - 5)**2, 5.0) if ego_acceleration > 5 else 0.0
-            acc_penalty = 5.0 * (1 - np.exp(-0.007 * (ego_acceleration - 5) ** 2)) if ego_acceleration > 5 else 0.0
+            acc_penalty = acc_cost_coef * (1 - np.exp(-acc_cost_flatness * (ego_acceleration - acc_thres) ** 2)) \
+                if ego_acceleration > acc_thres else 0.0
             cost_per += acc_penalty
 
             cost_com /= alpha

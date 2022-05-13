@@ -123,6 +123,8 @@ def main(
             logs["first_stable"].append("CSV_PARSE_ERROR")
             logs["total_checkpoints"].append("CSV_PARSE_ERROR")
             logs["converged_len"].append("CSV_PARSE_ERROR")
+            logs["max_reward_checkpoint"].append("CSV_PARSE_ERROR")
+            logs["max_reward"].append("CSV_PARSE_ERROR")
             continue
         except EmptyDataError:
             logs["paradigm"].append("CSV_EMPTY_DATA_ERROR")
@@ -131,6 +133,8 @@ def main(
             logs["first_stable"].append("CSV_EMPTY_DATA_ERROR")
             logs["total_checkpoints"].append("CSV_EMPTY_DATA_ERROR")
             logs["converged_len"].append("CSV_EMPTY_DATA_ERROR")
+            logs["max_reward_checkpoint"].append("CSV_EMPTY_DATA_ERROR")
+            logs["max_reward"].append("CSV_EMPTY_DATA_ERROR")
             continue
 
         logs["paradigm"].append(get_paradigm(df_progress))

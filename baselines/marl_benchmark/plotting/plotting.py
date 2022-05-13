@@ -4,6 +4,8 @@ import pandas as pd
 from time import gmtime, strftime
 import os
 
+from pandas.errors import ParserError
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -101,7 +103,11 @@ def main(
 
     dfs = []
     for path in abs_paths:
-        dfs.append(pd.read_csv(path))
+        try:
+            df = pd.read_csv(path)
+            dfs.append(df)
+        except ParserError:
+            continue
 
     agents_info = [get_number_agents(df.columns) for df in dfs]
     n_agents = [x[0] for x in agents_info]

@@ -66,9 +66,10 @@ def _make_rllib_config(config, mode="training"):
     env_action_space = common.ActionSpace.from_type(action_type)
     wrapper_cls = getattr(rllib_wrappers, wrapper_config["name"])
 
-    # NK 22.04.2022
-    reward_hyperparams = {"alpha": wrapper_config.get("alpha", 1.0),
-                          "degree": wrapper_config.get("degree", 2.0)}
+    # NK 22.04.2022, NK 12.05.2022 this is the dumbest shit I've done in a long time
+    # reward_hyperparams = {"alpha": wrapper_config.get("alpha", 1.0),
+    #                       "degree": wrapper_config.get("degree", 2.0),
+    #                       "asym_cost": wrapper_config.get("asym_cost", True)}
 
     """ Parse policy configuration """
     policy_obs_space = wrapper_cls.get_observation_space(frame_space, wrapper_config)
@@ -112,7 +113,7 @@ def _make_rllib_config(config, mode="training"):
     config["env_config"] = {
         "custom_config": {
             **wrapper_config,
-            "reward_adapter": wrapper_cls.get_reward_adapter(observation_adapter, **reward_hyperparams),
+            "reward_adapter": wrapper_cls.get_reward_adapter(observation_adapter, **wrapper_config),
             "observation_adapter": observation_adapter,
             "action_adapter": action_adapter,
             "info_adapter": metrics.agent_info_adapter

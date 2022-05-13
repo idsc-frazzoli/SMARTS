@@ -202,8 +202,8 @@ def get_rewards(dfs: Dict[str, List[DataFrame]],
 
 
 def get_lengths(dfs: Dict[str, List[DataFrame]],
-                 masks: Dict[str, List],
-                 ) -> Tuple[List[float], List[float]]:
+                masks: Dict[str, List],
+                ) -> Tuple[List[float], List[float]]:
     """
     :param dfs: Lists of all episode dataframes in a dict with agent keys.
     :param masks: Masks containing information whether an off-road event happened, a collision happened, or all the

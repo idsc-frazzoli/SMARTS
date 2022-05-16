@@ -77,7 +77,7 @@ def main(path,
                           )
 
             # copy and rename reward, checkpoint plot to plots/overview
-            plot_name = Path(log_path, os.listdir(log_path)[0], "episode_reward_mean_checkpoint.png")
+            plot_name = Path(log_path, os.listdir(log_path)[0], "episode_reward_mean_timesteps_total.png")
             new_plot_name = Path(overview_path, "-".join(key.split('/')[-2:]) + ".png")
             shutil.copy(plot_name, new_plot_name)
 
@@ -108,7 +108,9 @@ def main(path,
         df_info = pd.read_csv(Path(path, "info"), sep=", ", engine="python")
 
         convergence_path = Path(path, "evaluation", "convergence")
-        alpha_degree_dirs = os.listdir(Path(convergence_path))
+        alpha_degree_dirs = [x for x in os.listdir(Path(convergence_path))
+                             if not os.path.isfile(Path(convergence_path, x))]
+        print(alpha_degree_dirs)
         for ad in alpha_degree_dirs:
             alpha_degree_path = Path(convergence_path, ad)
             paradigm_dirs = os.listdir(alpha_degree_path)
@@ -124,47 +126,48 @@ def main(path,
 
                 print(paradigm_path)
                 for index, row in df_convergence_logs.iterrows():
-                    if row[conv]:
-                        print(paradigm_path)
-                        print(PARADIGM_MAP[paradigm])
-                        print(row["paradigm"])
+                    if row[conv] and not row["converged"] in ["CSV_PARSE_ERROR", "CSV_EMPTY_DATA_ERROR"]:
+                        print(row["run_path"])
+                        # print(paradigm_path)
+                        # print(PARADIGM_MAP[paradigm])
+                        # print(row["paradigm"])
                         # assert PARADIGM_MAP[paradigm] == row["paradigm"], "something went wrong with the paradigm log"
 
-                        max_reward_checkpoint = row["max_reward_checkpoint"]
+                        max_reward_checkpoint = int(row["max_reward_checkpoint"])
                         run_path = './' + row["run_path"]
                         checkpoint_path = run_path + \
                                           "/checkpoint_{:06d}".format(max_reward_checkpoint) + \
                                           "/checkpoint-{}".format(max_reward_checkpoint)
                         log_dir = Path(eval_runs_path, ad, paradigm, row["name"],
                                        "checkpoint_{:06d}".format(max_reward_checkpoint))
-                        print(checkpoint_path)
-                        evaluate.main(df_info["scenario"][0],
-                                      [config_path],
-                                      log_dir,
-                                      num_steps=df_info["num_steps"][0],
-                                      num_episodes=200,
-                                      paradigm=PARADIGM_MAP[paradigm],
-                                      headless=True,
-                                      show_plots=False,
-                                      checkpoint=checkpoint_path,
-                                      data_replay_path=None,
-                                      )
+                        print(log_dir)
+                        if not os.path.isdir(log_dir):
+                            evaluate.main(df_info["scenario"][0],
+                                          [config_path],
+                                          log_dir,
+                                          num_steps=df_info["num_steps"][0],
+                                          num_episodes=200,
+                                          paradigm=PARADIGM_MAP[paradigm],
+                                          headless=True,
+                                          show_plots=False,
+                                          checkpoint=checkpoint_path,
+                                          data_replay_path=None,
+                                          )
 
+                            # add detailed rewards to episode files
+                            config_path_no_marl_benchmark = Path("/".join(str(config_path).split('/')[1:]))
+                            with open(config_path_no_marl_benchmark, 'r') as stream:
+                                config_yaml = yaml.safe_load(stream)
+                                reward_config = config_yaml["agent"]["state"]["wrapper"]
 
-                        # add detailed rewards to episode files
-                        config_path_no_marl_benchmark = Path("/".join(str(config_path).split('/')[1:]))
-                        with open(config_path_no_marl_benchmark, 'r') as stream:
-                            config_yaml = yaml.safe_load(stream)
-                            reward_config = config_yaml["agent"]["state"]["wrapper"]
+                            get_detailed_rewards = get_detailed_reward_adapter(**reward_config)
 
-                        get_detailed_rewards = get_detailed_reward_adapter(**reward_config)
-
-                        times = os.listdir(log_dir)
-                        for time in times:
-                            if time != "plots":
-                                episodes = os.listdir(Path(log_dir, time))
-                                for episode in episodes:
-                                    add_rewards_to_csv(Path(log_dir, time, episode), get_detailed_rewards)
+                            times = os.listdir(log_dir)
+                            for time in times:
+                                if time != "plots":
+                                    episodes = os.listdir(Path(log_dir, time))
+                                    for episode in episodes:
+                                        add_rewards_to_csv(Path(log_dir, time, episode), get_detailed_rewards)
 
 
 
@@ -173,12 +176,13 @@ def main(path,
         scenario_name = df_info["scenario"][0].split('/')[-1]
         evaluation_runs_path = Path(path, "evaluation", "evaluation_runs")
         evaluation_runs_paths = list_all_run_paths(str(evaluation_runs_path))
+        coloring = ["reward"]
         evaluation.main(evaluation_runs_paths,
                         scenario_name,
                         checkpoints=None,  # leave None for all available checkpoints
                         training_progress_video=False,
                         checkpoint_video=True,
-                        coloring=["control_input", "speed", "reward", "acceleration"],
+                        coloring=coloring,
                         poa=False,
                         decentralized_cp=None,
                         centralized_cp=None,

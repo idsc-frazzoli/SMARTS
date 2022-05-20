@@ -1128,6 +1128,9 @@ class FrameStack(Wrapper):
         safety_dist = kwargs.get("safety_dist", 15.0)
         acc_thres = kwargs.get("acc_thres", 5.0)
         acc_cost_flatness = kwargs.get("acc_cost_flatness", 0.007)
+        _goal_reached_reward = kwargs.get("goal_reached_reward", 300.0)
+        _off_road_cost = kwargs.get("off_road_cost", 500.0)
+        _collision_cost = kwargs.get("collision_cost", 1000.0)
 
         if com_cost_coef == 0.05:
             warnings.warn("Using default value for com_cost_coef")
@@ -1139,6 +1142,12 @@ class FrameStack(Wrapper):
             warnings.warn("Using default value for acc_thres")
         if acc_cost_flatness == 0.007:
             warnings.warn("Using default value for acc_cost_flatness")
+        if _goal_reached_reward == 300.0:
+            warnings.warn("Using default value for goal_reached_reward")
+        if _off_road_cost == 500.0:
+            warnings.warn("Using default value for off_road_cost")
+        if _collision_cost == 1000.0:
+            warnings.warn("Using default value for collision_cost")
 
         # this is better since we want an error (problem: doesn't work with older config files)
         alpha = kwargs["alpha"]
@@ -1170,12 +1179,12 @@ class FrameStack(Wrapper):
             # ======== Penalty & Bonus: event (collision, off_road, reached_goal, reached_max_episode_steps)
             ego_events = current_obs.events
             # ::collision
-            collision_cost += 1000.0 if len(ego_events.collisions) > 0 else 0.0
+            collision_cost += _collision_cost if len(ego_events.collisions) > 0 else 0.0
             # ::off-road increases personal cost
-            off_road_cost += 500.0 if ego_events.off_road else 0.0
+            off_road_cost += _off_road_cost if ego_events.off_road else 0.0
             # ::reach goal decreases personal cost
             if ego_events.reached_goal:
-                goal_reached_reward += 300.0
+                goal_reached_reward += _goal_reached_reward
             else:
                 # # time penalty increases personal cost
                 # cost_per += 2.0

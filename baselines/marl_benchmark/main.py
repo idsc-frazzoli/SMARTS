@@ -19,7 +19,8 @@ import shutil
 from pathlib import Path
 
 from baselines.marl_benchmark.main_utils import get_plotting_paths, get_convergence_paths, get_config_yaml_path, \
-    get_detailed_reward_adapter, list_all_run_paths, add_rewards_to_csv
+    get_detailed_reward_adapter, list_all_run_paths, add_rewards_to_csv, add_evaluation_paths, make_stats, \
+    make_data_pickle
 
 
 from timeit import default_timer as timer
@@ -35,14 +36,12 @@ PARADIGM_MAP = {"cent": "centralized", "decent": "decentralized"}
 #     pass
 
 
-# TODO: throw all these functions in utils somewhere...
-
-
 def main(path,
          do_plotting=False,
          do_convergence=False,
          concat_convergence=False,
          do_evaluation_runs=False,
+         add_eval_paths=False,
          do_videos=False
          ):
     eval_path = Path(path, "evaluation")
@@ -89,6 +88,7 @@ def main(path,
 
             training_analysis.main(c_path, log_path)
 
+    # should do manual cn
     if concat_convergence:
         manual_convergence_paths = [x[0] + "/convergence_logs_manual.csv" for x in
                                     os.walk(Path(path, "evaluation", "convergence"))
@@ -169,14 +169,17 @@ def main(path,
                                     for episode in episodes:
                                         add_rewards_to_csv(Path(log_dir, time, episode), get_detailed_rewards)
 
-
+    if add_eval_paths:
+        add_evaluation_paths(eval_path)
+        make_stats(eval_path)
+        make_data_pickle(eval_path)
 
     if do_videos:
         df_info = pd.read_csv(Path(path, "info"), sep=", ", engine="python")
         scenario_name = df_info["scenario"][0].split('/')[-1]
         evaluation_runs_path = Path(path, "evaluation", "evaluation_runs")
         evaluation_runs_paths = list_all_run_paths(str(evaluation_runs_path))
-        coloring = ["reward"]
+        coloring = ["reward"]  # ["control_input", "speed", "reward", "acceleration", "agents"]
         evaluation.main(evaluation_runs_paths,
                         scenario_name,
                         checkpoints=None,  # leave None for all available checkpoints
@@ -217,6 +220,10 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--add_eval_paths", default=False, action="store_true"
+    )
+
+    parser.add_argument(
         "--do_videos", default=False, action="store_true"
     )
 
@@ -231,5 +238,6 @@ if __name__ == "__main__":
          do_convergence=args.do_convergence,
          concat_convergence=args.concat_convergence,
          do_evaluation_runs=args.do_evaluation_runs,
+         add_eval_paths=args.add_eval_paths,
          do_videos=args.do_videos,
          )

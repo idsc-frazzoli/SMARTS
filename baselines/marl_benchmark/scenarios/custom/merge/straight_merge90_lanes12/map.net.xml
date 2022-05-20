@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2022-05-20 14:53:13 by Eclipse SUMO netedit Version 1.13.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <output>
+        <output-file value="/home/nando/Dev/SMARTS/baselines/marl_benchmark/scenarios/custom/merge/straight_merge90_lanes12/map.net.xml"/>
+    </output>
+
+    <processing>
+        <offset.disable-normalization value="true"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+    </junctions>
+
+    <report>
+        <aggregate-warnings value="5"/>
+    </report>
+
+</configuration>
+-->
+
+<net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.00,0.00,90.62,0.00" origBoundary="10000000000.00,10000000000.00,-10000000000.00,-10000000000.00" projParameter="!"/>
+
+    <edge id="E0" from="J0" to="J1" priority="-1">
+        <lane id="E0_0" index="0" speed="15.00" length="90.62" shape="0.00,-36.80 90.62,-36.80"/>
+        <lane id="E0_1" index="1" speed="15.00" length="90.62" shape="0.00,-33.60 90.62,-33.60"/>
+        <lane id="E0_2" index="2" speed="15.00" length="90.62" shape="0.00,-30.40 90.62,-30.40"/>
+        <lane id="E0_3" index="3" speed="15.00" length="90.62" shape="0.00,-27.20 90.62,-27.20"/>
+        <lane id="E0_4" index="4" speed="15.00" length="90.62" shape="0.00,-24.00 90.62,-24.00"/>
+        <lane id="E0_5" index="5" speed="15.00" length="90.62" shape="0.00,-20.80 90.62,-20.80"/>
+        <lane id="E0_6" index="6" speed="15.00" length="90.62" shape="0.00,-17.60 90.62,-17.60"/>
+        <lane id="E0_7" index="7" speed="15.00" length="90.62" shape="0.00,-14.40 90.62,-14.40"/>
+        <lane id="E0_8" index="8" speed="15.00" length="90.62" shape="0.00,-11.20 90.62,-11.20"/>
+        <lane id="E0_9" index="9" speed="15.00" length="90.62" shape="0.00,-8.00 90.62,-8.00"/>
+        <lane id="E0_10" index="10" speed="15.00" length="90.62" shape="0.00,-4.80 90.62,-4.80"/>
+        <lane id="E0_11" index="11" speed="15.00" length="90.62" shape="0.00,-1.60 90.62,-1.60"/>
+    </edge>
+
+    <junction id="J0" type="dead_end" x="0.00" y="0.00" incLanes="" intLanes="" shape="0.00,0.00 0.00,-38.40"/>
+    <junction id="J1" type="dead_end" x="90.62" y="0.00" incLanes="E0_0 E0_1 E0_2 E0_3 E0_4 E0_5 E0_6 E0_7 E0_8 E0_9 E0_10 E0_11" intLanes="" shape="90.62,-38.40 90.62,0.00"/>
+
+</net>

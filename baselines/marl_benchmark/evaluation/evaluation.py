@@ -16,7 +16,7 @@ from baselines.marl_benchmark.evaluation.utils import animate_positions, animate
     make_video, get_rewards, get_poa, load_checkpoint_dfs, set_box_color, density_plot
 
 from baselines.marl_benchmark.evaluation.scenarios import get_empty, get_merge40_lanes1, get_merge110_lanes2, \
-    get_merge75_lanes321, get_merge90_lanes32, get_merge65_lanes42
+    get_merge75_lanes321, get_merge90_lanes32, get_merge65_lanes42, get_straight_merge90_lanes7
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -172,6 +172,8 @@ def main(
         scenario_map = get_merge90_lanes32()
     elif scenario_name in ["merge65_lanes42", "merge65_lanes42_asym"]:
         scenario_map = get_merge65_lanes42()
+    elif scenario_name == "straight_merge90_lanes7":
+        scenario_map = get_straight_merge90_lanes7()
     else:
         scenario_map = get_empty()
 

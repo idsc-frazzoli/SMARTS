@@ -522,7 +522,7 @@ def animate_positions(checkpoint_path: Path,
                 ax.scatter(1e5, 1e5, c=ACTION_COLORS[action], label=ACTIONS[action])
             ax.set_xlabel(r'x $[m]$')
             ax.set_ylabel(r'y $[m]$')
-            plt.legend()
+            plt.legend(loc='upper right')
             plt.savefig(Path(plots_path, '{:04d}.png'.format(time_step)))
             plt.close('all')
 

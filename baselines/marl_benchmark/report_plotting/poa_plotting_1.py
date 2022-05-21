@@ -105,7 +105,7 @@ def main(eval_path):
                              sum(run_data[agent]["episode_cost_per_acceleration"]) +
                              sum(run_data[agent]["episode_cost_per_time"]) -
                              sum(run_data[agent]["episode_goal_improvement_reward"])) / (
-                                    len(run_data[agent]["episode_cost_com"]))
+                                len(run_data[agent]["episode_cost_com"]))
 
                 names.append(row["name"])
                 costs.append(cost)
@@ -165,32 +165,56 @@ def main(eval_path):
                     rews_per_goal_sorted_decent.append(rews_per_goal[index])
                 costs[index] = 1e20
 
-            # poas[degree].append(costs_sorted_decent[-1] / costs_sorted[0])
-            poas[degree].append(costs_sorted[-1] / costs_sorted[0])
-            # cost_com_high[degree].append(costs_com_sorted_decent[-1])
-            cost_com_high[degree].append(costs_com_sorted[-1])
+            poas[degree].append(costs_sorted_decent[-1] / costs_sorted[0])
+            cost_com_high[degree].append(costs_com_sorted_decent[-1])
             cost_com_low[degree].append(costs_com_sorted[0])
-            # cost_per_acc_high[degree].append(costs_per_acc_sorted_decent[-1])
-            cost_per_acc_high[degree].append(costs_per_acc_sorted[-1])
+            cost_per_acc_high[degree].append(costs_per_acc_sorted_decent[-1])
             cost_per_acc_low[degree].append(costs_per_acc_sorted[0])
-            # cost_per_time_high[degree].append(costs_per_time_sorted_decent[-1])
-            cost_per_time_high[degree].append(costs_per_time_sorted[-1])
-            # cost_per_time_low[degree].append(costs_per_time_sorted_decent[0])
+            cost_per_time_high[degree].append(costs_per_time_sorted_decent[-1])
             cost_per_time_low[degree].append(costs_per_time_sorted[0])
-            rew_per_goal_high[degree].append(rews_per_goal_sorted[-1])
-            # rew_per_goal_low[degree].append(rews_per_goal_sorted_decent[0])
+            rew_per_goal_high[degree].append(rews_per_goal_sorted_decent[-1])
             rew_per_goal_low[degree].append(rews_per_goal_sorted[0])
-            cost_high[degree].append(costs_sorted[-1])
-            # cost_low[degree].append(costs_sorted_decent[0])
+            cost_high[degree].append(costs_sorted_decent[-1])
             cost_low[degree].append(costs_sorted[0])
 
             print(poas[degree][-1])
+
+    better_cost_low = copy.deepcopy(cost_low)
+    better_cost_com_low = copy.deepcopy(cost_com_low)
+    better_cost_per_acc_low = copy.deepcopy(cost_per_acc_low)
+    better_cost_per_time_low = copy.deepcopy(cost_per_time_low)
+    better_rew_per_goal_low = copy.deepcopy(rew_per_goal_low)
+    better_alphas = copy.deepcopy(alphas)
+    better_poas = copy.deepcopy(poas)
+    for degree in degrees:
+        for i, alpha_eval in enumerate(alphas):
+            for j, alpha_pol in enumerate(alphas):
+                # print("---------------------------------------------")
+                # print(cost_com_low[degree][i])
+                # print(alpha_pol*cost_com_low[degree][j]/alpha_eval)
+                # print("---------------------------------------------")
+                cost_com_other_policy = alpha_pol / alpha_eval * cost_com_low[degree][j]
+                cost_with_other_policy = cost_com_other_policy + cost_per_acc_low[degree][j] + \
+                                         cost_per_time_low[degree][j] - rew_per_goal_low[degree][j]
+
+                if cost_with_other_policy < better_cost_low[degree][i]:
+                    better_cost_low[degree][i] = cost_with_other_policy
+                    better_cost_com_low[degree][i] = alpha_pol / alpha_eval * cost_com_low[degree][j]
+                    better_cost_per_acc_low[degree][i] = cost_per_acc_low[degree][j]
+                    better_cost_per_time_low[degree][i] = cost_per_time_low[degree][j]
+                    better_rew_per_goal_low[degree][i] = rew_per_goal_low[degree][j]
+                    better_alphas[i] = alpha_pol
+        better_poas[degree] = [cost_high[degree][i] / cl for i, cl in enumerate(better_cost_low[degree])]
 
     fig, ax = plt.subplots(figsize=(16, 9), tight_layout=True)
     for i, degree in enumerate(degrees):
         ax.plot(alphas, poas[degree],
                 color=PALETTE[i], marker="x", markersize=10, label="degree = {}".format(degree),
                 linestyle=(0, (5, 10)))
+        ax.plot(alphas, better_poas[degree],
+                color=PALETTE[i+1], marker="x", markersize=10, label="with all optimal policies".format(degree),
+                linestyle=(0, (5, 10)))
+
         # for i, alpha in enumerate(alphas):
         #     ax.text(1.05*alpha, poas[degree][i], r"$\alpha = {}$".format(alpha), fontsize=9)
     ax.legend()
@@ -203,7 +227,7 @@ def main(eval_path):
     plt.xlabel(r"$\alpha$")
     fig.show()
     ax.set_xscale('log')
-    plt.savefig(Path(fig_save_folder, "PoA_alpha_plot.png"), dpi=500)
+    plt.savefig(Path(fig_save_folder, "PoA_alpha_plot_w_better.png"), dpi=500)
     # plt.savefig(Path(fig_save_folder, "PoA_alpha_plot.pdf"))
 
     # for degree in degrees:
@@ -244,7 +268,7 @@ def main(eval_path):
         ax.bar(ind + locations[1] - width - distance, cost_per_time_high[degree], width, color=PALETTE[1])
         ax.bar(ind + locations[1], cost_per_acc_high[degree], width, color=PALETTE[2])
         ax.bar(ind + locations[1] + width + distance, -np.array(rew_per_goal_high[degree]), width, color=PALETTE[3])
-        ax.bar(ind + locations[1] + 2*width + 2*distance, cost_high[degree], width, color="grey")
+        ax.bar(ind + locations[1] + 2 * width + 2 * distance, cost_high[degree], width, color="grey")
 
         ax.bar(ind + locations[0] - 2 * width - 2 * distance, cost_com_low[degree], width, color=PALETTE[0])
         ax.bar(ind + locations[0] - width - distance, cost_per_time_low[degree], width, color=PALETTE[1])
@@ -266,11 +290,54 @@ def main(eval_path):
         ax.set_axisbelow(True)
         ax.yaxis.grid(True)
 
-
         plt.ylabel(r"total cost  $J(\gamma)$")
 
         plt.savefig(Path(fig_save_folder, "costs_plot_degree_{}_1.png".format(degree)), dpi=500)
         # plt.savefig(Path(fig_save_folder, "costs_plot_degree_{}.pdf".format(degree)))
+
+    for degree in degrees:
+        fig, ax = plt.subplots(figsize=(14, 7), tight_layout=True)
+        # plt.xticks(rotation=45)
+        N = len(alphas)
+        ind = np.arange(N)
+        width = 0.05
+        distance = 0.0
+        locations = [-0.20, 0.20]
+        # print(rew_per_goal_high[degree])
+
+        for i in ind:
+            ax.text(i + locations[0] - 2 * width - 2 * distance, -20, "{}".format(better_alphas[i]), fontsize=7)
+
+        ax.bar(ind + locations[1] - 2 * width - 2 * distance, cost_com_high[degree], width, color=PALETTE[0])
+        ax.bar(ind + locations[1] - width - distance, cost_per_time_high[degree], width, color=PALETTE[1])
+        ax.bar(ind + locations[1], cost_per_acc_high[degree], width, color=PALETTE[2])
+        ax.bar(ind + locations[1] + width + distance, -np.array(rew_per_goal_high[degree]), width, color=PALETTE[3])
+        ax.bar(ind + locations[1] + 2 * width + 2 * distance, cost_high[degree], width, color="grey")
+
+        ax.bar(ind + locations[0] - 2 * width - 2 * distance, better_cost_com_low[degree], width, color=PALETTE[0])
+        ax.bar(ind + locations[0] - width - distance, better_cost_per_time_low[degree], width, color=PALETTE[1])
+        ax.bar(ind + locations[0], better_cost_per_acc_low[degree], width, color=PALETTE[2])
+        ax.bar(ind + locations[0] + width + distance, -np.array(better_rew_per_goal_low[degree]), width,
+               color=PALETTE[3])
+        ax.bar(ind + locations[0] + 2 * width + 2 * distance, better_cost_low[degree], width, color="grey")
+
+        # ax.bar(ind + locations[0], cost_com_low[degree], width, color=PALETTE[0])
+        # ax.bar(ind + locations[0], cost_per_time_low[degree], width, bottom=cost_com_low[degree], color=PALETTE[1])
+        # ax.bar(ind + locations[0], cost_per_acc_low[degree], width,
+        #        bottom=np.add(cost_com_low[degree], cost_per_time_low[degree]), color=PALETTE[2])
+        xticks = [i + loc for i in ind for loc in locations]
+        xlabels = [r"$\alpha$ = {}, {}".format(a, x) for a in alphas for x in [r"$\gamma^*$", r"$\gamma_{NE}$"]]
+        ax.legend(labels=[r'$J^{com}$', r'$J^{per, time}$', r'$J^{per, acc}$', r'$J^{per, prog}$', r'$J^{total}$'])
+        plt.xticks(xticks, xlabels, rotation=90)
+        # ax.set_yticks([0], minor=False)
+        # ax.yaxis.grid(True, which="major")
+        ax.axhline(0, linestyle='-', linewidth=1, color='k')  # horizontal line
+        ax.set_axisbelow(True)
+        ax.yaxis.grid(True)
+
+        plt.ylabel(r"total cost  $J(\gamma)$")
+
+        plt.savefig(Path(fig_save_folder, "costs_plot_degree_{}_better_opt_policies.png".format(degree)), dpi=500)
 
 
 def parse_args():

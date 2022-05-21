@@ -75,10 +75,10 @@ def main(path,
                           log_path=log_path,
                           )
 
-            # copy and rename reward, checkpoint plot to plots/overview
-            plot_name = Path(log_path, os.listdir(log_path)[0], "episode_reward_mean_timesteps_total.png")
-            new_plot_name = Path(overview_path, "-".join(key.split('/')[-2:]) + ".png")
-            shutil.copy(plot_name, new_plot_name)
+            # # copy and rename reward, checkpoint plot to plots/overview
+            # plot_name = Path(log_path, os.listdir(log_path)[0], "episode_reward_mean_timesteps_total.png")
+            # new_plot_name = Path(overview_path, "-".join(key.split('/')[-2:]) + ".png")
+            # shutil.copy(plot_name, new_plot_name)
 
     if do_convergence:
         conv_paths = get_convergence_paths(path)
@@ -88,7 +88,7 @@ def main(path,
 
             training_analysis.main(c_path, log_path)
 
-    # should do manual cn
+    # should do manual convergence first
     if concat_convergence:
         manual_convergence_paths = [x[0] + "/convergence_logs_manual.csv" for x in
                                     os.walk(Path(path, "evaluation", "convergence"))
@@ -179,7 +179,7 @@ def main(path,
         scenario_name = df_info["scenario"][0].split('/')[-1]
         evaluation_runs_path = Path(path, "evaluation", "evaluation_runs")
         evaluation_runs_paths = list_all_run_paths(str(evaluation_runs_path))
-        coloring = ["reward"]  # ["control_input", "speed", "reward", "acceleration", "agents"]
+        coloring = ["control_input", "speed", "reward", "acceleration", "agents"]  # ["control_input", "speed", "reward", "acceleration", "agents"]
         evaluation.main(evaluation_runs_paths,
                         scenario_name,
                         checkpoints=None,  # leave None for all available checkpoints

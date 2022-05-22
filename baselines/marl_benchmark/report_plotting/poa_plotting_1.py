@@ -32,7 +32,8 @@ PALETTE = ['#A93226',  # red
            ]
 
 
-def main(eval_path):
+def main(path):
+    eval_path = Path(path, "evaluation")
     fig_save_folder = Path(eval_path, "figures_test")
     fig_save_folder.mkdir(parents=True, exist_ok=True)
 
@@ -66,6 +67,13 @@ def main(eval_path):
     rew_per_goal_high = dict([(deg, []) for deg in degrees])
     rew_per_goal_low = dict([(deg, []) for deg in degrees])
 
+    opt_name = dict([(deg, []) for deg in degrees])
+    worst_ne_name = dict([(deg, []) for deg in degrees])
+    opt_run_path = dict([(deg, []) for deg in degrees])
+    worst_ne_run_path = dict([(deg, []) for deg in degrees])
+    opt_eval_path = dict([(deg, []) for deg in degrees])
+    worst_ne_eval_path = dict([(deg, []) for deg in degrees])
+
     for degree in degrees:
         for alpha in alphas:
             if (alpha, degree) not in alpha_degree_pairs:
@@ -82,6 +90,8 @@ def main(eval_path):
             rews_per_goal = []
             paradigms = []
             names = []
+            run_paths = []
+            eval_paths = []
             for i, row in df.iterrows():
                 if row["goal_reached_perc"] < goal_reached_threshold or \
                         str(row["evaluation_path"]) == "nan":
@@ -108,6 +118,8 @@ def main(eval_path):
                                 len(run_data[agent]["episode_cost_com"]))
 
                 names.append(row["name"])
+                run_paths.append(row["run_path"])
+                eval_paths.append(row["evaluation_path"])
                 costs.append(cost)
                 paradigms.append(row["paradigm"])
                 costs_com.append(cost_com)
@@ -118,6 +130,8 @@ def main(eval_path):
             # sorted stuff
             costs_sorted = []
             names_sorted = []
+            run_paths_sorted = []
+            eval_paths_sorted = []
             paradigms_sorted = []
             costs_com_sorted = []
             costs_per_acc_sorted = []
@@ -127,6 +141,8 @@ def main(eval_path):
             # decentralized
             costs_sorted_decent = []
             names_sorted_decent = []
+            run_paths_sorted_decent = []
+            eval_paths_sorted_decent = []
             costs_com_sorted_decent = []
             costs_per_acc_sorted_decent = []
             costs_per_time_sorted_decent = []
@@ -135,6 +151,8 @@ def main(eval_path):
             # centralized
             costs_sorted_cent = []
             names_sorted_cent = []
+            run_paths_sorted_cent = []
+            eval_paths_sorted_cent = []
             costs_com_sorted_cent = []
             costs_per_acc_sorted_cent = []
             costs_per_time_sorted_cent = []
@@ -144,6 +162,8 @@ def main(eval_path):
                 index = np.argmin(costs)
                 costs_sorted.append(costs[index])
                 names_sorted.append(names[index])
+                run_paths_sorted.append(run_paths[index])
+                eval_paths_sorted.append(eval_paths[index])
                 paradigms_sorted.append(paradigms[index])
                 costs_com_sorted.append((costs_com[index]))
                 costs_per_acc_sorted.append(costs_per_acc[index])
@@ -152,6 +172,8 @@ def main(eval_path):
                 if paradigms[index] == "centralized":
                     costs_sorted_cent.append(costs[index])
                     names_sorted_cent.append(names[index])
+                    run_paths_sorted_cent.append(run_paths[index])
+                    eval_paths_sorted_cent.append(eval_paths[index])
                     costs_com_sorted_cent.append(costs_com[index])
                     costs_per_acc_sorted_cent.append(costs_per_acc[index])
                     costs_per_time_sorted_cent.append(costs_per_time[index])
@@ -159,6 +181,8 @@ def main(eval_path):
                 else:
                     costs_sorted_decent.append(costs[index])
                     names_sorted_decent.append(names[index])
+                    run_paths_sorted_decent.append(run_paths[index])
+                    eval_paths_sorted_decent.append(eval_paths[index])
                     costs_com_sorted_decent.append(costs_com[index])
                     costs_per_acc_sorted_decent.append(costs_per_acc[index])
                     costs_per_time_sorted_decent.append(costs_per_time[index])
@@ -177,7 +201,22 @@ def main(eval_path):
             cost_high[degree].append(costs_sorted_decent[-1])
             cost_low[degree].append(costs_sorted[0])
 
+            opt_name[degree].append(names_sorted[0])
+            worst_ne_name[degree].append(names_sorted_decent[-1])
+            opt_run_path[degree].append(run_paths_sorted[0])
+            worst_ne_run_path[degree].append(run_paths_sorted_decent[-1])
+            opt_eval_path[degree].append(eval_paths_sorted[0])
+            worst_ne_eval_path[degree].append(eval_paths_sorted_decent[-1])
+
             print(poas[degree][-1])
+
+    for degree in degrees:
+        infos = {"alpha": alphas, "opt_name": opt_name[degree], "worst_ne_name": worst_ne_name[degree],
+                 "opt_run_path": opt_run_path[degree], "worst_ne_run_path": worst_ne_run_path[degree],
+                 "opt_eval_path": opt_eval_path[degree], "worst_ne_eval_path": worst_ne_eval_path[degree]}
+        print(infos)
+        df_names = pd.DataFrame.from_dict(infos)
+        df_names.to_csv(Path(fig_save_folder, "infos.csv"))
 
     better_cost_low = copy.deepcopy(cost_low)
     better_cost_com_low = copy.deepcopy(cost_com_low)
@@ -212,7 +251,7 @@ def main(eval_path):
                 color=PALETTE[i], marker="x", markersize=10, label="degree = {}".format(degree),
                 linestyle=(0, (5, 10)))
         ax.plot(alphas, better_poas[degree],
-                color=PALETTE[i+1], marker="x", markersize=10, label="with all optimal policies".format(degree),
+                color=PALETTE[i + 1], marker="x", markersize=10, label="with all optimal policies".format(degree),
                 linestyle=(0, (5, 10)))
 
         # for i, alpha in enumerate(alphas):
@@ -354,4 +393,4 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    main(eval_path=args.path)
+    main(path=args.path)

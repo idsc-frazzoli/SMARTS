@@ -279,12 +279,12 @@
 #done
 
 
-# 22.05.2022 additional decent runs
-for (( i=0; i<7; i++ ))
+# 22.05.2022 7 additional decent runs, 25.05.2022 3 additional decent runs
+for (( i=0; i<3; i++ ))
 do
-#  # container 11
-#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p100_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p100_degree2/decent
-#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p154_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p154_degree2/decent
+  # container 11
+  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p100_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p100_degree2/decent
+  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p154_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p154_degree2/decent
 #  # container 12
 #  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p239_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p239_degree2/decent
 #  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p368_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p368_degree2/decent
@@ -294,7 +294,7 @@ do
 #  # container 14
 #  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_1p36_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha1p36_degree2/decent
 #  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_2p10_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha2p10_degree2/decent
-  # container 15
-  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_3p24_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha3p24_degree2/decent
-  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_5p00_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha5p00_degree2/decent
+#  # container 15
+#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_3p24_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha3p24_degree2/decent
+#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_5p00_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha5p00_degree2/decent
 done

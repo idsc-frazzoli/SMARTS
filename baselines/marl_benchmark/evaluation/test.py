@@ -7,6 +7,7 @@ import os
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -81,7 +82,7 @@ def main():
     axs[1, 0].plot([1, 3], [2, 3])
     axs[2, 0].plot([1, 3], [2, 3])
 
-    cmap = matplotlib.cm.cool
+    cmap = LinearSegmentedColormap.from_list('rg', ["#008000", "#00FF00", "#ffff00", "#FF0000", "#800000"], N=256)
     norm = matplotlib.colors.Normalize(vmin=5, vmax=10)
 
     fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
@@ -103,6 +104,6 @@ def test(empty):
 
 
 if __name__ == "__main__":
-    # main()
-    test(True)
+    main()
+    # test(True)
 

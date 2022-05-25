@@ -16,6 +16,7 @@ import shutil
 from timeit import default_timer as timer
 
 from scipy.stats import gaussian_kde
+from matplotlib.colors import LinearSegmentedColormap
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -121,6 +122,14 @@ def get_info(checkpoint_path: Union[str, Path]):
             'min_y_pos': 0.0,
             'max_y_pos': 0.0,
             'n_agents': None,
+            'max_cost_com': -1e10,
+            'min_cost_com': 1e10,
+            'max_cost_per_acceleration': -1e10,
+            'min_cost_per_acceleration': 1e10,
+            'max_goal_improvement_reward': -1e10,
+            'min_goal_improvement_reward': 1e10,
+            'max_cost_per': -1e10,
+            'min_cost_per': 1e10,
             }
 
     times = os.listdir(Path(checkpoint_path))
@@ -133,6 +142,9 @@ def get_info(checkpoint_path: Union[str, Path]):
             for agent in range(info['n_agents']):
                 csv_path = Path(checkpoint_path, time, episode, 'agent_AGENT-{}.csv'.format(str(agent)))
                 df = pd.read_csv(csv_path, index_col=0, header=None).T
+                cost_per = [list(df['cost_per_time'])[i] + list(df['cost_per_acceleration'])[i] -
+                            list(df['goal_improvement_reward'])[i]
+                            for i in range(len(list(df['cost_per_time'])))]
                 info['max_episode_length'] = max(info['max_episode_length'], df.shape[0])
                 info['max_speed'] = max(info['max_speed'], max(df["Speed"]))
                 info['min_speed'] = min(info['min_speed'], min(df["Speed"]))
@@ -144,6 +156,18 @@ def get_info(checkpoint_path: Union[str, Path]):
                 info['min_x_pos'] = min(info['min_x_pos'], min(df["Xpos"]))
                 info['max_y_pos'] = max(info['max_y_pos'], max(df["Ypos"]))
                 info['min_y_pos'] = min(info['min_y_pos'], min(df["Ypos"]))
+                info['max_cost_com'] = max(info['max_cost_com'], max(df['cost_com']))
+                info['min_cost_com'] = min(info['min_cost_com'], min(df['cost_com']))
+                info['max_cost_per_acceleration'] = max(info['max_cost_per_acceleration'],
+                                                        max(df['cost_per_acceleration']))
+                info['min_cost_per_acceleration'] = min(info['min_cost_per_acceleration'],
+                                                        min(df['cost_per_acceleration']))
+                info['max_goal_improvement_reward'] = max(info['max_goal_improvement_reward'],
+                                                          max(df['goal_improvement_reward']))
+                info['min_goal_improvement_reward'] = min(info['min_goal_improvement_reward'],
+                                                          min(df['goal_improvement_reward']))
+                info['max_cost_per'] = max(info['max_cost_per'], max(cost_per))
+                info['min_cost_per'] = min(info['min_cost_per'], min(cost_per))
 
     return info
 
@@ -393,7 +417,8 @@ def animate_positions(checkpoint_path: Path,
                       scenario_map: Map,
                       coloring: str = "speed"
                       ) -> None:
-    assert coloring in ["speed", "agents", "reward", "acceleration", "control_input"]
+    assert coloring in ["speed", "agents", "reward", "acceleration", "control_input", "cost_com",
+                        "time", "cost_per_acceleration", "goal_improvement_reward", "cost_per"]
 
     plots_path = Path(checkpoint_path, 'plots', 'tmp_{}'.format(coloring))
     plots_path.mkdir(parents=True, exist_ok=True)
@@ -401,7 +426,7 @@ def animate_positions(checkpoint_path: Path,
     matplotlib.rcParams['savefig.dpi'] = 100
 
     info = get_info(checkpoint_path)
-    print(info)
+    print(checkpoint_path)
 
     dfs, _ = load_checkpoint_dfs(checkpoint_path, info)
 
@@ -410,6 +435,9 @@ def animate_positions(checkpoint_path: Path,
     else:
         dx_dy = (scenario_map.x_lim[1] - scenario_map.x_lim[0]) / (scenario_map.y_lim[1] - scenario_map.y_lim[0])
     aspect_ratio = scenario_map.aspect_ratio
+
+    cmap_green_red = LinearSegmentedColormap.from_list('rg', ["#008000", "#00FF00", "#ffff00", "#FF0000", "#800000"], N=256)
+    cmap_red_green = LinearSegmentedColormap.from_list('rg', ["#800000", "#FF0000", "#ffff00", "#00FF00", "#008000"], N=256)
 
     if coloring == "speed":
         for time_step in range(int(info['max_episode_length'])):
@@ -525,6 +553,83 @@ def animate_positions(checkpoint_path: Path,
             plt.legend(loc='upper right')
             plt.savefig(Path(plots_path, '{:04d}.png'.format(time_step)))
             plt.close('all')
+
+    if coloring == "cost_com":
+        for time_step in range(int(info['max_episode_length'])):
+            print('Current frame: {}'.format(time_step))
+            fig, axs = plt.subplots(1, 2, figsize=aspect_ratio, tight_layout=True,
+                                    gridspec_kw={'width_ratios': [int(dx_dy * 10), 1]})
+            scenario_map.plot(axs[0])
+            axs[0].set_aspect('equal', 'box')
+            for agent in range(info['n_agents']):
+                for df in dfs[agent]:
+                    norm_cc = matplotlib.colors.Normalize(vmin=info['min_cost_com'], vmax=info['max_cost_com'])
+                    axs[0].scatter(df['Xpos'][:time_step], df['Ypos'][:time_step],
+                                   c=df["cost_com"][:time_step], vmin=info['min_cost_com'], vmax=info['max_cost_com'],
+                                   label='Agent ' + str(agent),
+                                   s=2,
+                                   cmap=cmap_green_red,
+                                   alpha=0.1)
+                    axs[0].set_xlabel(r'x $[m]$')
+                    axs[0].set_ylabel(r'y $[m]$')
+                    axs[0].set_aspect('equal', 'box')
+                    fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm_cc, cmap=cmap_green_red),
+                                 cax=axs[1], orientation='vertical', label=r"clearance cost")
+            plt.savefig(Path(plots_path, '{:04d}.png'.format(time_step)))
+            plt.close('all')
+
+    if coloring == "cost_per_acceleration":
+        for time_step in range(int(info['max_episode_length'])):
+            print('Current frame: {}'.format(time_step))
+            fig, axs = plt.subplots(1, 2, figsize=aspect_ratio, tight_layout=True,
+                                    gridspec_kw={'width_ratios': [int(dx_dy * 10), 1]})
+            scenario_map.plot(axs[0])
+            axs[0].set_aspect('equal', 'box')
+            for agent in range(info['n_agents']):
+                for df in dfs[agent]:
+                    norm_pa = matplotlib.colors.Normalize(vmin=info['min_cost_per_acceleration'],
+                                                          vmax=info['max_cost_per_acceleration'])
+                    axs[0].scatter(df['Xpos'][:time_step], df['Ypos'][:time_step],
+                                   c=df["cost_per_acceleration"][:time_step],
+                                   vmin=info['min_cost_per_acceleration'], vmax=info['max_cost_per_acceleration'],
+                                   label='Agent ' + str(agent),
+                                   s=2,
+                                   cmap=cmap_green_red,
+                                   alpha=0.1)
+                    axs[0].set_xlabel(r'x $[m]$')
+                    axs[0].set_ylabel(r'y $[m]$')
+                    axs[0].set_aspect('equal', 'box')
+                    fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm_pa, cmap=cmap_green_red),
+                                 cax=axs[1], orientation='vertical', label=r"personal acceleration cost")
+            plt.savefig(Path(plots_path, '{:04d}.png'.format(time_step)))
+            plt.close('all')
+
+    if coloring == "goal_improvement_reward":
+        for time_step in range(int(info['max_episode_length'])):
+            print('Current frame: {}'.format(time_step))
+            fig, axs = plt.subplots(1, 2, figsize=aspect_ratio, tight_layout=True,
+                                    gridspec_kw={'width_ratios': [int(dx_dy * 10), 1]})
+            scenario_map.plot(axs[0])
+            axs[0].set_aspect('equal', 'box')
+            for agent in range(info['n_agents']):
+                for df in dfs[agent]:
+                    norm_gir = matplotlib.colors.Normalize(vmin=info['min_goal_improvement_reward'],
+                                                           vmax=info['max_goal_improvement_reward'])
+                    axs[0].scatter(df['Xpos'][:time_step], df['Ypos'][:time_step],
+                                   c=df["goal_improvement_reward"][:time_step],
+                                   vmin=info['min_goal_improvement_reward'], vmax=info['max_goal_improvement_reward'],
+                                   label='Agent ' + str(agent),
+                                   s=2,
+                                   cmap=cmap_red_green,
+                                   alpha=0.1)
+                    axs[0].set_xlabel(r'x $[m]$')
+                    axs[0].set_ylabel(r'y $[m]$')
+                    axs[0].set_aspect('equal', 'box')
+                    fig.colorbar(matplotlib.cm.ScalarMappable(norm=norm_gir, cmap=cmap_red_green),
+                                 cax=axs[1], orientation='vertical', label=r"goal improvement reward")
+            plt.savefig(Path(plots_path, '{:04d}.png'.format(time_step)))
+            plt.close('all')
+
 
     datetime = strftime("%Y%m%d_%H%M%S_", gmtime())
     make_video(tmp_path=plots_path,

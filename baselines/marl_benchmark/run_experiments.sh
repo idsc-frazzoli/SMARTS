@@ -282,12 +282,12 @@
 # 22.05.2022 7 additional decent runs, 25.05.2022 3 additional decent runs
 for (( i=0; i<3; i++ ))
 do
-  # container 11
-  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p100_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p100_degree2/decent
-  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p154_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p154_degree2/decent
-#  # container 12
-#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p239_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p239_degree2/decent
-#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p368_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p368_degree2/decent
+#  # container 11
+#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p100_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p100_degree2/decent
+#  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p154_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p154_degree2/decent
+  # container 12
+  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p239_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p239_degree2/decent
+  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p368_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p368_degree2/decent
 #  # container 13
 #  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p570_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p570_degree2/decent
 #  python run.py scenarios/custom/merge/merge65_lanes42 -f marl_benchmark/agents/ppo/20220513_merge65_lanes42/baseline-lane-control_decent_0p879_2.yaml --num_workers 5 --headless --paradigm decentralized --stop_time 150000 --horizon 80 --log_dir ./log/results/run/20220513_merge65_lanes42/alpha0p879_degree2/decent

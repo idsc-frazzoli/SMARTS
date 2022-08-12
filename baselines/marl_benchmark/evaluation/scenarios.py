@@ -89,7 +89,6 @@ def get_merge65_lanes42():
 
 
 def get_straight_merge90_lanes7():
-
     straight_merge90_lanes7_lanes = [StraightLane(boundaries=[((0, 90.6), (0, 0)), ((0, 90.6), (-22.3, -22.3))],
                                                   center_lines=[((0, 90.6), (-3.3, -3.3)),
                                                                 ((0, 90.6), (-6.5, -6.5)),
@@ -104,6 +103,23 @@ def get_straight_merge90_lanes7():
                                       aspect_ratio=(16, 5))
 
     return straight_merge90_lanes7_map
+
+
+def get_int_4():
+    int_4_lanes = [StraightLane(boundaries=[((0, 34.3), (3.2, 3.2)), ((0, 34.3), (-3.2, -3.2))],
+                                center_lines=[((0, 34.3), (0, 0))]),
+                   StraightLane(boundaries=[((34.3, 34.3), (-37.5, -3.2)), ((40.7, 40.7), (-37.5, -3.2))],
+                                center_lines=[((37.5, 37.5), (-37.5, -3.2))]),
+                   StraightLane(boundaries=[((34.3, 34.3), (37.5, 3.2)), ((40.7, 40.7), (37.5, 3.2))],
+                                center_lines=[((37.5, 37.5), (37.5, 3.2))]),
+                   StraightLane(boundaries=[((40.7, 75), (3.2, 3.2)), ((40.7, 75), (-3.2, -3.2))],
+                                center_lines=[((40.7, 75), (0, 0))]),
+                   ]
+    int_4_map = Map(lanes=int_4_lanes,
+                    x_lim=(-1.0, 76), y_lim=(-38.5, 38.5),
+                    aspect_ratio=(10, 10))
+
+    return int_4_map
 
 
 def get_empty():

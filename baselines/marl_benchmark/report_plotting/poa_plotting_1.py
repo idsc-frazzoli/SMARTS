@@ -10,7 +10,7 @@ import pickle
 
 import copy
 
-from baselines.marl_benchmark.evaluation.utils import get_info, get_poa, get_rewards, load_checkpoint_dfs
+# from baselines.marl_benchmark.evaluation.utils import load_checkpoint_dfs
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
@@ -32,9 +32,174 @@ PALETTE = ['#A93226',  # red
            ]
 
 
+def load_checkpoint_dfs(checkpoint_path, info):
+    dfs = {}
+    for agent in range(info['n_agents']):
+        dfs[agent] = []
+
+    # if off_road_mask[i] = 1, an off_road_event happened in episode i (in dfs)
+    off_road_mask = []
+    # if collision_mask[i] = 1, a collision happened in episode i (in dfs)
+    collision_mask = []
+    # if goal_reached_mask[i] = 1, every agent reached the goal in episode i (in dfs)
+    goal_reached_mask = []
+
+    times = os.listdir(Path(checkpoint_path))
+    for time in times:
+        if time == "plots":
+            continue
+        episodes = os.listdir(Path(checkpoint_path, time))
+        for episode in episodes:
+            off_road_mask.append(0)
+            collision_mask.append(0)
+            goal_reached_mask.append(1)
+            for agent in range(info['n_agents']):
+                csv_path = Path(checkpoint_path, time, episode, 'agent_AGENT-{}.csv'.format(str(agent)))
+                dfs[agent].append(pd.read_csv(csv_path, index_col=0, header=None).T)
+                if dfs[agent][-1]["Num_Collision"][1] > 0:
+                    collision_mask[-1] = 1
+                if dfs[agent][-1]["Num_Off_Road"][1] > 0:
+                    off_road_mask[-1] = 1
+                # if statement because Goal_Reached was added later to episode logs
+                if "Goal_Reached" in dfs[agent][-1].keys():
+                    if dfs[agent][-1]["Goal_Reached"][1] < 1:
+                        goal_reached_mask[-1] = 0
+
+    masks = {"off_road_mask": off_road_mask, "collision_mask": collision_mask, "goal_reached_mask": goal_reached_mask}
+
+    return dfs, masks
+
+
+def get_rewards(dfs,
+                masks,
+                goal_reached_reward: float = 300.0,
+                ):
+    """
+    :param goal_reached_reward: Reward an agent gets upon reaching the goal position/region.
+    :param dfs: Lists of all episode dataframes in a dict with agent keys.
+    :param masks: Masks containing information whether an off-road event happened, a collision happened, or all the
+    agents reached the goals.
+    :return: Two lists of unfiltered and filtered total episode rewards.
+    """
+    off_road_mask = masks["off_road_mask"]
+    collision_mask = masks["collision_mask"]
+    goal_reached_mask = masks["goal_reached_mask"]
+
+    rewards = [0] * len(dfs[0])
+    filtered_rewards = [np.nan] * len(dfs[0])
+
+    for i in range(len(dfs[0])):
+        for agent in dfs.keys():
+            rewards[i] += sum(dfs[agent][i]["Step_Reward"])
+        # if no car went off-road and no collision happened and all cars reached the goal
+        if not off_road_mask[i] and not collision_mask[i] and goal_reached_mask[i]:
+            for agent in dfs.keys():
+                filtered_rewards[i] = 0.0
+                # sum rewards and subtract goal_reached_reward
+                filtered_rewards[i] += sum(dfs[agent][i]["Step_Reward"]) - goal_reached_reward
+
+    filtered_rewards = [x for x in filtered_rewards if x is not np.nan]
+
+    return rewards, filtered_rewards
+
+
+def get_poa(cent_rewards_filtered, decent_rewards_filtered):
+    min_rew = min(min(cent_rewards_filtered), min(decent_rewards_filtered))
+    max_rew = max(max(cent_rewards_filtered), max(decent_rewards_filtered))
+
+    rew_range = max_rew - min_rew
+
+    cent_rew_normalized = [(x - min_rew) / rew_range for x in cent_rewards_filtered]
+    decent_rew_normalized = [(x - min_rew) / rew_range for x in decent_rewards_filtered]
+
+    poa = np.mean(cent_rew_normalized) / np.mean(decent_rew_normalized)
+
+    return poa, cent_rew_normalized, decent_rew_normalized
+
+
+def get_info(checkpoint_path):
+    info = {'max_episode_length': 0,
+            'min_speed': 0.0,
+            'max_speed': 16.0,
+            'min_acceleration': 100.0,
+            'max_acceleration': -100.0,
+            'max_step_reward': 0.0,
+            'min_step_reward': 0.0,
+            'min_x_pos': 0.0,
+            'max_x_pos': 0.0,
+            'min_y_pos': 0.0,
+            'max_y_pos': 0.0,
+            'n_agents': None,
+            'max_cost_com': -1e10,
+            'min_cost_com': 1e10,
+            'max_cost_per_acceleration': -1e10,
+            'min_cost_per_acceleration': 1e10,
+            'max_goal_improvement_reward': -1e10,
+            'min_goal_improvement_reward': 1e10,
+            'max_cost_per': -1e10,
+            'min_cost_per': 1e10,
+            }
+
+    times = os.listdir(Path(checkpoint_path))
+    for time in times:
+        # print(time)
+        if time == "plots":
+            continue
+        episodes = os.listdir(Path(checkpoint_path, time))
+        print(episodes)
+        for episode in episodes:
+            info['n_agents'] = len(os.listdir(Path(checkpoint_path, time, episode)))
+            for agent in range(info['n_agents']):
+                csv_path = Path(checkpoint_path, time, episode, 'agent_AGENT-{}.csv'.format(str(agent)))
+                df = pd.read_csv(csv_path, index_col=0, header=None).T
+                info['max_episode_length'] = max(info['max_episode_length'], df.shape[0])
+                info['max_speed'] = max(info['max_speed'], max(df["Speed"]))
+                info['min_speed'] = min(info['min_speed'], min(df["Speed"]))
+                info['max_acceleration'] = max(info['max_acceleration'], max(df["Acceleration"]))
+                info['min_acceleration'] = min(info['min_acceleration'], min(df["Acceleration"]))
+                info['max_step_reward'] = max(info['max_step_reward'], max(df["Step_Reward"]))
+                info['min_step_reward'] = min(info['min_step_reward'], min(df["Step_Reward"]))
+                info['max_x_pos'] = max(info['max_x_pos'], max(df["Xpos"]))
+                info['min_x_pos'] = min(info['min_x_pos'], min(df["Xpos"]))
+                info['max_y_pos'] = max(info['max_y_pos'], max(df["Ypos"]))
+                info['min_y_pos'] = min(info['min_y_pos'], min(df["Ypos"]))
+                # in some older evaluation run files, this information does not exist
+                try:
+                    cost_per = [list(df['cost_per_time'])[i] + list(df['cost_per_acceleration'])[i] -
+                                list(df['goal_improvement_reward'])[i]
+                                for i in range(len(list(df['cost_per_time'])))]
+                    info['max_cost_com'] = max(info['max_cost_com'], max(df['cost_com']))
+                    info['min_cost_com'] = min(info['min_cost_com'], min(df['cost_com']))
+                    info['max_cost_per_acceleration'] = max(info['max_cost_per_acceleration'],
+                                                            max(df['cost_per_acceleration']))
+                    info['min_cost_per_acceleration'] = min(info['min_cost_per_acceleration'],
+                                                            min(df['cost_per_acceleration']))
+                    info['max_goal_improvement_reward'] = max(info['max_goal_improvement_reward'],
+                                                              max(df['goal_improvement_reward']))
+                    info['min_goal_improvement_reward'] = min(info['min_goal_improvement_reward'],
+                                                              min(df['goal_improvement_reward']))
+                    info['max_cost_per'] = max(info['max_cost_per'], max(cost_per))
+                    info['min_cost_per'] = min(info['min_cost_per'], min(cost_per))
+                except:
+                    continue
+
+    return info
+
+
 def main(path):
+    plt.rcParams['savefig.dpi'] = 800
+    plt.rcParams["text.usetex"] = True
+
+    plt.rcParams.update({'font.size': 14})
+    plt.rcParams.update({'axes.titlesize': 18})
+    plt.rcParams.update({'axes.labelsize': 16})
+    plt.rcParams.update({'xtick.labelsize': 14})
+    plt.rcParams.update({'ytick.labelsize': 14})
+    plt.rcParams.update({'legend.fontsize': 16})
+    plt.rcParams.update({'figure.titlesize': 14})
+
     eval_path = Path(path, "evaluation")
-    fig_save_folder = Path(eval_path, "figures_test")
+    fig_save_folder = Path(eval_path, "figures_report")
     fig_save_folder.mkdir(parents=True, exist_ok=True)
 
     with open(Path(eval_path, "data.pickle"), 'rb') as handle:
@@ -93,8 +258,10 @@ def main(path):
             run_paths = []
             eval_paths = []
             for i, row in df.iterrows():
+                print(row["manual_exclude"] == 1.0)
+                print(row["manual_exclude"])
                 if row["goal_reached_perc"] < goal_reached_threshold or \
-                        str(row["evaluation_path"]) == "nan":
+                        str(row["evaluation_path"]) == "nan" or row["manual_exclude"] == 1.0:
                     continue
                 run_data = data[degree][alpha][row["name"]]
                 cost = 0
@@ -377,6 +544,58 @@ def main(path):
         plt.ylabel(r"total cost  $J(\gamma)$")
 
         plt.savefig(Path(fig_save_folder, "costs_plot_degree_{}_better_opt_policies.png".format(degree)), dpi=500)
+
+
+    ################################# plot for report #####################################
+    for degree in degrees:
+        fig, ax = plt.subplots(figsize=(14, 7), tight_layout=True)
+        # plt.xticks(rotation=45)
+        N = len(alphas)
+        ind = np.arange(N)
+        width = 0.05
+        distance = 0.0
+        locations = [-0.20, 0.20]
+        # print(rew_per_goal_high[degree])
+
+        print(better_poas[degree])
+        for i in ind:
+            # ax.text(i + locations[0] - 2 * width - 2 * distance, -20, "{}".format(better_alphas[i]), fontsize=7)
+            ax.text(i + locations[0] - 2 * width - 2 * distance - 0.05, -160,
+                    r"$\textrm{PoA}\approx \ $"+r"${}$".format(np.round(better_poas[degree][i], 3)), fontsize=12)
+
+        ax.bar(ind + locations[1] - 2 * width - 2 * distance, cost_com_high[degree], width, color=PALETTE[0])
+        ax.bar(ind + locations[1] - width - distance, cost_per_time_high[degree], width, color=PALETTE[1])
+        ax.bar(ind + locations[1], cost_per_acc_high[degree], width, color=PALETTE[2])
+        ax.bar(ind + locations[1] + width + distance, -np.array(rew_per_goal_high[degree]), width, color=PALETTE[3])
+        ax.bar(ind + locations[1] + 2 * width + 2 * distance, cost_high[degree], width, color="grey")
+
+        ax.bar(ind + locations[0] - 2 * width - 2 * distance, better_cost_com_low[degree], width, color=PALETTE[0])
+        ax.bar(ind + locations[0] - width - distance, better_cost_per_time_low[degree], width, color=PALETTE[1])
+        ax.bar(ind + locations[0], better_cost_per_acc_low[degree], width, color=PALETTE[2])
+        ax.bar(ind + locations[0] + width + distance, -np.array(better_rew_per_goal_low[degree]), width,
+               color=PALETTE[3])
+        ax.bar(ind + locations[0] + 2 * width + 2 * distance, better_cost_low[degree], width, color="grey")
+
+        # ax.bar(ind + locations[0], cost_com_low[degree], width, color=PALETTE[0])
+        # ax.bar(ind + locations[0], cost_per_time_low[degree], width, bottom=cost_com_low[degree], color=PALETTE[1])
+        # ax.bar(ind + locations[0], cost_per_acc_low[degree], width,
+        #        bottom=np.add(cost_com_low[degree], cost_per_time_low[degree]), color=PALETTE[2])
+        xticks = [i + loc for i in ind for loc in locations]
+        xlabels = [r"$\alpha = {}$, {}".format(a, x) for a in alphas for x in [r"$\gamma^*$", r"$\gamma_{NE}$"]]
+        ax.legend(labels=[r'$C^{com}$', r'$C^{per, time}$', r'$C^{per, acc}$', r'$C^{per, prog}$', r'$C^{total}$'])
+        plt.xticks(xticks, xlabels, rotation=90)
+        # ax.set_yticks([0], minor=False)
+        # ax.yaxis.grid(True, which="major")
+        ax.axhline(0, linestyle='-', linewidth=1, color='k')  # horizontal line
+        ax.set_axisbelow(True)
+        ax.yaxis.grid(True)
+
+        plt.ylim([-200, 700])
+
+        plt.ylabel(r"$\textrm{total social cost} \ C(\gamma)$")
+
+        plt.savefig(Path(fig_save_folder, "costs_plot_degree_report.png"), dpi=800)
+        plt.savefig(Path(fig_save_folder, "costs_plot_degree_report.pdf"))
 
 
 def parse_args():

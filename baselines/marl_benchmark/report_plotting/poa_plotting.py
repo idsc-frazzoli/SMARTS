@@ -34,7 +34,7 @@ PALETTE = ['#A93226',  # red
 
 def main(eval_path):
 
-    fig_save_folder = Path(eval_path, "figures")
+    fig_save_folder = Path(eval_path, "figures_report")
     fig_save_folder.mkdir(parents=True, exist_ok=True)
 
     with open(Path(eval_path, "data.pickle"), 'rb') as handle:

@@ -58,6 +58,15 @@ PALETTE = ['#A93226',  # red
            '#138D75',  # #blue/green 2
            ]
 
+PALETTE_REP = ['#A93226',  # red
+               '#884EA0',  # purple
+               '#2471A3',  # blue
+               '#D4AC0D',  # yellow
+               '#229954',  # green
+               ] * 10
+
+LINESTYLES = ['solid'] * 5 + ['dashed'] * 5 + ['dashdot'] * 5 + ['dotted'] * 5
+
 
 def main(
         paths,
@@ -76,7 +85,6 @@ def main(
         y_lim=None,
         log_path=None,
 ):
-
     if x_axis is None:
         x_axis = ["checkpoints", "time_total_s", "episodes_total", "timesteps_total"]
 
@@ -150,7 +158,7 @@ def main(
     for i, df in enumerate(dfs):
         ax.plot(df['time_total_s'],
                 df['timesteps_total'],
-                color=PALETTE[i], label=legend[i])
+                color=PALETTE_REP[i], linestyle=LINESTYLES[i], label=legend[i])
         # plt.title(title)
     plt.legend()
     plt.ylabel('total time steps')

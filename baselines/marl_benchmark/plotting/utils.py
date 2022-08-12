@@ -22,6 +22,15 @@ PALETTE = ['#A93226',  # red
            '#138D75',  # #blue/green 2
            ]
 
+PALETTE_REP = ['#A93226',  # red
+               '#884EA0',  # purple
+               '#2471A3',  # blue
+               '#D4AC0D',  # yellow
+               '#229954',  # green
+               ] * 10
+
+LINESTYLES = ['solid'] * 5 + ['dashed'] * 5 + ['dashdot'] * 5 + ['dotted'] * 5
+
 
 def str2list(s):
     slist = s[1:-1].split(',')
@@ -56,22 +65,22 @@ def plot_mean(x_axis, dfs, ylabel, yname, legend, title, png, pdf, log_path, box
         for i, df in enumerate(dfs):
             if not bxplt:
                 std_devs = [np.std(str2list(x)) for x in df[hist]]
-                ax.plot(xax[i], df[yna], color=PALETTE[i], label=leg[i])
+                ax.plot(xax[i], df[yna], color=PALETTE_REP[i], linestyle=LINESTYLES[i], label=leg[i])
                 ax.fill_between(xax[i],
                                 df[yna] - std_devs,
                                 df[yna] + std_devs,
-                                color=PALETTE[i], alpha=0.2)
+                                color=PALETTE_REP[i], linestyle=LINESTYLES[i], alpha=0.2)
             else:
                 medians = [np.median(str2list(x)) for x in df[hist]]
                 upper = [np.percentile(str2list(x), 75) for x in df[hist]]
                 lower = [np.percentile(str2list(x), 25) for x in df[hist]]
                 maximum = [np.max(str2list(x)) for x in df[hist]]
                 minimum = [np.min(str2list(x)) for x in df[hist]]
-                ax.plot(xax[i], medians, color=PALETTE[i], label=leg[i])
+                ax.plot(xax[i], medians, color=PALETTE_REP[i], linestyle=LINESTYLES[i], label=leg[i])
                 ax.fill_between(xax[i], lower, upper,
-                                color=PALETTE[i], alpha=0.2)
+                                color=PALETTE_REP[i], linestyle=LINESTYLES[i], alpha=0.2)
                 ax.fill_between(xax[i], minimum, maximum,
-                                color=PALETTE[i], alpha=0.05)
+                                color=PALETTE_REP[i], linestyle=LINESTYLES[i], alpha=0.05)
 
         if leg != [''] * len(dfs):
             ax.legend()

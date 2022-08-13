@@ -316,8 +316,8 @@
 # 3 runs
 for (( i=0; i<3; i++ ))
 do
-  python run.py scenarios/custom/intersection/int_4 -f marl_benchmark/agents/ppo/20220812_4_intersection/baseline-lane-control_decent_1.yaml --num_workers 14 --headless --paradigm decentralized --stop_time 150000 --horizon 100 --log_dir ./log/results/run/20220813_4_intersection/decent
-#  python run.py scenarios/custom/intersection/int_4 -f marl_benchmark/agents/ppo/20220812_4_intersection/baseline-lane-control_cent_1.yaml --num_workers 14 --headless --paradigm centralized --stop_time 150000 --horizon 100 --log_dir ./log/results/run/20220813_4_intersection/cent
+#  python run.py scenarios/custom/intersection/int_4 -f marl_benchmark/agents/ppo/20220812_4_intersection/baseline-lane-control_decent_1.yaml --num_workers 14 --headless --paradigm decentralized --stop_time 150000 --horizon 100 --log_dir ./log/results/run/20220813_4_intersection/decent
+  python run.py scenarios/custom/intersection/int_4 -f marl_benchmark/agents/ppo/20220812_4_intersection/baseline-lane-control_cent_1.yaml --num_workers 14 --headless --paradigm centralized --stop_time 150000 --horizon 100 --log_dir ./log/results/run/20220813_4_intersection/cent
 done
 
 

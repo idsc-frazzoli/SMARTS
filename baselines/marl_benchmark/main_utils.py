@@ -348,3 +348,139 @@ def make_data_pickle(eval_path):
     with open(Path(eval_path, "data.pickle"), 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+
+############################################
+
+def add_evaluation_paths_new(eval_path):
+    df_info_logs = pd.read_csv(Path(eval_path, "info_logs.csv"))
+    # delete unnamed columns
+    df_info_logs = df_info_logs.loc[:, ~df_info_logs.columns.str.contains('^Unnamed')]
+
+    evaluation_paths = []
+    evaluation_runs_path = Path(eval_path, "evaluation_runs")
+    for i, row in df_info_logs.iterrows():
+        name = row["name"]
+        evaluation_path = False
+        for x in os.walk(evaluation_runs_path):
+            if row["paradigm"] in ["CSV_PARSE_ERROR", "CSV_EMPTY_DATA_ERROR"]:
+                break
+            if x[0].split("/")[-1] == name:
+                evaluation_path = x[0]
+                break
+        # evaluation_path = [x[0] for x in list(os.walk(evaluation_runs_path)) if x[0].split("/")[-1] == name]
+        if not evaluation_path:
+            evaluation_path = None
+        # evaluation_path = evaluation_path[0]
+
+        evaluation_paths.append(evaluation_path)
+        # print(i)
+
+    df_info_logs = df_info_logs.assign(evaluation_path=evaluation_paths)
+
+    df_info_logs.to_csv(Path(eval_path, "all_eval_paths.csv"))
+
+
+def make_stats_new(eval_path):
+    df_info_logs = pd.read_csv(Path(eval_path, "all_eval_paths.csv"))
+    # delete unnamed columns
+    df_info_logs = df_info_logs.loc[:, ~df_info_logs.columns.str.contains('^Unnamed')]
+
+    goal_reached_perc = []
+    collision_perc = []
+    off_road_perc = []
+
+    n_agents = []
+
+    for i, row in df_info_logs.iterrows():
+        if str(row["evaluation_path"]) != "nan":
+            print(row["evaluation_path"])
+            for checkpoint in os.listdir(row["evaluation_path"]):
+                checkpoint_path = Path(row["evaluation_path"], checkpoint)
+                info = get_info(checkpoint_path)
+                dfs, masks = load_checkpoint_dfs(checkpoint_path, info)
+                goal_reached_perc.append(sum(masks["goal_reached_mask"]) / len(masks["goal_reached_mask"]))
+                collision_perc.append(sum(masks["collision_mask"]) / len(masks["collision_mask"]))
+                off_road_perc.append(sum(masks["off_road_mask"]) / len(masks["off_road_mask"]))
+                n_agents.append(info["n_agents"])
+        else:
+            goal_reached_perc.append(None)
+            collision_perc.append(None)
+            off_road_perc.append(None)
+            n_agents.append(None)
+
+    df_info_logs = df_info_logs.assign(goal_reached_perc=goal_reached_perc)
+    df_info_logs = df_info_logs.assign(collision_perc=collision_perc)
+    df_info_logs = df_info_logs.assign(off_road_perc=off_road_perc)
+    df_info_logs = df_info_logs.assign(n_agents=n_agents)
+
+    df_info_logs.to_csv(Path(eval_path, "stats.csv"))
+#
+# def make_data_pickle(eval_path):
+#     df_all_conv = pd.read_csv(Path(eval_path, "stats.csv"))
+#     # delete unnamed columns
+#     df_all_conv = df_all_conv.loc[:, ~df_all_conv.columns.str.contains('^Unnamed')]
+#
+#     data = defaultdict(dict)
+#     data_list = ["mean_step_reward",
+#                  "episode_step_reward",
+#                  "mean_cost_com",
+#                  "episode_cost_com",
+#                  "mean_cost_per_time",
+#                  "episode_cost_per_time",
+#                  "mean_cost_per_acceleration",
+#                  "episode_cost_per_acceleration",
+#                  "mean_goal_improvement_reward",
+#                  "episode_goal_improvement_reward",
+#                  ]
+#     alpha_degree_pairs = []
+#     for i, row in df_all_conv.iterrows():
+#         alpha_degree_pairs.append((row["alpha"], row["degree"]))
+#     alpha_degree_pairs = list(set(alpha_degree_pairs))
+#     for adp in alpha_degree_pairs:
+#         data[adp[1]][adp[0]] = dict()
+#
+#     episode_agent_dict = dict([(x, []) for x in data_list])
+#
+#     for i, row in df_all_conv.iterrows():
+#         if str(row["evaluation_path"]) == "nan":
+#             continue
+#
+#         alpha = float(row["alpha"])
+#         degree = float(row["degree"])
+#
+#         run_stats = dict([(agent, copy.deepcopy(episode_agent_dict)) for agent in range(int(row["n_agents"]))])
+#         for checkpoint in os.listdir(row["evaluation_path"]):
+#             checkpoint_path = Path(row["evaluation_path"], checkpoint)
+#             info = get_info(checkpoint_path)
+#             dfs, masks = load_checkpoint_dfs(checkpoint_path, info)
+#             print(checkpoint_path)
+#
+#             goal_reached_mask = masks["goal_reached_mask"]
+#
+#             for agent in dfs.keys():
+#                 for episode in range(len(goal_reached_mask)):
+#                     if goal_reached_mask[episode]:
+#                         run_stats[agent]["mean_step_reward"].append(np.mean(dfs[agent][episode]["Step_Reward"]))
+#                         run_stats[agent]["episode_step_reward"].append(sum(dfs[agent][episode]["Step_Reward"]))
+#                         run_stats[agent]["mean_cost_com"].append(np.mean(dfs[agent][episode]["cost_com"]))
+#                         run_stats[agent]["episode_cost_com"].append(sum(dfs[agent][episode]["cost_com"]))
+#                         run_stats[agent]["mean_cost_per_time"].append(np.mean(dfs[agent][episode]["cost_per_time"]))
+#                         run_stats[agent]["episode_cost_per_time"].append(sum(dfs[agent][episode]["cost_per_time"]))
+#                         run_stats[agent]["mean_cost_per_acceleration"].append(
+#                             np.mean(dfs[agent][episode]["cost_per_acceleration"]))
+#                         run_stats[agent]["episode_cost_per_acceleration"].append(
+#                             sum(dfs[agent][episode]["cost_per_acceleration"]))
+#                         run_stats[agent]["mean_goal_improvement_reward"].append(
+#                             np.mean(dfs[agent][episode]["goal_improvement_reward"]))
+#                         run_stats[agent]["episode_goal_improvement_reward"].append(
+#                             sum(dfs[agent][episode]["goal_improvement_reward"]))
+#
+#         data[degree][alpha][row["name"]] = dict(run_stats)
+#     data = dict(data)
+#     # with open(Path(eval_path, "data.yaml"), 'w') as outfile:
+#     #     yaml.dump(data, outfile, default_flow_style=False)
+#
+#     # save data as pickle
+#     with open(Path(eval_path, "data.pickle"), 'wb') as handle:
+#         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+#

@@ -327,8 +327,8 @@ scl scenario build-all scenarios/custom/intersection/int_3
 
 for (( i=0; i<3; i++ ))
 do
-  python run.py scenarios/custom/intersection/int_3 -f marl_benchmark/agents/ppo/20220814_3_intersection/baseline-lane-control_decent.yaml --num_workers 14 --headless --paradigm decentralized --stop_time 150000 --horizon 110 --log_dir ./log/results/run/20220814_3_intersection/decent
-#  python run.py scenarios/custom/intersection/int_3 -f marl_benchmark/agents/ppo/20220814_3_intersection/baseline-lane-control_cent.yaml --num_workers 14 --headless --paradigm centralized --stop_time 150000 --horizon 110 --log_dir ./log/results/run/20220814_3_intersection/cent
+#  python run.py scenarios/custom/intersection/int_3 -f marl_benchmark/agents/ppo/20220814_3_intersection/baseline-lane-control_decent.yaml --num_workers 14 --headless --paradigm decentralized --stop_time 150000 --horizon 110 --log_dir ./log/results/run/20220814_3_intersection/decent
+  python run.py scenarios/custom/intersection/int_3 -f marl_benchmark/agents/ppo/20220814_3_intersection/baseline-lane-control_cent.yaml --num_workers 14 --headless --paradigm centralized --stop_time 150000 --horizon 110 --log_dir ./log/results/run/20220814_3_intersection/cent
 done
 
 

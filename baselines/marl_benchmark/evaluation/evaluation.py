@@ -174,7 +174,7 @@ def main(
         scenario_map = get_merge65_lanes42()
     elif scenario_name == "straight_merge90_lanes7":
         scenario_map = get_straight_merge90_lanes7()
-    elif scenario_name == "int_4":
+    elif scenario_name in ["int_4", "int_3"]:
         scenario_map = get_int_4()
     else:
         scenario_map = get_empty()

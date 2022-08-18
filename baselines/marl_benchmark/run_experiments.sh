@@ -351,7 +351,7 @@
 
 # 17.08.2022
 scl scenario build-all scenarios/custom/intersection/int_4_rand2
-for (( i=0; i<1; i++ ))
+for (( i=0; i<2; i++ ))
 do
   python run.py scenarios/custom/intersection/int_4_rand2 -f marl_benchmark/agents/ppo/20220817_4_intersection_rand2/baseline-lane-control_decent.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 150000 --horizon 120 --log_dir ./log/results/run/20220817_4_intersection_rand2/decent
   python run.py scenarios/custom/intersection/int_4_rand2 -f marl_benchmark/agents/ppo/20220817_4_intersection_rand2/baseline-lane-control_cent.yaml --num_workers 19 --headless --paradigm centralized --stop_time 150000 --horizon 120 --log_dir ./log/results/run/20220817_4_intersection_rand2/cent

@@ -20,7 +20,7 @@ from pathlib import Path
 
 from baselines.marl_benchmark.main_utils import get_plotting_paths, get_convergence_paths, get_config_yaml_path, \
     get_detailed_reward_adapter, list_all_run_paths, add_rewards_to_csv, add_evaluation_paths, make_stats, \
-    make_data_pickle, add_evaluation_paths_new, make_stats_new
+    make_data_pickle, add_evaluation_paths_new, make_stats_new, make_data_pickle_new
 
 
 from timeit import default_timer as timer
@@ -113,7 +113,7 @@ def main(path,
                                   [config_path],
                                   log_dir,
                                   num_steps=df_info["num_steps"][0],
-                                  num_episodes=100,
+                                  num_episodes=200,
                                   paradigm=row["paradigm"],
                                   headless=True,
                                   show_plots=False,
@@ -140,7 +140,7 @@ def main(path,
     if add_eval_paths:
         add_evaluation_paths_new(eval_path)
         make_stats_new(eval_path)
-        # make_data_pickle_new(eval_path)
+        make_data_pickle_new(eval_path)
 
 
     if do_videos:

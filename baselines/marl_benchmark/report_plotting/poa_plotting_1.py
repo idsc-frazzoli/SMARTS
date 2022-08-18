@@ -294,6 +294,10 @@ def main(path):
                 costs_per_time.append(cost_per_time)
                 rews_per_goal.append(rew_per_goal)
 
+
+
+
+
             # sorted stuff
             costs_sorted = []
             names_sorted = []

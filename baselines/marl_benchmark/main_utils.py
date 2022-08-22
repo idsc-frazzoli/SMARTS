@@ -393,7 +393,7 @@ def make_stats_new(eval_path):
 
     for i, row in df_info_logs.iterrows():
         if str(row["evaluation_path"]) != "nan":
-            print(row["evaluation_path"])
+            # print(row["evaluation_path"])
             for checkpoint in os.listdir(row["evaluation_path"]):
                 checkpoint_path = Path(row["evaluation_path"], checkpoint)
                 info = get_info(checkpoint_path)

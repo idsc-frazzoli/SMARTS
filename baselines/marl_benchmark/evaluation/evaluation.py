@@ -170,7 +170,7 @@ def main(
         scenario_map = get_merge75_lanes321()
     elif scenario_name == "merge90_lanes32":
         scenario_map = get_merge90_lanes32()
-    elif scenario_name in ["merge65_lanes42", "merge65_lanes42_asym"]:
+    elif scenario_name in ["merge65_lanes42", "merge65_lanes42_asym", "merge_2", "merge_3", "merge_4"]:
         scenario_map = get_merge65_lanes42()
     elif scenario_name == "straight_merge90_lanes7":
         scenario_map = get_straight_merge90_lanes7()

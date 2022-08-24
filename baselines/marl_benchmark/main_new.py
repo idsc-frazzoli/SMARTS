@@ -88,53 +88,54 @@ def main(path,
         df_info = pd.read_csv(Path(path, "info"), sep=", ", engine="python")
 
         for index, row in df_info_logs.iterrows():
-            if not row["paradigm"] in ["CSV_PARSE_ERROR", "CSV_EMPTY_DATA_ERROR"]:
-                print(row["run_path"])
-                # print(paradigm_path)
-                # print(PARADIGM_MAP[paradigm])
-                # print(row["paradigm"])
-                # assert PARADIGM_MAP[paradigm] == row["paradigm"], "something went wrong with the paradigm log"
+            if row["paradigm"] in ["CSV_PARSE_ERROR", "CSV_EMPTY_DATA_ERROR"]:
+                continue
+            print(row["run_path"])
+            # print(paradigm_path)
+            # print(PARADIGM_MAP[paradigm])
+            # print(row["paradigm"])
+            # assert PARADIGM_MAP[paradigm] == row["paradigm"], "something went wrong with the paradigm log"
 
-                if row["paradigm"] == "centralized":
-                    config_path = Path(df_info["config_path"][0], "baseline-lane-control_cent.yaml")
-                else:
-                    config_path = Path(df_info["config_path"][0], "baseline-lane-control_decent.yaml")
+            if row["paradigm"] == "centralized":
+                config_path = Path(df_info["config_path"][0], "baseline-lane-control_cent.yaml")
+            else:
+                config_path = Path(df_info["config_path"][0], "baseline-lane-control_decent.yaml")
 
-                max_reward_checkpoint = int(row["max_reward_checkpoint"])
-                run_path = './' + row["run_path"]
-                checkpoint_path = run_path + \
-                                  "/checkpoint_{:06d}".format(max_reward_checkpoint) + \
-                                  "/checkpoint-{}".format(max_reward_checkpoint)
-                log_dir = Path(eval_runs_path, row["paradigm"], row["name"],
-                               "checkpoint_{:06d}".format(max_reward_checkpoint))
-                print(log_dir)
-                if not os.path.isdir(log_dir):
-                    evaluate.main(df_info["scenario"][0],
-                                  [config_path],
-                                  log_dir,
-                                  num_steps=df_info["num_steps"][0],
-                                  num_episodes=200,
-                                  paradigm=row["paradigm"],
-                                  headless=True,
-                                  show_plots=False,
-                                  checkpoint=checkpoint_path,
-                                  data_replay_path=None,
-                                  )
+            max_reward_checkpoint = int(row["max_reward_checkpoint"])
+            run_path = './' + row["run_path"]
+            checkpoint_path = run_path + \
+                              "/checkpoint_{:06d}".format(max_reward_checkpoint) + \
+                              "/checkpoint-{}".format(max_reward_checkpoint)
+            log_dir = Path(eval_runs_path, row["paradigm"], row["name"],
+                           "checkpoint_{:06d}".format(max_reward_checkpoint))
+            print(log_dir)
+            if not os.path.isdir(log_dir):
+                evaluate.main(df_info["scenario"][0],
+                              [config_path],
+                              log_dir,
+                              num_steps=df_info["num_steps"][0],
+                              num_episodes=50,
+                              paradigm=row["paradigm"],
+                              headless=True,
+                              show_plots=False,
+                              checkpoint=checkpoint_path,
+                              data_replay_path=None,
+                              )
 
-                    # add detailed rewards to episode files
-                    config_path_no_marl_benchmark = Path("/".join(str(config_path).split('/')[1:]))
-                    with open(config_path_no_marl_benchmark, 'r') as stream:
-                        config_yaml = yaml.safe_load(stream)
-                        reward_config = config_yaml["agent"]["state"]["wrapper"]
+                # add detailed rewards to episode files
+                config_path_no_marl_benchmark = Path("/".join(str(config_path).split('/')[1:]))
+                with open(config_path_no_marl_benchmark, 'r') as stream:
+                    config_yaml = yaml.safe_load(stream)
+                    reward_config = config_yaml["agent"]["state"]["wrapper"]
 
-                    get_detailed_rewards = get_detailed_reward_adapter(**reward_config)
+                get_detailed_rewards = get_detailed_reward_adapter(**reward_config)
 
-                    times = os.listdir(log_dir)
-                    for time in times:
-                        if time != "plots":
-                            episodes = os.listdir(Path(log_dir, time))
-                            for episode in episodes:
-                                add_rewards_to_csv(Path(log_dir, time, episode), get_detailed_rewards)
+                times = os.listdir(log_dir)
+                for time in times:
+                    if time != "plots":
+                        episodes = os.listdir(Path(log_dir, time))
+                        for episode in episodes:
+                            add_rewards_to_csv(Path(log_dir, time, episode), get_detailed_rewards)
 
 
     if add_eval_paths:

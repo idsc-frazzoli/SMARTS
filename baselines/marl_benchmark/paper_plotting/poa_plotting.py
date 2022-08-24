@@ -50,6 +50,9 @@ def main(eval_path):
         if row["goal_reached_perc"] < goal_reached_threshold:
             continue
 
+        if row["paradigm"] not in ["centralized", "decentralized"]:
+            continue
+
         paradigm = row["paradigm"]
         name = row["name"]
 

@@ -378,12 +378,12 @@
 
 # 22.08.2022
 scl scenario build-all scenarios/custom/merge/merge_4
-for (( i=0; i<3; i++ ))
+for (( i=0; i<2; i++ ))
 do
   python run.py scenarios/custom/merge/merge_4 -f marl_benchmark/agents/ppo/20220822_4_merge/baseline-lane-control_decent.yaml --num_workers 19 --headless --paradigm decentralized --stop_time 150000 --horizon 110 --log_dir ./log/results/run/20220822_4_merge/decent
 done
 
-python run.py scenarios/custom/merge/merge_4 -f marl_benchmark/agents/ppo/20220822_4_merge/baseline-lane-control_cent.yaml --num_workers 19 --headless --paradigm centralized --stop_time 150000 --horizon 110 --log_dir ./log/results/run/20220822_4_merge/cent
+#python run.py scenarios/custom/merge/merge_4 -f marl_benchmark/agents/ppo/20220822_4_merge/baseline-lane-control_cent.yaml --num_workers 19 --headless --paradigm centralized --stop_time 150000 --horizon 110 --log_dir ./log/results/run/20220822_4_merge/cent
 
 
 

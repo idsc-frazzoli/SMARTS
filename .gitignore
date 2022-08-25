@@ -153,6 +153,7 @@ aucg_formulation/overtaking/videos/**
 aucg_formulation/training/**
 baselines/marl_benchmark/report_plotting/4_merge/**
 baselines/marl_benchmark/paper_plotting/data/**
+baselines/marl_benchmark/alpha_poa_test/**
 aucg_formulation/overtaking/tmp/**
 aucg_formulation/overtaking/videos/**
 aucg_formulation/training/**

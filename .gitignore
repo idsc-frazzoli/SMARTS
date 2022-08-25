@@ -143,4 +143,17 @@ nando/
 **/plots/**
 aucg_formulation/training/
 baselines/marl_benchmark/evaluation/evaluation_data
+<<<<<<< HEAD
 **/logs_and_plots/**
+=======
+baselines/marl_benchmark/report_plotting/4_merge/**
+baselines/marl_benchmark/paper_plotting/data/**
+aucg_formulation/overtaking/tmp/**
+aucg_formulation/overtaking/videos/**
+aucg_formulation/training/**
+baselines/marl_benchmark/report_plotting/4_merge/**
+baselines/marl_benchmark/paper_plotting/data/**
+aucg_formulation/overtaking/tmp/**
+aucg_formulation/overtaking/videos/**
+aucg_formulation/training/**
+

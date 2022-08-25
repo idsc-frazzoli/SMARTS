@@ -1,114 +1,140 @@
-
-from world import World
-from world import Resources
-from env import MultiAgentEnv
+from world import World, Resources, Player, Trajectory
+# from env import MultiAgentEnv
 import numpy as np
-from stable_baselines3 import PPO
-from stable_baselines3.common.evaluation import evaluate_policy
 from pathlib import Path
+
+import matplotlib
+import matplotlib.pyplot as plt
 
 import os
 import shutil
-import moviepy.video.io.ImageSequenceClip
+# import moviepy.video.io.ImageSequenceClip
 
 from time import gmtime, strftime
 
-
-def quadspeedcost(agent, state, desired_velocity, dones, resources, time_step):
-    reward = 0.0
-    speed_coeff = 0.1
-    if not dones[agent]:
-        reward -= speed_coeff * np.power(state['velocity'][agent] - desired_velocity[agent], 2)
-    return reward
-
-
-def aucg_cost(agent, state, desired_velocity, dones, resources, time_step):
-    # resource cost function of degree d
-    def resource_cost(load, total_load, neighborhood_factor):
-        degree = 5
-        return neighborhood_factor * load * total_load ** degree
-
-    cost = 0
-    for neigh, neigh_fact in enumerate(resources.neighborhood_factors):
-        cost += sum([resource_cost(resources.resource_map[agent][neigh][time_step][x],
-                                   resources.resource_loads[neigh][time_step][x],
-                                   neigh_fact)
-                     for x in range(resources.nx)])
-
-    return -cost
-
-
-def render_video(save_path, fps=30):
-
-    image_folder = Path('tmp')
-
-    image_files = [os.path.join(image_folder, img)
-                   for img in os.listdir(image_folder)
+def make_video(
+        tmp_path,
+        save_path,
+        fps=20,
+        remove_tmp: bool = True
+):
+    # import from smarts conda environment
+    import moviepy.video.io.ImageSequenceClip
+    image_files = [os.path.join(tmp_path, img)
+                   for img in os.listdir(tmp_path)
                    if img.endswith(".png")]
+
+    print(image_files)
     image_files.sort()
     clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
     print(save_path)
-    clip.write_videofile(save_path + '.mp4')
+    clip.write_videofile(str(save_path), codec="libx264")
 
-    shutil.rmtree(image_folder)
+    if remove_tmp:
+        shutil.rmtree(tmp_path)
 
 
 if __name__ == "__main__":
-    # set up 1D road environment
-    n_agents = 2
-    agents = np.arange(n_agents)
+    total_time_steps = 100
 
-    # road limits
-    limits = np.array([-10, 50])
+    # set up the two hard-coded trajectories
+    player_1_traj_close = Trajectory(total_time_steps=total_time_steps)
+    player_1_traj_far = Trajectory(total_time_steps=total_time_steps)
+    player_2_traj = Trajectory(total_time_steps=total_time_steps)
 
-    # goals and start states of the agents
-    goal = np.array([40, 40])
-    start_state = {'position': np.array([0.0, 5.0]),
-                   'velocity': np.array([11.0, 8.0])}
+    x1 = [2.5 * x * 20 / total_time_steps for x in range(total_time_steps)]
+    x2 = [x * 20 / total_time_steps + 15 for x in range(total_time_steps)]
 
-    # time step size (0.1 seconds)
-    dt = 0.1
+    y1_close = [3.5 * (np.sin(0.06 * x)) ** 3 - 3 for x in x1]
+    y1_far = [7 * (np.sin(0.06 * x)) ** 3 - 3 for x in x1]
+    y2 = [-2.5 for _ in range(total_time_steps)]
 
-    max_timesteps = 50
-    desired_velocity = np.array([15.0, 5.0])
+    player_1_traj_close.set_from_lists(x1, y1_close)
+    player_1_traj_far.set_from_lists(x1, y1_far)
+    player_2_traj.set_from_lists(x2, y2)
 
-    # render_path = Path('log', 'visualization')
+    # initialize world
+    xlim, ylim = (0, 50), (-5, 5)
+    world = World(xlim=xlim, ylim=ylim, total_time_steps=total_time_steps, n_lanes=2)
 
-    # space discretization
-    dx = 1
-    # factors (weights) for the different neighborhoods
-    neighborhood_factors = np.array([1, 0.1, 0.01, 0.001])
-    # neighborhood sizes, 0 means that only the currently occupied space resource is used, one means that all resources
-    # within a one-neighborhood are used (3 resources each time step)
-    neighborhood_sizes = np.array([1, 2, 3, 4])
-    resources = Resources(n_agents, limits, dx, max_timesteps, neighborhood_factors, neighborhood_sizes)
+    # set up players
+    player_1_close = Player(number=0, trajectory=player_1_traj_close, world=world)
+    player_1_far = Player(number=1, trajectory=player_1_traj_far, world=world)
+    player_2 = Player(number=2, trajectory=player_2_traj, world=world)
 
-    world = World(limits, agents, goal, start_state, dt, max_timesteps, desired_velocity, resources)
+    # set up resources
+    dx, dy = 1.0, 1.0
+    poly_cost = [1.0, 0.0, 0.0, 0.0]  # simple quadratic cost (e.g. [1, 0, 0] = 1*x^2 + 0*x^1 + 0*x^0)
+    neigh_factors = [1.0, 0.8, 0.5]
+    neigh_radii = [0.6, 3.0, 6.0]
 
-    # set up environment with aucg cost
-    env = MultiAgentEnv(world, reward_callback=aucg_cost)
+    resources = Resources(world, dx, dy, poly_cost, neigh_factors, neigh_radii)
 
-    # set up PPO model for training
-    model = PPO("MultiInputPolicy", env, verbose=1)
+    cost_close = resources.calculate_cost([player_1_close, player_2])
 
-    # training process
-    num_checkpoints = 20
-    time_steps_per_checkpoint = 50000
-    datetime = strftime("%Y%m%d_%H%M%S", gmtime())
-    model_path = Path('training', 'saved_models', datetime)
-    for checkpoint in range(1, num_checkpoints + 1):
-        cp_path = Path(model_path, 'checkpoints', 'checkpoint_{0:04}'.format(checkpoint))
-        model.learn(total_timesteps=time_steps_per_checkpoint)
-        model.save(cp_path)
+    cost_far = resources.calculate_cost([player_1_far, player_2])
+
+    social_cost_close = sum([sum(x) for x in cost_close])
+    social_cost_far = sum([sum(x) for x in cost_far])
+
+    print(social_cost_close)
+    print(social_cost_far)
+
+    matplotlib.rcParams.update({'font.size': 22})
+
+    # coeffs = np.arange(70, 100, 5)
+    # safety_dists = np.arange(3, 10, 1)
+    # k = 99
+    # for coeff in coeffs:
+    #     for sd in safety_dists:
+
+    for k in range(1, total_time_steps-1):
+        #     print(k)
+        #  plot trajectories
+        fig, [ax1, ax2] = plt.subplots(2, 1, figsize=(world.xlen/2, 1+2*world.ylen/2), tight_layout=True)
+
+        ax1 = player_1_close.trajectory.plot(ax=ax1, world=world, color=player_1_close.color, k_range=[0, k+1])
+        ax1 = player_2.trajectory.plot(ax=ax1, world=world, color=player_2.color, k_range=[0, k+1])
+        # ax1 = player_1_far.trajectory.plot(ax=ax1, world=world, color=player_1_far.color, k_range=[0, k+1])
+
+        ax1 = resources.plot(ax1)
+
+        ax1 = player_1_close.plot_used_resources(ax=ax1, k=k)
+        # ax1 = player_1_far.plot_used_resources(ax=ax1, k=k)
+        ax1 = player_2.plot_used_resources(ax=ax1, k=k)
+
+        ax2.plot(cost_close[0][0:k], color="k", linewidth=2)
+        # ax2.plot(cost_far[0][0:k], color="k", linewidth=2)
+        ax2.scatter(total_time_steps, max(cost_close[0]), color="white")
+        ax2.scatter(0, 0, color="white")
+
+        ax2.set_xlabel('time step t')
+        ax2.set_ylabel('cost')
+        ax2.grid()
+
+        # clearance_cost_close = player_1_close.trajectory.clearance_cost(player_2.trajectory, coeff, sd)
+        # clearance_cost_far = player_1_far.trajectory.clearance_cost(player_2.trajectory, coeff, sd)
+        #
+        # ax2.plot(clearance_cost_close[0:k], color="red", linewidth=2)
+        # # ax2.plot(clearance_cost_far[0:k], color="red", linewidth=2)
 
 
-    # valuate policies
-    video_path = Path(model_path, 'videos')
-    for checkpoint in range(1, num_checkpoints + 1):
-        cp_path = Path(model_path, 'checkpoints', 'checkpoint_{0:04}'.format(checkpoint))
-        model = PPO.load(cp_path, env)
-        evaluate_policy(model, env, n_eval_episodes=1, render=True)
-        video_path.mkdir(parents=True, exist_ok=True)
-        render_video(str(video_path) + '/checkpoint_{0:04}'.format(checkpoint), fps=20)
+        ax1.set_aspect('equal', adjustable='box')
 
+        # hide x-axis
+        ax1.get_xaxis().set_visible(False)
 
+        # hide y-axis
+        ax1.get_yaxis().set_visible(False)
+
+        ax1.spines['top'].set_visible(False)
+        ax1.spines['right'].set_visible(False)
+        ax1.spines['bottom'].set_visible(False)
+        ax1.spines['left'].set_visible(False)
+
+        # fig.savefig("tmp/close_{}_{}.png".format(coeff, sd), dpi=100)
+        # # fig.savefig("tmp/far_{}.png".format(coeff), dpi=100)
+
+        fig.savefig("tmp/{:04d}.png".format(k), dpi=200)
+
+    make_video(Path("tmp"), "videos/close.mp4")

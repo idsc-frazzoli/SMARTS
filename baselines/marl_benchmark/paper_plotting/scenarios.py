@@ -1,4 +1,4 @@
-from baselines.marl_benchmark.evaluation.utils import StraightLane, Map
+from utils import StraightLane, Map
 
 
 def get_merge110_lanes2():
@@ -15,7 +15,7 @@ def get_merge110_lanes2():
                              ]
     merge110_lanes2_map = Map(lanes=merge110_lanes2_lanes,
                               x_lim=(-5.0, 115.0), y_lim=(-17.0, 11.0),
-                              aspect_ratio=(15, 4))
+                              aspect_ratio=(14, 4))
 
     return merge110_lanes2_map
 
@@ -81,9 +81,20 @@ def get_merge65_lanes42():
                              StraightLane(boundaries=[((18.7, 28.8), (0, 3)), ((19.3, 40.6), (-6.4, 0))],
                                           center_lines=[((19, 40.7), (-3.2, 3.05))]),  # E5
                              ]
+
+    road_x1 = [0, 18.6, 40.6, 28.8, 18.7, 0]
+    road_y1 = [-6.4, -6.4, 0, 3, 0, 0]
+    road_x2 = [0, 18.6, 40.6, 28.8, 17.9, 0]
+    road_y2 = [12.4, 12.4, 6.1, 3, 6.1, 6.1]
+    road_x3 = [28.8, 40.6, 65.6, 65.6, 40.6]
+    road_y3 = [3, 6.1, 6.1, 0, 0]
+
     merge65_lanes42_map = Map(lanes=merge65_lanes42_lanes,
                               x_lim=(-2.0, 67.0), y_lim=(-8, 14),
-                              aspect_ratio=(16, 5))
+                              aspect_ratio=(14, 5),
+                              polygons_x=[road_x1, road_x2, road_x3],
+                              polygons_y=[road_y1, road_y2, road_y3]
+                              )
 
     return merge65_lanes42_map
 
@@ -132,9 +143,17 @@ def get_int_4_short():
                          StraightLane(boundaries=[((40.7, 75), (3.2, 3.2)), ((40.7, 75), (-3.2, -3.2))],
                                       center_lines=[((40.7, 75), (0, 0))]),
                          ]
+
+    road_x1 = [0, 75, 75, 0]
+    road_y1 = [3.2, 3.2, -3.2, -3.2]
+    road_x2 = [34.3, 34.3, 40.7, 40.7]
+    road_y2 = [-37.5, 37.5, 37.5, -37.5]
+
     int_4_short_map = Map(lanes=int_4_short_lanes,
                           x_lim=(9.0, 66), y_lim=(-29.5, 29.5),
-                          aspect_ratio=(10, 10))
+                          aspect_ratio=(10, 10),
+                          polygons_x=[road_x1, road_x2],
+                          polygons_y=[road_y1, road_y2])
 
     return int_4_short_map
 

@@ -15,8 +15,7 @@ import shutil
 from baselines.marl_benchmark.evaluation.utils import animate_positions, animate, plot_positions, get_info, \
     make_video, get_rewards, get_poa, load_checkpoint_dfs, set_box_color, density_plot
 
-from baselines.marl_benchmark.evaluation.scenarios import get_empty, get_merge40_lanes1, get_merge110_lanes2, \
-    get_merge75_lanes321, get_merge90_lanes32, get_merge65_lanes42, get_straight_merge90_lanes7, get_int_4
+from baselines.marl_benchmark.evaluation.scenarios import *
 
 FIGSIZE = (16, 9)
 LARGESIZE, MEDIUMSIZE, SMALLSIZE = 16, 13, 10
@@ -176,6 +175,8 @@ def main(
         scenario_map = get_straight_merge90_lanes7()
     elif scenario_name in ["int_4", "int_3", "int_2", "int_4_rand2"]:
         scenario_map = get_int_4()
+    elif scenario_name in ["int_4_short", "int_3_short", "int_2_short", "int_4_rand2_short"]:
+        scenario_map = get_int_4_short()
     else:
         scenario_map = get_empty()
 

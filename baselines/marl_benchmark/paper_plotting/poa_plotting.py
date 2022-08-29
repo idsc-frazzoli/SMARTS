@@ -41,7 +41,7 @@ def main(eval_path):
         data = pickle.load(handle)
     df_stats = pd.read_csv(Path(eval_path, "stats.csv"))
 
-    goal_reached_threshold = 0.75
+    goal_reached_threshold = 0.70
 
     costs, costs_com, costs_per_acc, costs_per_time, rews_per_goal = [], [], [], [], []
     paradigms, names, run_paths, eval_paths = [], [], [], []

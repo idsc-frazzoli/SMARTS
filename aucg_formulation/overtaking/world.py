@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 
 from typing import List
 
-AGENT_COLORS = {
-    0: '#FF0000',
-    1: '#00FF00',
-    2: '#0000FF',
-    3: '#FF00FF',
-    4: '#e41a1c'
-}
+# AGENT_COLORS = {
+#     0: '#FF0000',
+#     1: '#00FF00',
+#     2: '#0000FF',
+#     3: '#FF00FF',
+#     4: '#e41a1c'
+# }
+
+AGENT_COLORS = ["#F9D923", "#EB5353", "#00C897", "#2155CD"]
 
 
 class Resources:
@@ -187,8 +189,9 @@ class Player:
     def set_player_loads(self, player_loads):
         self.player_loads = player_loads
 
-    def plot_used_resources(self, ax, k: int):
-        alpha = 0.6 / self.player_loads.shape[0]
+    def plot_used_resources(self, ax, k: int, alphas: List = []):
+        if not alphas:
+            alphas = [1 / self.player_loads.shape[0] for _ in range(self.player_loads.shape[0])]
         dx, dy = self.world.xlen / self.player_loads.shape[3], self.world.ylen / self.player_loads.shape[2]
         for d in range(self.player_loads.shape[0]):
             for iy in range(self.player_loads.shape[2]):
@@ -198,7 +201,7 @@ class Player:
                                      self.world.xlim[0] + ix * dx + dx, self.world.xlim[0] + ix * dx]
                         y_corners = [self.world.ylim[1] - iy * dy, self.world.ylim[1] - iy * dy,
                                      self.world.ylim[1] - iy * dy - dy, self.world.ylim[1] - iy * dy - dy]
-                        ax.fill(x_corners, y_corners, color=self.color, alpha=alpha)
+                        ax.fill(x_corners, y_corners, color=self.color, alpha=alphas[d])
 
         xpos, ypos = self.trajectory.x_pos[k], self.trajectory.y_pos[k]
         cx = [xpos - 0.9, xpos + 0.9, xpos + 0.9, xpos - 0.9]
